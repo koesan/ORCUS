@@ -2,7 +2,6 @@
 
 # ORCUS
 ### Autonomous Multi-Drone Kamikaze System
-*Named after Orcus, the Roman god of death and the underworld*
 
 <img src="image/logo.png" alt="ORCUS Logo" width="400"/>
 
