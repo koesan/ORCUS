@@ -103,21 +103,9 @@ cp ORCUS/simulator/worlds/multi_drone.world catkin_ws/src/iq_sim/worlds/
 
 **📝 What This Does:**
 
-**Drone Models** (`drone1/` & `drone2/`):
-- Adds **forward-facing cameras** to both drones
-- Camera specifications: RGB sensors for AI vision processing
-- Enables real-time video streaming for human detection
-- **Default drones don't have cameras** - this upgrade is essential for ORCUS
+This step adds **forward-facing RGB cameras** to the default drone models and includes **2 human actor models** in the simulation world. Since default drones don't have cameras, this upgrade is essential for ORCUS to perform human detection and real-time video streaming. The world file also includes pre-configured lighting and environment for optimal camera performance.
 
-**World File** (`multi_drone.world`):
-- Includes **camera-enabled drone models** in simulation
-- Adds **2 human actor models** as targets for testing
-- Pre-configured lighting and environment for optimal camera performance
-
-**⚠️ Important**: 
-- Paths are relative to `ArduGazeboSim` directory
-- Make sure you run these commands from `ArduGazeboSim` folder
-- Old files will be replaced (backup if needed)
+**⚠️ Important:** Paths are relative to `ArduGazeboSim` directory. Run these commands while inside that folder. Old files will be replaced (backup if needed).
 
 ---
 
@@ -249,7 +237,7 @@ YOLO_TRACKING_ENABLED = True            # Enable track persistence
 
 ### 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -331,21 +319,9 @@ cp ORCUS/simulator/worlds/multi_drone.world catkin_ws/src/iq_sim/worlds/
 
 **📝 Bu İşlem Ne Yapar:**
 
-**Drone Modelleri** (`drone1/` & `drone2/`):
-- Her iki drone'a **önüne bakan kameralar** ekler
-- Kamera özellikleri: Yapay zeka görü işleme için RGB sensörler
-- İnsan tespiti için gerçek zamanlı video akışı sağlar
-- **Varsayılan drone'larda kamera yok** - bu güncelleme ORCUS için zorunlu
+Bu adım, varsayılan drone modellerine **önüne bakan RGB kameralar** ekler ve simülasyon dünyasına **2 insan aktör modeli** dahil eder. Varsayılan dronlarda kamera olmadığından, bu güncelleme ORCUS'un insan tespiti ve gerçek zamanlı video akışı yapabilmesi için zorunludur. Ayrıca dünya dosyası optimal kamera performansı için önceden yapılandırılmış aydınlatma ve ortam içerir.
 
-**Dünya Dosyası** (`multi_drone.world`):
-- Simülasyona **kameralı drone modellerini** dahil eder
-- Test için hedef olarak **2 insan aktör modeli** ekler
-- Optimal kamera performansı için önceden yapılandırılmış aydınlatma ve ortam
-
-**⚠️ Önemli**: 
-- Yollar `ArduGazeboSim` dizinine görelidir
-- Bu komutları `ArduGazeboSim` klasöründen çalıştırdığınızdan emin olun
-- Eski dosyaların üzerine yazılacak (gerekirse yedekleyin)
+**⚠️ Önemli:** Komutlar `ArduGazeboSim` dizinine göreli yollardır. Bu klasörün içindeyken çalıştırın. Eski dosyaların üzerine yazılacaktır (gerekirse yedekleyin).
 
 ---
 
@@ -477,7 +453,7 @@ YOLO_TRACKING_ENABLED = True            # Track kalıcılığını etkinleştir
 
 ### 📄 Lisans
 
-Bu proje MIT Lisansı altında lisanslanmıştır - detaylar için [LICENSE](LICENSE) dosyasına bakın.
+Bu proje Apache License 2.0 altında lisanslanmıştır - detaylar için [LICENSE](LICENSE) dosyasına bakın.
 
 ---
 
