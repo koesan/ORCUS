@@ -16,9 +16,10 @@
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![MAVLink](https://img.shields.io/badge/MAVLink-Protocol-green.svg)](https://mavlink.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg?logo=linux&logoColor=black)](https://www.linux.org/)
-[![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+---
 
 [🇬🇧 English](#english) | [🇹🇷 Türkçe](#turkish)
 
