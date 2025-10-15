@@ -60,10 +60,9 @@
 ### 🚀 Installation & Setup
 
 #### Prerequisites
-- Ubuntu 18.04/20.04
+- Ubuntu 20.04
 - Python 3.8+
-- ROS Melodic/Noetic
-- Docker (for simulation environment)
+- ROS Noetic
 
 #### Step 1: Setup Simulation Environment
 
@@ -289,10 +288,9 @@ This project is for **educational and research purposes only**. The developers a
 ### 🚀 Kurulum ve Yapılandırma
 
 #### Gereksinimler
-- Ubuntu 18.04/20.04
+- Ubuntu 20.04
 - Python 3.8+
-- ROS Melodic/Noetic
-- Docker (simülasyon ortamı için)
+- ROS Noetic
 
 #### Adım 1: Simülasyon Ortamını Kurun
 
