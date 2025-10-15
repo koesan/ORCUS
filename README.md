@@ -1,14 +1,24 @@
 <div align="center">
 
 # ORCUS
+
 ### Autonomous Multi-Drone Kamikaze System
 
 <img src="image/logo.png" alt="ORCUS Logo" width="400"/>
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![ROS](https://img.shields.io/badge/ROS-Melodic-green.svg)](https://www.ros.org/)
-[![ArduPilot](https://img.shields.io/badge/ArduPilot-SITL-red.svg)](https://ardupilot.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![ROS](https://img.shields.io/badge/ROS-Melodic/Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
+[![ArduPilot](https://img.shields.io/badge/ArduPilot-SITL-FF6C37.svg)](https://ardupilot.org/)
+[![Gazebo](https://img.shields.io/badge/Gazebo-Simulation-orange.svg)](http://gazebosim.org/)
+[![YOLOv8](https://img.shields.io/badge/YOLOv8-Detection-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
+[![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
+[![Flask](https://img.shields.io/badge/Flask-Web-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
+[![MAVLink](https://img.shields.io/badge/MAVLink-Protocol-green.svg)](https://mavlink.io/)
+[![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg?logo=linux&logoColor=black)](https://www.linux.org/)
+[![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
 
 [🇬🇧 English](#english) | [🇹🇷 Türkçe](#turkish)
 
