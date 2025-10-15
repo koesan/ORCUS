@@ -11,7 +11,7 @@
 [![ArduPilot](https://img.shields.io/badge/ArduPilot-SITL-FF6C37.svg)](https://ardupilot.org/)
 [![Gazebo](https://img.shields.io/badge/Gazebo-Simulation-orange.svg)](http://gazebosim.org/)
 [![YOLO](https://img.shields.io/badge/YOLO-Detection-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
-[![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
 [![Flask](https://img.shields.io/badge/Flask-Web-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![MAVLink](https://img.shields.io/badge/MAVLink-Protocol-green.svg)](https://mavlink.io/)
