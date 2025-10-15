@@ -84,7 +84,7 @@ After successfully setting up the simulation environment, navigate to your ArduG
 cd ArduGazeboSim
 
 # Clone ORCUS into this directory
-git clone https://github.com/YOUR_USERNAME/ORCUS.git
+git clone https://github.com/koesan/ORCUS.git
 ```
 
 #### Step 3: Configure Drone Models & World (Recommended - For Camera Support)
@@ -300,7 +300,7 @@ Simülasyon ortamını başarıyla kurduktan sonra, ArduGazeboSim dizinine gidin
 cd ArduGazeboSim
 
 # ORCUS'u bu dizine klonlayın
-git clone https://github.com/YOUR_USERNAME/ORCUS.git
+git clone https://github.com/koesan/ORCUS.git
 ```
 
 #### Adım 3: Drone Modelleri ve Dünyayı Yapılandırın (Önerilen - Kamera Desteği İçin)
