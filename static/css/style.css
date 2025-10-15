@@ -1,0 +1,166 @@
+:root {
+  --bg: #0b1117;
+  --panel: #16181b;
+  --muted: #6b7280;
+}
+
+html,
+body,
+#map {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: #fff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
+}
+
+/* cam efekti (yarı saydam panel arka planı) */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  background: rgba(18, 18, 18, 0.75);
+}
+
+/* bağlantı durumu göstergesi */
+.status-indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-connected {
+  background: #30d158;
+  box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
+}
+.status-disconnecting {
+  background: #ffcc00;
+  box-shadow: 0 0 6px rgba(255, 204, 0, 0.3);
+}
+.status-disconnected {
+  background: #ff3b30;
+  box-shadow: 0 0 6px rgba(255, 59, 48, 0.3);
+}
+
+/* durum bildirimleri*/
+#toastContainer {
+    position: fixed;
+    top: 10rem;
+    right: 10rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    font-size: 1.125rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    color: white;
+    background-color: rgba(0,0,0,0.8);
+}
+
+/* drone harita simgesi */
+.drone-marker {
+  background: #007aff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+}
+
+/* kamera görünüm paneli */
+.camera-overlay {
+  position: absolute;
+  width: 360px;
+  border-radius: 10px;
+  overflow: hidden;
+  right: 10px;
+  bottom: 10px;
+  background: #000;
+  z-index: 1050;
+}
+#cameraToggleCircle {
+  transition: transform 0.2s; 
+}
+
+#cameraToggleCircle {
+    transform: translateX(1px);
+    transition: transform 0.2s;
+}
+
+/* sürüklenebilir alan */
+.draggable-handle {
+  cursor: grab;
+}
+
+/* bildirimler (toast mesajları) */
+#toastContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+}
+.toast {
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: #fff;
+  margin-bottom: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  animation: toastIn 0.25s;
+}
+.toast-success {
+  background: #30d158;
+}
+.toast-error {
+  background: #ff3b30;
+}
+.toast-info {
+  background: #007aff;
+}
+@keyframes toastIn {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* grid hücreleri (SVG/rect) */
+.grid-cell {
+  stroke-width: 0.5;
+  fill-opacity: 0.35;
+}
+.grid-cell-unvisited {
+  fill: #dc3545;
+  stroke: #dc3545;
+}
+.grid-cell-visited {
+  fill: #198754;
+  stroke: #198754;
+}
+.grid-cell-old {
+  fill: #ffc107;
+  stroke: #ffc107;
+}
+
+/* küçük arayüz iyileştirmeleri */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+#droneDropdown {
+  position: absolute;
+}
+
+/* leaflet rectangle çizim aracı engellenmesin */
+.leaflet-draw-draw-rectangle {
+  display: block !important;

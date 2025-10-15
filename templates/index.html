@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TepeGöz Multi-Drone Kontrol Paneli</title>
+
+  <!-- TailwindCSS (özelleştirilmiş tema renkleriyle) -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#007AFF",
+            secondary: "#FF9500",
+            success: "#30D158",
+            danger: "#FF3B30",
+            dark: "#0b1117"
+          },
+          borderRadius: { button: "8px" }
+        }
+      }
+    };
+  </script>
+
+  <!-- Simge seti ve harita kütüphaneleri -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+
+  <!-- Özel stil dosyası -->
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+  <!-- Harita alanı (tam ekran) -->
+  <div id="map" style="position:relative;z-index:1;"></div>
+
+  <!-- Sol panel: drone kontrol arayüzü -->
+  <div class="absolute top-0 left-0 h-full w-80 p-4 z-50 pointer-events-none">
+    <div class="w-full h-full flex flex-col justify-between p-4 rounded-3xl glass-effect pointer-events-auto">
+
+      <!-- Panel içeriği (scroll edilebilir) -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-3">
+
+        <!-- Başlık ve bağlı dron sayısı -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Kontrol Paneli</h2>
+          <div class="flex items-center gap-2">
+            <div class="px-3 py-1 rounded-md text-center">
+              <div class="text-xs text-white/60">Bağlı Dron</div>
+              <div id="connectedDroneCount" class="text-lg font-bold text-green-400">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TCP bağlantısı girişi -->
+        <section class="mb-6">
+          <label class="text-xs text-white/60">TCP Bağlantı Adresi</label>
+          <input id="connectionString" class="mt-2 w-full px-3 py-2 rounded-md bg-[#0f1316] text-white text-sm" placeholder="tcp:127.0.0.1:5760"/>
+          <button id="connectButton" class="mt-2 w-full px-4 py-2 bg-primary rounded-md hover:bg-blue-600 text-white">Bağlan</button>
+        </section>
+
+        <!-- Drone görevi seçimi -->
+        <section class="mb-6">
+          <label class="text-xs text-white/60">Görev Seçimi</label>
+          <div class="mt-2 relative">
+            <button id="missionSelector" class="w-full bg-[#0f1316] p-2 rounded-md flex items-center justify-between text-sm hover:bg-[#16181b]">
+              <span id="selectedMissionText">Görev Seçin</span>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
+            <div id="missionDropdown" class="absolute top-full left-0 w-full bg-[#0b0d0f] rounded-md shadow-md mt-2 hidden z-60 border border-[#27292b] max-h-52 overflow-y-auto">
+              <div data-value="collision" class="cursor-pointer px-3 py-2 hover:bg-[#16181b] text-sm">Çarpma Görevi</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Görev kontrolleri (başlat, duraklat, durdur) - Tüm Dronlar -->
+        <section class="mb-6">
+          <label class="text-xs text-white/60">Görev Kontrolleri (Tüm Dronlar)</label>
+          <div class="grid grid-cols-3 gap-3 mt-2">
+            <button id="startMission" class="px-3 py-2 rounded-md bg-success hover:bg-green-600 text-white disabled:opacity-40" title="Tüm dronlar görevlerine başlar"> 
+              <i class="ri-play-line"></i>
+              <div class="text-xs">Başlat</div>
+            </button>
+            <button id="pauseMission" class="px-3 py-2 rounded-md bg-secondary hover:bg-yellow-600 text-white disabled:opacity-40" title="Tüm dronlar duraklatılır"> 
+              <i class="ri-pause-line"></i>
+              <div class="text-xs">Duraklat</div>
+            </button>
+            <button id="stopMission" class="px-3 py-2 rounded-md bg-danger hover:bg-red-600 text-white disabled:opacity-40" title="Tüm dronlar durdurulur ve geri döner"> 
+              <i class="ri-stop-line"></i>
+              <div class="text-xs">Durdur</div>
+            </button>
+          </div>
+
+          <!-- Alan seçimi ve temizleme -->
+          <div class="mt-3 flex flex-col gap-2">
+            <button id="drawRectangle" class="w-full px-4 py-2 bg-primary rounded-md hover:bg-blue-600 text-white">
+              <i class="ri-ruler-line mr-2"></i>Alan Seç
+            </button>
+            <button id="clearDrawing" class="w-full px-4 py-2 bg-[#26282a] rounded-md hover:bg-[#2e3133] text-white">
+              <i class="ri-delete-bin-line mr-2"></i>Temizle
+            </button>
+          </div>
+        </section>
+
+        <!-- Çoklu dron durumu (scrollable) -->
+        <section class="mt-4">
+          <label class="text-xs text-white/60 mb-2 block">Dron Durumları</label>
+          <div id="dronesStatusContainer" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-2">
+            <div class="text-xs text-white/40 text-center py-4">Bağlı dron yok</div>
+          </div>
+        </section>
+
+      </div>
+
+      <div id="detectionInfo" class="mt-4 p-2 rounded-md bg-red-700 hidden text-center text-sm font-medium text-white">
+        Tespit Edildi:
+      </div>
+
+      <!-- Görev durumu metni -->
+      <div id="missionStatusBox" class="mt-4 text-xs text-white/60">
+        <div id="missionStatusText">Görev: Beklemede</div>
+      </div>
+    </div>
+  </div>
+      <div class="mt-4 text-xs text-white/60">
+
+  <!-- Kamera görüntü paneli -->
+  <div id="cameraOverlay" class="camera-overlay glass-effect shadow-lg">
+    <div class="flex items-center justify-between px-3 py-2 draggable-handle">
+      <div class="flex items-center gap-2">
+        <div class="text-sm text-white/80">Kamera</div>
+        <div id="selectedDronePort" class="text-xs text-white/60">Port: -</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Kamera aç/kapa butonu -->
+        <button id="cameraToggle" class="relative inline-flex items-center h-6 rounded-full w-12 bg-[#2a2c2e]">
+          <span id="cameraToggleCircle" class="inline-block h-4 w-4 bg-white rounded-full transform translate-x-1 transition-transform"></span>
+        </button>
+      </div>
+    </div>
+
+    <div style="height:220px;background:#3a3a3a;"> <!-- koyu gri -->
+      <img id="cameraFeed" src="/static/images/logo.png" alt="camera feed" style="width:100%;height:100%;object-fit:cover"/>
+    </div>
+  </div>
+  <!-- Bildirim alanı (toast) -->
+  <div id="toastContainer"></div>
+
+  <!-- Harita kütüphaneleri ve özel JS dosyası -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script src="/static/js/script.js"></script>
+
+</body>
+</html>
