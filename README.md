@@ -16,7 +16,7 @@
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![MAVLink](https://img.shields.io/badge/MAVLink-Protocol-green.svg)](https://mavlink.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Multi-Drone](https://img.shields.io/badge/Multi--Drone_Swarm-purple?style=for-the-badge&logo=drone&logoColor=white)](https://drone.io/)
+[![Multi-Drone](https://img.shields.io/badge/Multi--Drone-Swarm-purple.svg)]()
 [![Autonomous](https://img.shields.io/badge/Autonomous-Navigation-brightgreen.svg)]()
 [![Real-Time](https://img.shields.io/badge/Real--Time-Tracking-red.svg)]()
 [![AI Vision](https://img.shields.io/badge/AI-Vision-yellow.svg)]()
