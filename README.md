@@ -16,6 +16,12 @@
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![MAVLink](https://img.shields.io/badge/MAVLink-Protocol-green.svg)](https://mavlink.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
+
+![Drone](https://www.svgrepo.com/show/399369/drone.svg) Multi-Drone Swarm
+[![Autonomous](https://img.shields.io/badge/Autonomous-Navigation-brightgreen.svg)]()
+[![Real-Time](https://img.shields.io/badge/Real--Time-Tracking-red.svg)]()
+[![AI Vision](https://img.shields.io/badge/AI-Vision-yellow.svg)]()
+
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg?logo=linux&logoColor=black)](https://www.linux.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
