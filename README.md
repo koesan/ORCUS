@@ -31,7 +31,7 @@
 
 ### 📖 About the Project
 
-**ORCUS** is an advanced autonomous multi-drone system designed for intelligent area scanning and target engagement. Named after the Roman god of death, this system coordinates multiple drones to independently search designated areas, detect human targets using AI-powered computer vision, and execute precision collision missions.
+**ORCUS** is an advanced autonomous multi-drone kamikaze system designed for intelligent area scanning and target engagement. Named after the Roman god of death, this system coordinates multiple drones to independently search designated areas, detect human targets using AI-powered computer vision, and execute precision collision missions.
 
 **Key Features:**
 - 🎯 **Multi-Drone Coordination**: Intelligent grid partitioning prevents collision between drones
@@ -247,7 +247,7 @@ This project is for **educational and research purposes only**. The developers a
 
 ### 📖 Proje Hakkında
 
-**ORCUS**, akıllı alan taraması ve hedef kilitlenmesi için tasarlanmış gelişmiş bir otonom çoklu drone sistemidir. Roma ölüm tanrısı Orcus'tan ismini alan bu sistem, birden fazla drone'u koordine ederek belirlenmiş alanları bağımsız olarak tarar, yapay zeka destekli bilgisayarlı görü ile insan hedeflerini tespit eder ve hassas çarpma görevi gerçekleştirir.
+**ORCUS**, akıllı alan taraması ve hedef kilitlenmesi için tasarlanmış gelişmiş bir otonom çoklu drone kamikaze sistemidir. Roma ölüm tanrısı Orcus'tan ismini alan bu sistem, birden fazla drone'u koordine ederek belirlenmiş alanları bağımsız olarak tarar, yapay zeka destekli bilgisayarlı görü ile insan hedeflerini tespit eder ve hassas çarpma görevi gerçekleştirir.
 
 **Temel Özellikler:**
 - 🎯 **Çoklu Drone Koordinasyonu**: Akıllı grid bölümleme ile drone'lar arası çarpışma önleme
