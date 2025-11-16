@@ -21,7 +21,7 @@
 ---
 
 🎥 **Demo Video**  
-[![Watch the video](https://img.youtube.com/vi/CIGGLXief54/0.jpg)](https://youtu.be/vFxlOCKCGh8)
+[![Watch the video](image/logo.png)](https://youtu.be/vFxlOCKCGh8)
 
 ---
 
