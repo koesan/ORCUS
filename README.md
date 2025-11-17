@@ -156,7 +156,7 @@ http://localhost:5000/
 
 ### 📋 Mission Workflow
 
-1. **Connect Drones**: Enter connection strings (tcp:127.0.0.1:5760, tcp:127.0.0.1:5761)
+1. **Connect Drones**: Enter connection strings (tcp:127.0.0.1:5763, tcp:127.0.0.1:5773)
 2. **Define Area**: Click on map to set search area boundaries
 3. **Start Mission**: System automatically partitions area between drones
 4. **Autonomous Scanning**: Each drone scans its assigned grid independently
@@ -372,7 +372,7 @@ http://localhost:5000/
 
 ### 📋 Görev İş Akışı
 
-1. **Drone'ları Bağlayın**: Bağlantı adreslerini girin (tcp:127.0.0.1:5760, tcp:127.0.0.1:5761)
+1. **Drone'ları Bağlayın**: Bağlantı adreslerini girin (tcp:127.0.0.1:5763, tcp:127.0.0.1:5773)
 2. **Alan Belirleyin**: Haritaya tıklayarak arama alanı sınırlarını belirleyin
 3. **Görevi Başlatın**: Sistem otomatik olarak alanı drone'lar arasında bölümler
 4. **Otonom Tarama**: Her drone atanan grid'ini bağımsız olarak tarar
