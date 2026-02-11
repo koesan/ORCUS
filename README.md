@@ -18,6 +18,23 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624.svg?logo=linux&logoColor=black)](https://www.linux.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
+
+<div align="left">
+
+> [!IMPORTANT]
+> ### 🚧 ORCUS V2: Swarm Intelligence & Resilience Roadmap / Geliştirme Süreci
+>
+> | 🇬🇧 English | 🇹🇷 Türkçe |
+> | :--- | :--- |
+> | **🛡️ Dynamic Leader Election:** Implementation of a **resilient chain of command**. If the leader drone disconnects (e.g., due to EW jamming), the next drone in the hierarchy automatically takes over, ensuring distributed decision-making. | **🛡️ Dinamik Lider Seçimi:** **Elektronik Harbe (EH) dayanıklı** komuta zinciri. Lider drone iletişimi kaybederse, sıradaki drone otomatik olarak liderliği devralır ve sürü karar mekanizmasının kesintisiz çalışmasını sağlar. |
+> | **📡 Sensor Fusion & Geolocation:** Drones calculate target GPS coordinates using **telemetry (roll/pitch/yaw) + YOLO pixel data**. The leader fuses this data to distinguish unique targets on a centralized radar map. | **📡 Sensör Füzyonu ve Konum Kestirimi:** Drone'lar **telemetri ve görüntü işleme** verilerini birleştirerek hedefin GPS konumunu hesaplar. Lider, bu verileri işleyerek merkezi radarda hedefleri tekilleştirir. |
+> | **🎯 Coordinated Strike:** The leader assigns unique targets to specific drones based on availability, ensuring **multi-target engagement** without redundancy. | **🎯 Koordineli Saldırı:** Lider, tespit edilen hedefleri müsait drone'lara atayarak aynı hedefe birden fazla drone gitmesini engeller ve **çoklu hedef angajmanını** yönetir. |
+> | **🔄 Cooperative Handoff (Planned):** *Future Feature:* If a drone detects multiple targets, the leader will dispatch a "blind" drone to the second target's coordinates. | **🔄 Kooperatif Hedef Devri (Planlanan):** *Gelecek Özellik:* Bir drone birden fazla hedef tespit ederse, lider o bölgeyi görmeyen başka bir drone'u ikinci hedefin koordinatına yönlendirecek. |
+> | **🛰️ Anti-Spoofing (Planned):** *Future Feature:* Security mechanisms to detect **GPS signal jamming/spoofing** and trigger failsafe autonomous behaviors. | **🛰️ Anti-Spoofing (Planlanan):** *Gelecek Özellik:* **GPS sinyal karıştırma ve aldatma** girişimlerini tespit eden ve otonom güvenlik protokollerini devreye sokan koruma kalkanı. |
+> | **💣 Heterogeneous Swarm (Planned):** *Future Feature:* Targeting based on payload type (e.g., assigning **Armor-Piercing** drones to tanks, **Shrapnel** drones to infantry). | **💣 Heterojen Sürü (Planlanan):** *Gelecek Özellik:* Faydalı yük tipine göre hedefleme (Örn: Tanklara **Zırh Delici**, piyadelere **Şarapnel** etkili drone yönlendirmesi). |
+
+</div>
+
 ---
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo.mp4)
 
