@@ -24,7 +24,10 @@
 
 ## **V2 Demo Video**  
 
-[![V2 Demo Video](https://img.shields.io/badge/V2%20Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo_v2_.mp4)
+[![Watch on YouTube](https://img.shields.io/badge/Watch%20on-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=EUwp7WB3ySA)
+
+[![V2 Demo Video](https://img.shields.io/badge/Download-MP4-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo_v2_.mp4)
+
 </div>
 
 > [!IMPORTANT]
