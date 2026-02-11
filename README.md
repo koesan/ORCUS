@@ -21,6 +21,11 @@
 
 <div align="left">
 
+## **V2 Demo Video**  
+
+[![V2 Demo Video](https://img.shields.io/badge/V2%20Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo_v2_.mp4)
+
+
 > [!IMPORTANT]
 > ### 🚧 ORCUS V2: Swarm Intelligence & Resilience Roadmap / Geliştirme Süreci
 >
@@ -34,10 +39,6 @@
 > | **💣 Heterogeneous Swarm (Planned):** *Future Feature:* Targeting based on payload type (e.g., assigning **Armor-Piercing** drones to tanks, **Shrapnel** drones to infantry). | **💣 Heterojen Sürü (Planlanan):** *Gelecek Özellik:* Faydalı yük tipine göre hedefleme (Örn: Tanklara **Zırh Delici**, piyadelere **Şarapnel** etkili drone yönlendirmesi). |
 
 </div>
-
-## **V2 Demo Video**  
-
-[![V2 Demo Video](https://img.shields.io/badge/V2%20Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo_v2_.mp4)
 
 ---
 
