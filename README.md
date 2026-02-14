@@ -2,7 +2,7 @@
 
 # ORCUS
 
-### Autonomous Multi-Drone Kamikaze System
+### Autonomous Kamikaze Drone Swarm System
 
 <img src="image/logo.png" alt="ORCUS Logo" width="400"/>
 
