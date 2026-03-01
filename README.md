@@ -23,6 +23,7 @@
     <img src="image/video.png" width="900">
   </a>
 </p>
+
 ---
 
 🇬🇧[English](#-english-documentation) | 🇹🇷[Türkçe](#-türkçe-dokümantasyon)
