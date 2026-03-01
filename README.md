@@ -18,7 +18,7 @@
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo.mp4)
 
 🎥 **Demo Video**  
-[![Video Thumbnail](https://img.youtube.com/vi/vFxlOCKCGh8/maxresdefault.jpg)](https://youtu.be/vFxlOCKCGh8)
+[![Video Thumbnail](https://img.youtube.com/vi/vFxlOCKCGh8/maxresdefault.jpg)](https://youtu.be/V8X-XiSy9as)
 
 ---
 
