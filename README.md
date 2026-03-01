@@ -16,18 +16,16 @@
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
----
-
-🇬🇧[English](#-english-documentation) | 🇹🇷[Türkçe](#-türkçe-dokümantasyon)
-
----
-
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo.mp4)
 
 🎥 **Demo Video**  
 [![Video Thumbnail](https://img.youtube.com/vi/vFxlOCKCGh8/maxresdefault.jpg)](https://youtu.be/vFxlOCKCGh8)
 
 </div>
+
+---
+
+🇬🇧[English](#-english-documentation) | 🇹🇷[Türkçe](#-türkçe-dokümantasyon)
 
 ---
 
