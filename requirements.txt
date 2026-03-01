@@ -1,7 +1,33 @@
-dronekit==2.9.2
-Flask==2.3.3
-ultralytics==8.3.176
-numpy==1.24.4
-opencv-python==4.12.0.88
-Pillow==10.4.0
-pymavlink==2.4.48
+
+# ORCUS Core
+numpy
+opencv-python
+
+# YOLOv12 & Tracking
+torch>=2.0.0
+torchvision
+ultralytics
+cython
+cython_bbox
+faiss-cpu
+seaborn
+huggingface_hub
+
+# BoT-SORT / FastReID Dependencies
+easydict
+yacs
+scikit-learn
+scikit-image
+filterpy
+lap
+loguru
+ninja
+tabulate
+thop
+gdown
+motmetrics
+prettytable
+matplotlib
+pyyaml
+tensorboard
+termcolor

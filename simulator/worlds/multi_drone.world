@@ -18,6 +18,14 @@
       <real_time_update_rate>-1</real_time_update_rate>
     </physics>
 
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>-35.3627754</latitude_deg>
+      <longitude_deg>149.1658777</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -98,67 +106,66 @@
       </include>
     </model>
 
-    <!-- Actor 1 -->
-    <actor name="actor1_walking">
-        <skin>
-            <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
-            <scale>1.0</scale>
-        </skin>
-        <animation name="walk">
-            <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
-            <interpolate_x>true</interpolate_x>
-        </animation>
-        <script>
-            <loop>true</loop>
-            <delay_start>0.0</delay_start>
-            <auto_start>true</auto_start>
-            <trajectory id="0" type="walk" tension="0.6">
-                <waypoint>
-                    <time>0</time>
-                    <pose>0 0 1 0 0 0</pose>
-                </waypoint>
-                <waypoint>
-                    <time>2</time>
-                    <pose>2 0 1 0 0 0</pose>
-                </waypoint>
-                <waypoint>
-                    <time>4</time>
-                    <pose>0 0 1 0 0 3.14</pose>
-                </waypoint>
-            </trajectory>
-        </script>
+    <!-- SCENARIO: 10 Stationary Actors (No Animation) optimized for 10m altitude -->
+    <!-- Grouped: 1 Isolated, 1 Triple Group, 3 Double Groups -->
+
+    <!-- SCENARIO: Perspective-Based Stress Test (Total 10 Actors) -->
+    <!-- TEST SITE 1: Visible from Drone at X ~ 35 (Looking towards +X) -->
+    <!-- TIGHTENED (Y = -20 to +20) for better perspective alignment -->
+    
+    <!-- Group 1: Triple Group at X=60 (South side of Site 1) -->
+    <actor name="site1_triple_a">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="1" type="stand">
+            <waypoint><time>0</time><pose>60 -18 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>60 -18 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
+    </actor>
+    <actor name="site1_triple_b">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="2" type="stand">
+            <waypoint><time>0</time><pose>60 -16 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>60 -16 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
+    </actor>
+    <actor name="site1_triple_c">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="3" type="stand">
+            <waypoint><time>0</time><pose>60 -14 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>60 -14 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
     </actor>
 
-    <!-- Actor 2 -->
-    <actor name="actor2_walking">
-        <skin>
-            <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
-            <scale>1.0</scale>
-        </skin>
-        <animation name="walk">
-            <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
-            <interpolate_x>true</interpolate_x>
-        </animation>
-        <script>
-            <loop>true</loop>
-            <delay_start>0.0</delay_start>
-            <auto_start>true</auto_start>
-            <trajectory id="1" type="walk" tension="0.6">
-                <waypoint>
-                    <time>0</time>
-                    <pose>0 -20 1 0 0 0</pose>
-                </waypoint>
-                <waypoint>
-                    <time>2</time>
-                    <pose>2 -20 1 0 0 0</pose>
-                </waypoint>
-                <waypoint>
-                    <time>4</time>
-                    <pose>0 -20 1 0 0 3.14</pose>
-                </waypoint>
-            </trajectory>
-        </script>
+    <!-- Group 2: Double Group at X=65 (Center of Site 1) -->
+    <actor name="site1_double1_a">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="4" type="stand">
+            <waypoint><time>0</time><pose>65 -1 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>65 -1 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
+    </actor>
+    <actor name="site1_double1_b">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="5" type="stand">
+            <waypoint><time>0</time><pose>65 1 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>65 1 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
     </actor>
 
+    <!-- Group 3: Double Group at X=70 (North side of Site 1) -->
+    <actor name="site1_double2_a">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="6" type="stand">
+            <waypoint><time>0</time><pose>70 14 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>70 14 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
+    </actor>
+    <actor name="site1_double2_b">
+        <skin><filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename></skin>
+        <script><loop>true</loop><trajectory id="7" type="stand">
+            <waypoint><time>0</time><pose>70 16 1.25 0 0 3.14</pose></waypoint>
+            <waypoint><time>1</time><pose>70 16 1.25 0 0 3.14</pose></waypoint>
+        </trajectory></script>
+    </actor>
   </world>
 </sdf>

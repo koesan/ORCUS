@@ -1,85 +1,79 @@
-"""TepeGöz - Ana Flask Uygulaması
+"""ORCUS Swarm Kamikaze Drone Control Hub.
 
-Web tabanlı multi-drone kontrol arayüzü. ROS ile entegre çalışır.
-RESTful API ile çoklu drone bağlantısı, paralel görev yönetimi ve canlı video stream'i sağlar.
-Her dron bağımsız olarak kendi görevini yürütür.
+Web-based swarm control interface with ROS integration.
+Provides RESTful API for swarm connection, parallel mission management, and live video streaming.
 """
 
 from flask import Flask, render_template, request, jsonify, Response
 import threading
-import os
+import logging
 import rospy
-from modules.drone_manager import DroneManager
-from modules.collision_mission_controller import CollisionMissionController
+from modules.core.fleet_manager import DroneManager
 import time
 from config import APP_HOST, APP_PORT
 
 app = Flask(__name__, template_folder='templates')
 
-# Ana drone manager
+# Main Drone Manager
 drone_manager = DroneManager()
-# Not: Mission controller'lar artık her dron için ayrı ayrı oluşturuluyor
 
 @app.route('/')
 def index():
-    """Ana sayfayı render eder."""
+    """Renders the main dashboard."""
     return render_template('index.html')
 
 @app.route('/connect_drone', methods=['POST'])
 def connect_drone():
-    """Drona bağlanma isteğini işler."""
+    """Handles drone connection requests."""
     data = request.json
     connection_string = data.get('connection_string')
+    if not connection_string:
+         return jsonify({'status': 'error', 'message': 'No connection string provided'})
     return jsonify(drone_manager.start_connection(connection_string))
 
+@app.route('/select_drone', methods=['POST'])
 def select_drone():
-    """Kontrol edilecek dronu seçer."""
+    """Selects the active drone for control/viewing."""
     port = request.json.get('port')
     return jsonify(drone_manager.select_drone(port))
 
 @app.route('/set_area', methods=['POST'])
 def set_area():
-    """Tüm dronlar için görev alanını belirler - Akıllı grid paylaşımı."""
+    """Sets the mission area for all drones with intelligent grid partitioning."""
     data = request.json
     coordinates = data.get('coordinates')
 
     if not coordinates:
-        return jsonify({'status': 'error', 'message': 'Koordinatlar belirtilmedi'})
+        return jsonify({'status': 'error', 'message': 'No coordinates provided'})
 
     try:
-        # Akıllı grid paylaşımı: Her drone'a özel alt-grid
         drone_assignments = drone_manager.partition_grid_intelligently(coordinates)
 
         if not drone_assignments:
-            return jsonify({'status': 'error', 'message': 'Bağlı dron yok veya grid oluşturulamadı'})
+            return jsonify({'status': 'error', 'message': 'No drones connected or grid creation failed'})
 
-        # Her drone için kendi alt-grid'ini ayarla
         results = []
         for port, drone_cells in drone_assignments.items():
             controller = drone_manager.get_or_create_controller(port)
             result = controller.set_area(drone_cells)
             if result['status'] == 'ok':
-                results.append(f"Dron {port} ({len(drone_cells)} hücre)")
+                results.append(f"Drone {port} ({len(drone_cells)} cells)")
         
         if results:
-            message = f"Alan akıllıca paylaştırıldı: {', '.join(results)}"
-            return jsonify({'status': 'ok', 'message': message})
-        else:
-            return jsonify({'status': 'error', 'message': 'Hiçbir drone\'a alan atanamadı'})
+            return jsonify({'status': 'ok', 'message': f"Area partitioned: {', '.join(results)}"})
+        return jsonify({'status': 'error', 'message': 'Could not assign area to any drone'})
     except Exception as e:
-        print(f"set_area hatası: {e}")
-        import traceback
-        traceback.print_exc()
+        logging.error(f"set_area error: {e}", exc_info=True)
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/start_mission', methods=['POST'])
 def start_mission():
-    """Tüm dronlar için görevi başlatır."""
+    """Starts the mission for all connected drones."""
     data = request.json
     mission_type = data.get('mission_type')
     
     if not mission_type:
-        return jsonify({'status': 'error', 'message': 'Görev tipi belirtilmedi'})
+        return jsonify({'status': 'error', 'message': 'Mission type not specified'})
     
     try:
         started_drones = []
@@ -91,79 +85,73 @@ def start_mission():
             
             try:
                 controller = drone_manager.get_or_create_controller(port)
-                
-                # Dronu geçici olarak aktif yap
-                original_active = drone_manager.active_drone
-                original_port = drone_manager.active_drone_port
-                
-                drone_manager.active_drone = vehicle
-                drone_manager.active_drone_port = port
-                
-                result = controller.start_mission(mission_type)
-                
-                # Orijinal durumu geri yükle
-                if original_active:
-                    drone_manager.active_drone = original_active
-                    drone_manager.active_drone_port = original_port
+                with drone_manager.drone_context(port, vehicle):
+                    result = controller.start_mission(mission_type)
                 
                 if result['status'] == 'ok':
                     started_drones.append(str(port))
                 else:
-                    failed_drones.append(f"{port}: {result.get('message', 'Hata')}")
+                    failed_drones.append(f"{port}: {result.get('message', 'Error')}")
             except Exception as e:
                 failed_drones.append(f"{port}: {str(e)}")
         
         if started_drones:
-            message = f"{len(started_drones)} dron görevine başladı (Port: {', '.join(started_drones)})"
+            message = f"{len(started_drones)} drones started (Ports: {', '.join(started_drones)})"
             if failed_drones:
-                message += f" | Başarısız: {'; '.join(failed_drones)}"
+                message += f" | Failed: {'; '.join(failed_drones)}"
             return jsonify({'status': 'ok', 'message': message})
-        else:
-            return jsonify({'status': 'error', 'message': 'Hiçbir dron başlatılamadı'})
+        return jsonify({'status': 'error', 'message': 'No drones could be started'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/stop_mission', methods=['POST'])
 def stop_mission():
-    """Tüm dronlar için görevi durdurur (stop_all ile aynı)."""
+    """Stops missions for all drones (alias for stop_all)."""
     return stop_all()
 
 @app.route('/status')
 def status():
-    """Tüm dronların durumunu döndürür."""
+    """Returns the status of all drones."""
     return jsonify(drone_manager.get_status())
 
 @app.route('/pause_all', methods=['POST'])
 def pause_all():
-    """Tüm dronların görevlerini duraklatır."""
+    """Pauses missions for all drones - sends zero velocity before pausing."""
     results = []
     for port, controller in drone_manager.drone_controllers.items():
         if controller.is_mission_active:
+            try:
+                vehicle = drone_manager.drones.get(port)
+                if vehicle and vehicle != "connecting":
+                    controller.send_ned_velocity(vehicle, 0, 0, 0)
+            except Exception:
+                pass
             controller.is_mission_active = False
-            results.append(f"Dron {port} duraklatıldı")
+            results.append(f"Drone {port} paused")
     
     if results:
         return jsonify({'status': 'ok', 'message': '; '.join(results)})
     else:
-        return jsonify({'status': 'error', 'message': 'Aktif görev yok'})
+        return jsonify({'status': 'error', 'message': 'No active missions'})
 
 @app.route('/resume_all', methods=['POST'])
 def resume_all():
-    """Tüm dronların görevlerini devam ettirir."""
+    """Resumes missions for all drones."""
     results = []
     for port, controller in drone_manager.drone_controllers.items():
+        # Check if thread is alive but flag is False
         if not controller.is_mission_active and controller._mission_thread and controller._mission_thread.is_alive():
             controller.is_mission_active = True
-            results.append(f"Dron {port} devam ediyor")
+            results.append(f"Drone {port} resuming")
     
     if results:
         return jsonify({'status': 'ok', 'message': '; '.join(results)})
     else:
-        return jsonify({'status': 'error', 'message': 'Duraklatılmış görev yok'})
+        return jsonify({'status': 'error', 'message': 'No paused missions found'})
 
 @app.route('/stop_all', methods=['POST'])
 def stop_all():
-    """Tüm dronların görevlerini durdurur."""
+    """Stops missions for all drones."""
     results = []
     for port in list(drone_manager.drone_controllers.keys()):
         try:
@@ -171,93 +159,112 @@ def stop_all():
             if port in drone_manager.drones:
                 vehicle = drone_manager.drones[port]
                 if vehicle != "connecting":
-                    original_active = drone_manager.active_drone
-                    original_port = drone_manager.active_drone_port
-                    
-                    drone_manager.active_drone = vehicle
-                    drone_manager.active_drone_port = port
-                    
-                    result = controller.stop_mission()
-                    
-                    if original_active and original_port != port:
-                        drone_manager.active_drone = original_active
-                        drone_manager.active_drone_port = original_port
+                    with drone_manager.drone_context(port, vehicle):
+                        result = controller.stop_mission()
                     
                     if result['status'] == 'ok':
-                        results.append(f"Dron {port} durduruldu")
+                        results.append(f"Drone {port} stopped")
         except Exception as e:
-            print(f"Dron {port} durdurulurken hata: {e}")
+            logging.error(f"Error stopping Drone {port}: {e}")
     
     if results:
         return jsonify({'status': 'ok', 'message': '; '.join(results)})
-    else:
-        return jsonify({'status': 'error', 'message': 'Durdurulan dron yok'})
+    return jsonify({'status': 'error', 'message': 'No drones stopped'})
 
 @app.route('/camera_feed')
 def camera_feed():
-    """Seçili dron kamerasından canlı video akışı sağlar."""
-    port = request.args.get('port', drone_manager.active_drone_port)
+    """Provides live video stream from selected drone camera."""
+    port_arg = request.args.get('port')
     
-    if port is None:
-        return "Kamera beslemesi yok", 404
+    # Default to active drone port if not specified
+    target_port = drone_manager.active_drone_port
+    if port_arg:
+        try:
+            target_port = int(port_arg)
+        except:
+             pass
     
-    try:
-        port = int(port)
-    except:
-        return "Geçersiz port", 400
+    if target_port is None:
+        return "No camera feed selected", 404
     
-    if port not in drone_manager.drones:
-        return "Dron bağlı değil", 404
+    if target_port not in drone_manager.drones:
+        return "Drone not connected", 404
     
-    return Response(drone_manager.camera_handler.generate_frames(port),
+    return Response(drone_manager.camera_handler.generate_frames(target_port),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/select_camera', methods=['POST'])
 def select_camera():
-    """Görüntülenecek kamerayı seçer."""
+    """Selects the camera to view."""
     data = request.json
     port = data.get('port')
     
     if not port:
-        return jsonify({'status': 'error', 'message': 'Port belirtilmedi'})
+        return jsonify({'status': 'error', 'message': 'Port not specified'})
     
     try:
         port = int(port)
         if port not in drone_manager.drones:
-            return jsonify({'status': 'error', 'message': f'Dron {port} bağlı değil'})
+            return jsonify({'status': 'error', 'message': f'Drone {port} not connected'})
         
-        # Thread-safe olarak port değiştir
         with drone_manager.lock:
             drone_manager.active_drone_port = port
             drone_manager.active_drone = drone_manager.drones[port]
         
-        # Kısa bir bekleme - yeni kamera feed'inin başlaması için
         time.sleep(0.1)
-        
-        return jsonify({'status': 'ok', 'message': f'Kamera {port} seçildi'})
+        return jsonify({'status': 'ok', 'message': f'Camera {port} selected'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/swarm_data')
+def swarm_data():
+    """Returns swarm and target data in JSON format."""
+    if not drone_manager.swarm_manager:
+         return jsonify({})
+         
+    data = drone_manager.swarm_manager.get_battlespace_state()
+    data['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
+    return jsonify(data)
+
+@app.route('/approve_attack/<target_id>')
+def approve_attack(target_id):
+    """Approves attack on a specific target."""
+    if drone_manager.swarm_manager.approve_attack(target_id):
+        return jsonify({'status': 'ok', 'message': f'{target_id} Approved'})
+    return jsonify({'status': 'error', 'message': 'Target not found'})
+
+@app.route('/approve_all', methods=['POST'])
+def approve_all():
+    """Approves attack for ALL pending targets."""
+    if not drone_manager.swarm_manager:
+        return jsonify({'status': 'error', 'message': 'Swarm Manager inactive'})
+        
+    count = drone_manager.swarm_manager.approve_all_targets()
+    return jsonify({'status': 'ok', 'message': f'Bulk approval for {count} targets'})
+
 if __name__ == '__main__':
     try:
-        # ROS'u ayrı bir thread'de başlat
-        ros_thread = threading.Thread(target=rospy.spin)
+        def start_ros_node():
+            try:
+                drone_manager.camera_handler.init_ros_node()
+                rospy.spin()
+            except Exception as e:
+                logging.error(f"ROS Thread Error: {e}")
+
+        ros_thread = threading.Thread(target=start_ros_node)
         ros_thread.daemon = True
-        
-        # ROS düğümünü ve thread'i başlat
-        drone_manager.camera_handler.init_ros_node()
         ros_thread.start()
 
-        print("="*80)
-        print("TepeGöz Multi-Drone Sistemi Başlatıldı")
-        print("="*80)
-        print(f"🌐 Web Arayüzü: http://{APP_HOST}:{APP_PORT}")
-        print("✈️  Çoklu dron desteği aktif - Her dron bağımsız çalışır")
-        print("="*80)
+        logging.info("="*60)
+        logging.info("ORCUS Swarm Kamikaze System Started")
+        logging.info("="*60)
+        logging.info(f"Web Interface: http://{APP_HOST}:{APP_PORT}")
+        logging.info("Battlespace Swarm Intelligence Active")
+        logging.info("="*60)
 
-        app.run(host=APP_HOST, port=APP_PORT, threaded=True, debug=True, use_reloader=False)
+        app.run(host=APP_HOST, port=APP_PORT, threaded=True, debug=False, use_reloader=False)
 
     except rospy.ROSInterruptException:
-        print("ROS düğümü durduruldu.")
+        logging.info("ROS node stopped.")
     except Exception as e:
-        print(f"Uygulama başlatılırken bir hata oluştu: {e}")
+        logging.error(f"Application start error: {e}")

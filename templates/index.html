@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TepeGöz Multi-Drone Kontrol Paneli</title>
+  <title>ORCUS Swarm Kamikaze Control Hub</title>
 
-  <!-- TailwindCSS (özelleştirilmiş tema renkleriyle) -->
+  <!-- TailwindCSS (custom theme colors) -->
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <script>
     tailwind.config = {
@@ -24,135 +25,191 @@
     };
   </script>
 
-  <!-- Simge seti ve harita kütüphaneleri -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+  <!-- Icon set and map libraries -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 
-  <!-- Özel stil dosyası -->
-  <link rel="stylesheet" href="/static/css/style.css"/>
+  <!-- Custom style file -->
+  <link rel="stylesheet" href="/static/css/style.css" />
 </head>
+
 <body>
 
-  <!-- Harita alanı (tam ekran) -->
+  <!-- Map Area (Full Screen) -->
   <div id="map" style="position:relative;z-index:1;"></div>
 
-  <!-- Sol panel: drone kontrol arayüzü -->
+  <!-- Radar Tooltip (Custom) -->
+  <div id="radarTooltip" class="radar-tooltip hidden"></div>
+
+  <!-- Left Panel: Drone Control Interface -->
   <div class="absolute top-0 left-0 h-full w-80 p-4 z-50 pointer-events-none">
     <div class="w-full h-full flex flex-col justify-between p-4 rounded-3xl glass-effect pointer-events-auto">
 
-      <!-- Panel içeriği (scroll edilebilir) -->
+      <!-- Panel content (scrollable) -->
       <div class="flex-1 overflow-y-auto custom-scrollbar px-3">
 
-        <!-- Başlık ve bağlı dron sayısı -->
+        <!-- Header and Connected Drone Count -->
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Kontrol Paneli</h2>
+          <h2 class="text-xl font-semibold">Control Panel</h2>
           <div class="flex items-center gap-2">
             <div class="px-3 py-1 rounded-md text-center">
-              <div class="text-xs text-white/60">Bağlı Dron</div>
+              <div class="text-xs text-white/60">Connected Drones</div>
               <div id="connectedDroneCount" class="text-lg font-bold text-green-400">0</div>
             </div>
           </div>
         </div>
 
-        <!-- TCP bağlantısı girişi -->
+        <!-- TCP Connection Input -->
         <section class="mb-6">
-          <label class="text-xs text-white/60">TCP Bağlantı Adresi</label>
-          <input id="connectionString" class="mt-2 w-full px-3 py-2 rounded-md bg-[#0f1316] text-white text-sm" placeholder="tcp:127.0.0.1:5760"/>
-          <button id="connectButton" class="mt-2 w-full px-4 py-2 bg-primary rounded-md hover:bg-blue-600 text-white">Bağlan</button>
+          <label class="text-xs text-white/60">TCP Connection Address</label>
+          <input id="connectionString" class="mt-2 w-full px-3 py-2 rounded-md bg-[#0f1316] text-white text-sm"
+            placeholder="tcp:127.0.0.1:5760" />
+          <button id="connectButton"
+            class="mt-2 w-full px-4 py-2 bg-primary rounded-md hover:bg-blue-600 text-white">Connect</button>
         </section>
 
-        <!-- Drone görevi seçimi -->
+        <!-- Mission Controls (All Drones) -->
         <section class="mb-6">
-          <label class="text-xs text-white/60">Görev Seçimi</label>
-          <div class="mt-2 relative">
-            <button id="missionSelector" class="w-full bg-[#0f1316] p-2 rounded-md flex items-center justify-between text-sm hover:bg-[#16181b]">
-              <span id="selectedMissionText">Görev Seçin</span>
-              <i class="ri-arrow-down-s-line"></i>
-            </button>
-            <div id="missionDropdown" class="absolute top-full left-0 w-full bg-[#0b0d0f] rounded-md shadow-md mt-2 hidden z-60 border border-[#27292b] max-h-52 overflow-y-auto">
-              <div data-value="collision" class="cursor-pointer px-3 py-2 hover:bg-[#16181b] text-sm">Çarpma Görevi</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Görev kontrolleri (başlat, duraklat, durdur) - Tüm Dronlar -->
-        <section class="mb-6">
-          <label class="text-xs text-white/60">Görev Kontrolleri (Tüm Dronlar)</label>
+          <label class="text-xs text-white/60">Mission Controls (All Drones)</label>
           <div class="grid grid-cols-3 gap-3 mt-2">
-            <button id="startMission" class="px-3 py-2 rounded-md bg-success hover:bg-green-600 text-white disabled:opacity-40" title="Tüm dronlar görevlerine başlar"> 
+            <button id="startMission"
+              class="px-3 py-2 rounded-md bg-success hover:bg-green-600 text-white disabled:opacity-40"
+              title="All drones start their mission">
               <i class="ri-play-line"></i>
-              <div class="text-xs">Başlat</div>
+              <div class="text-xs">Start</div>
             </button>
-            <button id="pauseMission" class="px-3 py-2 rounded-md bg-secondary hover:bg-yellow-600 text-white disabled:opacity-40" title="Tüm dronlar duraklatılır"> 
+            <button id="pauseMission"
+              class="px-3 py-2 rounded-md bg-secondary hover:bg-yellow-600 text-white disabled:opacity-40"
+              title="Pause all drones">
               <i class="ri-pause-line"></i>
-              <div class="text-xs">Duraklat</div>
+              <div class="text-xs">Pause</div>
             </button>
-            <button id="stopMission" class="px-3 py-2 rounded-md bg-danger hover:bg-red-600 text-white disabled:opacity-40" title="Tüm dronlar durdurulur ve geri döner"> 
+            <button id="stopMission"
+              class="px-3 py-2 rounded-md bg-danger hover:bg-red-600 text-white disabled:opacity-40"
+              title="Stop all drones and Return to Launch (RTL)">
               <i class="ri-stop-line"></i>
-              <div class="text-xs">Durdur</div>
+              <div class="text-xs">Stop</div>
             </button>
           </div>
 
-          <!-- Alan seçimi ve temizleme -->
+          <!-- Area Selection and Clearing -->
           <div class="mt-3 flex flex-col gap-2">
             <button id="drawRectangle" class="w-full px-4 py-2 bg-primary rounded-md hover:bg-blue-600 text-white">
-              <i class="ri-ruler-line mr-2"></i>Alan Seç
+              <i class="ri-ruler-line mr-2"></i>Select Area
             </button>
             <button id="clearDrawing" class="w-full px-4 py-2 bg-[#26282a] rounded-md hover:bg-[#2e3133] text-white">
-              <i class="ri-delete-bin-line mr-2"></i>Temizle
+              <i class="ri-delete-bin-line mr-2"></i>Clear
+            </button>
+            <!-- Engage Button -->
+            <button id="engageTarget"
+              class="w-full px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 text-white font-bold mt-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="ri-crosshair-2-line mr-2"></i>ENGAGE
             </button>
           </div>
         </section>
 
-        <!-- Çoklu dron durumu (scrollable) -->
+        <!-- Swarm Status -->
         <section class="mt-4">
-          <label class="text-xs text-white/60 mb-2 block">Dron Durumları</label>
+          <label class="text-xs text-white/60 mb-2 block">Drone Status</label>
           <div id="dronesStatusContainer" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-2">
-            <div class="text-xs text-white/40 text-center py-4">Bağlı dron yok</div>
+            <div class="text-xs text-white/40 text-center py-4">No drones connected</div>
           </div>
         </section>
 
       </div>
 
       <div id="detectionInfo" class="mt-4 p-2 rounded-md bg-red-700 hidden text-center text-sm font-medium text-white">
-        Tespit Edildi:
+        DETECTED:
       </div>
 
-      <!-- Görev durumu metni -->
+      <!-- Mission Status Text -->
       <div id="missionStatusBox" class="mt-4 text-xs text-white/60">
-        <div id="missionStatusText">Görev: Beklemede</div>
+        <div id="missionStatusText">Mission: Pending</div>
       </div>
     </div>
   </div>
-      <div class="mt-4 text-xs text-white/60">
 
-  <!-- Kamera görüntü paneli -->
-  <div id="cameraOverlay" class="camera-overlay glass-effect shadow-lg">
-    <div class="flex items-center justify-between px-3 py-2 draggable-handle">
-      <div class="flex items-center gap-2">
-        <div class="text-sm text-white/80">Kamera</div>
-        <div id="selectedDronePort" class="text-xs text-white/60">Port: -</div>
+  <!-- Right Panel: Camera & Radar -->
+  <div class="absolute top-4 right-4 flex flex-col gap-4 z-50 pointer-events-none">
+
+    <!-- Radar Widget -->
+    <div id="radarWidget"
+      class="camera-overlay glass-effect shadow-lg pointer-events-auto w-96 transition-all duration-300">
+      <div class="flex items-center justify-between px-3 py-2 header cursor-pointer"
+        onclick="togglePanel('radarWidget')">
+        <div class="text-sm text-white/80 font-bold">RADAR</div>
+
+        <!-- Leader/Drone Toggle -->
+        <div class="flex bg-[#0f1316] rounded p-0.5">
+          <button id="radarModeLeader" class="px-2 py-0.5 text-[10px] rounded bg-blue-600 text-white"
+            onclick="setRadarMode('leader')">LEADER</button>
+          <button id="radarModeDrone" class="px-2 py-0.5 text-[10px] rounded text-white/50 hover:text-white"
+            onclick="setRadarMode('drone')">DRONE</button>
+        </div>
       </div>
-      <div class="flex items-center gap-3">
-        <!-- Kamera aç/kapa butonu -->
-        <button id="cameraToggle" class="relative inline-flex items-center h-6 rounded-full w-12 bg-[#2a2c2e]">
-          <span id="cameraToggleCircle" class="inline-block h-4 w-4 bg-white rounded-full transform translate-x-1 transition-transform"></span>
-        </button>
+
+      <!-- Radar Area -->
+      <div id="radarContainer"
+        class="relative w-full h-96 bg-[#050505] overflow-hidden flex items-center justify-center border-t border-white/10 rounded-t-lg transition-all duration-300">
+        <!-- Grid Lines -->
+        <div class="absolute w-full h-[1px] bg-green-900/30 top-1/2"></div>
+        <div class="absolute h-full w-[1px] bg-green-900/30 left-1/2"></div>
+        <!-- Range Rings (100m = Full Width/2) -->
+        <div class="absolute w-3/4 h-3/4 border border-green-900/30 rounded-full"></div> <!-- 75m -->
+        <div class="absolute w-1/2 h-1/2 border border-green-900/30 rounded-full"></div> <!-- 50m -->
+        <div class="absolute w-1/4 h-1/4 border border-green-900/30 rounded-full"></div> <!-- 25m -->
+
+        <!-- Targets (Populated by JS) -->
+        <div id="radarTargetsLayer" class="absolute w-full h-full top-0 left-0"></div>
+
+        <!-- Center Drone Icon (Blue Arrow) -->
+        <div id="radarCenterIcon"
+          class="absolute top-1/2 left-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-blue-500 transform -translate-x-1/2 -translate-y-1/2">
+        </div>
+      </div>
+
+      <!-- Info Row -->
+      <div class="px-3 py-1 flex justify-between text-[10px] text-white/60 bg-[#0f1316] rounded-b-lg">
+        <span id="radarTargetCount">Targets: 0</span>
+        <span>Range: 100m</span>
       </div>
     </div>
 
-    <div style="height:220px;background:#3a3a3a;"> <!-- koyu gri -->
-      <img id="cameraFeed" src="/static/images/logo.png" alt="camera feed" style="width:100%;height:100%;object-fit:cover"/>
+    <!-- Camera Display Panel (Bottom) -->
+    <div id="cameraOverlay"
+      class="camera-overlay glass-effect shadow-lg pointer-events-auto w-96 transition-all duration-300">
+      <div class="flex items-center justify-between px-3 py-2 draggable-handle header cursor-pointer"
+        onclick="togglePanel('cameraOverlay')">
+        <div class="flex items-center gap-2">
+          <div class="text-sm text-white/80">Camera</div>
+          <div id="selectedDronePort" class="text-xs text-white/60">Port: -</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Camera Toggle Button -->
+          <button id="cameraToggle" class="relative inline-flex items-center h-5 rounded-full w-10 bg-[#2a2c2e]">
+            <span id="cameraToggleCircle"
+              class="inline-block h-3 w-3 bg-white rounded-full transform translate-x-1 transition-transform"></span>
+          </button>
+        </div>
+      </div>
+
+      <div id="cameraContent" style="width: 100%; aspect-ratio: 16/9; background:#000000;"
+        class="relative transition-all duration-300">
+        <img id="cameraFeed" src="/static/images/logo.png" alt="camera feed"
+          style="width:100%; height:100%; object-fit:contain;" />
+      </div>
     </div>
+
   </div>
-  <!-- Bildirim alanı (toast) -->
+  <!-- Notification Area (Toast) -->
   <div id="toastContainer"></div>
 
-  <!-- Harita kütüphaneleri ve özel JS dosyası -->
+  <!-- Map Libraries and Custom JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="/static/js/script.js"></script>
 
 </body>
+
 </html>

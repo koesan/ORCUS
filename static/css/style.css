@@ -1,12 +1,19 @@
+/* =============================================
+   ORCUS Control Hub — Optimized Stylesheet
+   ============================================= */
+
 :root {
   --bg: #0b1117;
   --panel: #16181b;
   --muted: #6b7280;
+  --success: #30d158;
+  --error: #ff3b30;
+  --primary: #007aff;
+  --warning: #ffcc00;
 }
 
-html,
-body,
-#map {
+/* --- Base --- */
+html, body, #map {
   height: 100%;
   margin: 0;
 }
@@ -17,13 +24,13 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
 }
 
-/* cam efekti (yarı saydam panel arka planı) */
+/* --- Glass Panel --- */
 .glass-effect {
   backdrop-filter: blur(10px);
   background: rgba(18, 18, 18, 0.75);
 }
 
-/* bağlantı durumu göstergesi */
+/* --- Connection Status --- */
 .status-indicator {
   width: 9px;
   height: 9px;
@@ -31,136 +38,211 @@ body {
   display: inline-block;
 }
 .status-connected {
-  background: #30d158;
+  background: var(--success);
   box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
 }
 .status-disconnecting {
-  background: #ffcc00;
+  background: var(--warning);
   box-shadow: 0 0 6px rgba(255, 204, 0, 0.3);
 }
 .status-disconnected {
-  background: #ff3b30;
+  background: var(--error);
   box-shadow: 0 0 6px rgba(255, 59, 48, 0.3);
 }
 
-/* durum bildirimleri*/
+/* --- Toast Notifications --- */
 #toastContainer {
-    position: fixed;
-    top: 10rem;
-    right: 10rem;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
 }
-
 .toast {
-    font-size: 1.125rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    color: white;
-    background-color: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(40, 44, 50, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  animation: toastSlide 0.3s ease-out;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 12px;
+}
+.toast-content {
+  flex: 1;
+  line-height: 1.4;
+}
+.toast-close {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+.toast-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
 }
 
-/* drone harita simgesi */
+/* Toast Types - Colored Borders */
+.toast-success { 
+  border: 2px solid rgba(48, 209, 88, 0.7);
+  border-left: 4px solid #30d158;
+}
+.toast-success .toast-icon { background: rgba(48, 209, 88, 0.15); color: #30d158; }
+
+.toast-error { 
+  border: 2px solid rgba(255, 59, 48, 0.7);
+  border-left: 4px solid #ff3b30;
+}
+.toast-error .toast-icon { background: rgba(255, 59, 48, 0.15); color: #ff3b30; }
+
+.toast-info { 
+  border: 2px solid rgba(0, 122, 255, 0.7);
+  border-left: 4px solid #007aff;
+}
+.toast-info .toast-icon { background: rgba(0, 122, 255, 0.15); color: #007aff; }
+
+.toast-warning { 
+  border: 2px solid rgba(255, 204, 0, 0.7);
+  border-left: 4px solid #ffcc00;
+}
+.toast-warning .toast-icon { background: rgba(255, 204, 0, 0.15); color: #ffcc00; }
+
+/* Progress bar */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 0 0 8px 8px;
+  animation: toastProgress linear forwards;
+}
+.toast-success .toast-progress { background: rgba(48, 209, 88, 0.6); }
+.toast-error   .toast-progress { background: rgba(255, 59, 48, 0.6); }
+.toast-info    .toast-progress { background: rgba(0, 122, 255, 0.6); }
+
+@keyframes toastSlide {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes toastProgress {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* --- Drone Map Markers --- */
 .drone-marker {
-  background: #007aff;
+  background: var(--primary);
   border: 2px solid #fff;
   border-radius: 50%;
   width: 12px;
   height: 12px;
 }
 
-/* kamera görünüm paneli */
+/* --- Camera Overlay --- */
 .camera-overlay {
-  position: absolute;
-  width: 360px;
   border-radius: 10px;
   overflow: hidden;
-  right: 10px;
-  bottom: 10px;
   background: #000;
-  z-index: 1050;
 }
 #cameraToggleCircle {
-  transition: transform 0.2s; 
+  transform: translateX(1px);
+  transition: transform 0.2s ease;
 }
 
-#cameraToggleCircle {
-    transform: translateX(1px);
-    transition: transform 0.2s;
-}
+.draggable-handle { cursor: grab; }
 
-/* sürüklenebilir alan */
-.draggable-handle {
-  cursor: grab;
-}
-
-/* bildirimler (toast mesajları) */
-#toastContainer {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 2000;
-}
-.toast {
-  padding: 10px 16px;
-  border-radius: 6px;
-  color: #fff;
-  margin-bottom: 8px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  animation: toastIn 0.25s;
-}
-.toast-success {
-  background: #30d158;
-}
-.toast-error {
-  background: #ff3b30;
-}
-.toast-info {
-  background: #007aff;
-}
-@keyframes toastIn {
-  from {
-    transform: translateY(-8px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* grid hücreleri (SVG/rect) */
+/* --- Grid Cells --- */
 .grid-cell {
   stroke-width: 0.5;
   fill-opacity: 0.35;
+  transition: fill 0.3s ease, stroke 0.3s ease;
 }
-.grid-cell-unvisited {
-  fill: #dc3545;
-  stroke: #dc3545;
-}
-.grid-cell-visited {
-  fill: #198754;
-  stroke: #198754;
-}
-.grid-cell-old {
-  fill: #ffc107;
-  stroke: #ffc107;
-}
+.grid-cell-unvisited { fill: #dc3545; stroke: #dc3545; }
+.grid-cell-visited   { fill: #198754; stroke: #198754; }
+.grid-cell-old       { fill: #ffc107; stroke: #ffc107; }
 
-/* küçük arayüz iyileştirmeleri */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
+/* --- Scrollbar --- */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 6px;
 }
-#droneDropdown {
-  position: absolute;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
-/* leaflet rectangle çizim aracı engellenmesin */
-.leaflet-draw-draw-rectangle {
-  display: block !important;
+/* --- Dropdown --- */
+#droneDropdown { position: absolute; }
+
+/* --- Leaflet Overrides --- */
+.leaflet-draw-draw-rectangle { display: block !important; }
+
+/* --- Radar Tooltip --- */
+.radar-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f3f4f6;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  pointer-events: none;
+  white-space: normal;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  min-width: 140px;
+  max-width: 220px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* --- Radar Performance --- */
+#radarTargetsLayer {
+  will-change: contents;
+  contain: layout style;
+}
+#radarTargetsLayer > div {
+  transition: left 0.3s ease, top 0.3s ease;
+}
+
+/* --- Micro Animations --- */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s infinite;
+}

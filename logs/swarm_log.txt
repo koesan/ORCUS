@@ -1,0 +1,1159 @@
+
+====================================================================================================
+ ORCUS SWARM LOG SESSION STARTED: 2026-03-01 10:00:23.821558+03:00
+ SESSION ID: 2afddfe8
+====================================================================================================
+TIMESTAMP      | LEVEL      | MODULE         | SOURCE       | EVENT
+----------------------------------------------------------------------------------------------------
+[10:00:23.821] | INFO       | LEADER         | INIT         | Battlespace Manager v3 (Proactive Assignment + Failsafe) Started.
+[10:00:23.821] | INFO       | LEADER         | OPT_LOOP     | Proactive Assignment Loop Started.
+ * Serving Flask app 'app'
+ * Debug mode: off
+[10:00:28.947] | INFO       | DroneManager   | CONNECTION   | Connection failed. Retrying... (Attempt 1/3)
+[10:00:29.470] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5763 connected.
+[10:00:29.473] | INFO       | Camera         | ROS          | Subscribed: /webcam/image_raw (port: 5763)
+[10:00:31.321] | INFO       | DroneManager   | CONNECTION   | Connection failed. Retrying... (Attempt 1/3)
+[10:00:31.623] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5773 connected.
+[10:00:31.626] | INFO       | Camera         | ROS          | Subscribed: /webcam_2/image_raw_2 (port: 5773)
+[10:00:38.509] | INFO       | DroneManager   | PARTITION    | Drone 5763: Assigned 1 cells (Rows 0-1)
+[10:00:38.509] | INFO       | DroneManager   | PARTITION    | Drone 5773: Assigned 1 cells (Rows 1-2)
+[10:00:38.644] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5763
+[10:00:38.645] | INFO       | Navigation     | GRID         | Grid created: 1x1
+[10:00:38.716] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5773
+[10:00:38.716] | INFO       | Navigation     | GRID         | Grid created: 1x1
+[10:00:43.321] | INFO       | DRONE_5763     | TAKEOFF      | Arming motors...[10:00:43.321] | INFO       | DRONE_5773     | TAKEOFF      | Arming motors...
+
+[10:00:43.322] | DEBUG      | DRONE_5773     | TAKEOFF      | Arming...
+[10:00:43.323] | DEBUG      | DRONE_5763     | TAKEOFF      | Arming...
+[10:00:43.823] | INFO       | DRONE_5773     | TAKEOFF      | Taking off. Target Altitude: 5 m.
+[10:00:43.823] | INFO       | DRONE_5763     | TAKEOFF      | Taking off. Target Altitude: 5 m.
+[10:00:59.339] | INFO       | DRONE_5763     | TAKEOFF      | Takeoff complete. Altitude: 5 m.
+[10:00:59.339] | INFO       | DRONE_5763     | TAKEOFF      | Altitude reached, proceeding to observation area.
+[10:00:59.838] | INFO       | DRONE_5773     | TAKEOFF      | Takeoff complete. Altitude: 5 m.
+[10:00:59.838] | INFO       | DRONE_5773     | TAKEOFF      | Altitude reached, proceeding to observation area.
+[10:01:00.340] | INFO       | DRONE_5763     | MISSION      | Altitude reached, proceeding to observation area.
+[10:01:00.839] | INFO       | DRONE_5773     | MISSION      | Altitude reached, proceeding to observation area.
+[10:01:25.414] | INFO       | DRONE_5773     | SCANNER      | Single Cell Scan: Performing 360° rotation.
+[10:01:27.788] | INFO       | DRONE_5763     | SCANNER      | Single Cell Scan: Performing 360° rotation.
+[10:01:32.245] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 3 targets | ID:1 pos:(430,389) size:(26x76) conf:0.75 | ID:2 pos:(232,405) size:(31x86) conf:0.74 | ID:3 pos:(335,399) size:(28x76) conf:0.61
+[10:01:32.245] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362900, 149.165366, alt=5.0m) | Target(-35.362634, 149.165534) | HorizDist=33.3m SlantRange=33.7m | σ_r=7.9m σ_t=2.9m
+[10:01:32.246] | INFO       | DRONE_5773     | KALMAN       | Initialized GPS Kalman Filter
+[10:01:32.247] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T1 (TrackerID: 1) @ (-35.362634, 149.165534) | Owner: Drone_5773
+[10:01:32.248] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 1→2
+[10:01:32.904] | CAMERA     | DRONE_5763     | VISION       | DETECTIONS: 2 targets | ID:4 pos:(938,346) size:(19x54) conf:0.74 | ID:5 pos:(873,347) size:(19x48) conf:0.58
+[10:01:32.904] | INFO       | DRONE_5763     | KALMAN       | Initialized GPS Kalman Filter
+[10:01:32.905] | LIFECYCLE  | LEADER         | TRACK        | T1: TENTATIVE → CONFIRMED (t=0.66s, obs=3)
+[10:01:32.905] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T2 (TrackerID: 4) @ (-35.362478, 149.165122) | Owner: Drone_5763
+[10:01:32.905] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 4→5
+[10:01:33.896] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/PENDING/OWNED] @-35.362633,149.165498 | TID:3 Local:[5773:3] | D5773 | obs=3 consec=3 switch=0 | T2[TENTATIVE/PENDING/OWNED] @-35.362481,149.165099 | TID:5 Local:[5763:5] | D5763 | obs=2 consec=2 switch=0
+[10:01:33.897] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 3 observations
+[10:01:33.897] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 2 observations
+[10:01:35.900] | OWNERSHIP  | LEADER         | OWNERSHIP    | T1: OWNED -> RESERVED (owner 5773 lost sight)
+[10:01:37.830] | CAMERA     | DRONE_5763     | VISION       | DETECTIONS: 4 targets | ID:6 pos:(1013,334) size:(20x53) conf:0.84 | ID:7 pos:(963,337) size:(21x53) conf:0.69 | ID:8 pos:(467,338) size:(19x50) conf:0.51 | ID:9 pos:(529,334) size:(19x51) conf:0.42 | GROUPS: [GG1 x2 @(-35.362424,149.165167)] [GG2 x2 @(-35.362461,149.164870)] 
+[10:01:37.833] | LIFECYCLE  | LEADER         | TRACK        | T1: CONFIRMED → LOST (NoObs=5.6s)
+[10:01:37.838] | LIFECYCLE  | LEADER         | TRACK        | T2: TENTATIVE → CONFIRMED (t=4.93s, obs=2)
+[10:01:37.838] | LIFECYCLE  | LEADER         | TRACK        | T1: LOST → CONFIRMED (re-acquired)
+[10:01:37.839] | LIFECYCLE  | LEADER         | TRACK        | T2: CONFIRMED → LOST (NoObs=4.9s)
+[10:01:37.840] | LIFECYCLE  | LEADER         | TRACK        | T2: LOST → CONFIRMED (re-acquired)
+[10:01:37.840] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 5→8
+[10:01:37.841] | DEBUG      | DRONE_5763     | GROUP        | GROUP G1 (x2) → enriched T2
+[10:01:37.841] | SUCCESS    | DRONE_5763     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
+[10:01:37.841] | STATE      | DRONE_5763     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | AttackApproved=False | TargetID=None
+[10:01:37.841] | INFO       | DRONE_5763     | TRACKING     | Entering tracking loop (tracker preserved)
+[10:01:37.904] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362555,149.165358 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=5 consec=2 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362477,149.165129 | TID:9 Local:[5763:9] | D5763 | obs=4 consec=2 switch=0 GRP[G2]x2
+[10:01:37.904] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 2 observations
+[10:01:37.927] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 10
+[10:01:37.981] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:01:38.029] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.34, cov=0.00
+[10:01:38.873] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:39.349] | INFO       | TRACKER        | FPS          | FPS calibrated to 17.9fps | buffer=53
+[10:01:39.909] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:01:39.917] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:40.957] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:41.053] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+57 suppressed in 3.0s]
+[10:01:41.912] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362551,149.165342 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=157 consec=154 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165082 | TID:11 Local:[5763:11] | D5763 | obs=156 consec=154 switch=0 GRP[G1]x2
+[10:01:41.913] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:01:41.959] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:42.273] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.1m) | Target(-35.362548, 149.165379) | HorizDist=51.6m SlantRange=51.8m | σ_r=18.7m σ_t=4.5m [+1005 suppressed in 10.0s]
+[10:01:42.383] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:01:42.535] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:01:42.737] | DEBUG      | GROUP          | CLUSTER      | Group G2 expired
+[10:01:42.986] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:43.137] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+2 suppressed in 3.0s]
+[10:01:43.918] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 75 observations
+[10:01:43.991] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:44.089] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+56 suppressed in 3.0s]
+[10:01:45.028] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:45.921] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165346 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=315 consec=312 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165082 | TID:11 Local:[5763:11] | D5763 | obs=311 consec=309 switch=0 GRP[G1]x2
+[10:01:45.922] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:01:46.039] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:47.086] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:47.128] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:01:47.929] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:01:48.120] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:48.289] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:01:49.134] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:49.932] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362545,149.165345 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=469 consec=466 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165082 | TID:11 Local:[5763:11] | D5763 | obs=465 consec=463 switch=0 GRP[G1]x2
+[10:01:49.935] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:01:50.155] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:01:50.162] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:51.207] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:51.941] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:01:52.251] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:52.299] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.0m) | Target(-35.362544, 149.165380) | HorizDist=52.0m SlantRange=52.2m | σ_r=19.0m σ_t=4.6m [+2342 suppressed in 10.0s]
+[10:01:53.185] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:01:53.289] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:53.394] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:01:53.943] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165344 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=625 consec=622 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362489,149.165081 | TID:11 Local:[5763:11] | D5763 | obs=621 consec=619 switch=0 GRP[G1]x2
+[10:01:53.948] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:01:54.317] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:55.364] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:55.953] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:01:56.188] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+57 suppressed in 3.0s]
+[10:01:56.412] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:57.459] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:57.956] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362545,149.165344 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=781 consec=778 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362493,149.165080 | TID:11 Local:[5763:11] | D5763 | obs=777 consec=775 switch=0 GRP[G1]x2
+[10:01:57.958] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:01:58.464] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:58.514] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:01:59.203] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+59 suppressed in 3.0s]
+[10:01:59.507] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:01:59.965] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 82 observations
+[10:02:00.526] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:01.558] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:01.968] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362547,149.165342 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=939 consec=936 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362494,149.165079 | TID:11 Local:[5763:11] | D5763 | obs=935 consec=933 switch=0 GRP[G1]x2
+[10:02:01.971] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:02:02.238] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:02:02.340] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.0m) | Target(-35.362542, 149.165380) | HorizDist=52.2m SlantRange=52.4m | σ_r=19.1m σ_t=4.6m [+2351 suppressed in 10.0s]
+[10:02:02.595] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:03.572] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:03.625] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:03.976] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 82 observations
+[10:02:04.631] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:05.279] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+60 suppressed in 3.0s]
+[10:02:05.644] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:05.978] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165343 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1099 consec=1096 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165080 | TID:11 Local:[5763:11] | D5763 | obs=1095 consec=1093 switch=0 GRP[G1]x2
+[10:02:05.980] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:06.669] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:07.680] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:07.983] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 82 observations
+[10:02:08.326] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+60 suppressed in 3.0s]
+[10:02:08.568] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:08.709] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:09.745] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:09.986] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165342 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1261 consec=1258 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165080 | TID:11 Local:[5763:11] | D5763 | obs=1257 consec=1255 switch=0 GRP[G1]x2
+[10:02:09.989] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:10.177] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:02:10.326] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:02:10.773] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:11.369] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+60 suppressed in 3.0s]
+[10:02:11.790] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:11.997] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 77 observations
+[10:02:12.389] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.0m) | Target(-35.362539, 149.165382) | HorizDist=52.5m SlantRange=52.8m | σ_r=19.4m σ_t=4.6m [+2414 suppressed in 10.0s]
+[10:02:12.791] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:13.576] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:13.827] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:13.999] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362547,149.165341 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1421 consec=1418 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362491,149.165079 | TID:11 Local:[5763:11] | D5763 | obs=1414 consec=1412 switch=0 GRP[G1]x2
+[10:02:14.002] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:14.383] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:02:14.829] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:15.870] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:16.014] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:16.882] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:17.425] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+57 suppressed in 3.0s]
+[10:02:17.885] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:18.017] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165341 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1575 consec=1572 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165079 | TID:11 Local:[5763:11] | D5763 | obs=1568 consec=1566 switch=0 GRP[G1]x2
+[10:02:18.020] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 76 observations
+[10:02:18.732] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:18.887] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:19.899] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:20.023] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:20.436] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+59 suppressed in 3.0s]
+[10:02:20.912] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:21.924] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:22.026] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362546,149.165341 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1735 consec=1732 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362487,149.165079 | TID:11 Local:[5763:11] | D5763 | obs=1728 consec=1726 switch=0 GRP[G1]x2
+[10:02:22.028] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:22.392] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.0m) | Target(-35.362537, 149.165385) | HorizDist=52.9m SlantRange=53.1m | σ_r=19.6m σ_t=4.6m [+2343 suppressed in 10.0s]
+[10:02:22.934] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:23.467] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+59 suppressed in 3.0s]
+[10:02:23.751] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:23.948] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:24.033] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:24.978] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:25.507] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 2 targets | ID:15 pos:(1159,324) size:(20x43) conf:0.71 | ID:16 pos:(1115,319) size:(19x43) conf:0.70 | GROUPS: [GG1 x2 @(-35.362664,149.166083)] 
+[10:02:25.508] | DEBUG      | DRONE_5773     | EDGE_OBS     | Edge detection (low conf): ID:15 pos=(1159,324)
+[10:02:26.003] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:26.036] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362547,149.165340 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=1893 consec=1890 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362489,149.165079 | TID:11 Local:[5763:11,5773:16] | D5763 | obs=1888 consec=1886 switch=0 GRP[G1]x2
+[10:02:26.038] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:26.505] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+59 suppressed in 3.0s]
+[10:02:27.014] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:28.023] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:28.041] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:28.878] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:29.061] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:29.518] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:02:30.044] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/RESERVED] @-35.362547,149.165340 | TID:3 Local:[5773:3,5763:7] | D5773 | obs=2051 consec=2048 switch=0 | T2[CONFIRMED/PENDING/OWNED] @-35.362491,149.165078 | TID:11 Local:[5763:11,5773:16] | D5763 | obs=2046 consec=2044 switch=0 GRP[G1]x2
+[10:02:30.045] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 80 observations
+[10:02:30.116] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:30.358] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 4 targets | ID:17 pos:(1060,359) size:(24x64) conf:0.77 | ID:18 pos:(988,352) size:(23x59) conf:0.70 | ID:19 pos:(717,311) size:(15x37) conf:0.53 | ID:20 pos:(752,314) size:(16x38) conf:0.53 | GROUPS: [GG2 x2 @(-35.362636,149.165018)] [GG3 x2 @(-35.362653,149.164749)] 
+[10:02:30.360] | CAPACITY   | LEADER         | CAPACITY     | Drone_5773 already has target - new T3 stays FREE
+[10:02:30.361] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T3 (TrackerID: 19) @ (-35.362473, 149.164887) | Owner: Drone_5773
+[10:02:30.361] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 19→20
+[10:02:30.361] | DEBUG      | DRONE_5773     | GROUP        | GROUP G2 (x2) → enriched T2
+[10:02:30.689] | LIFECYCLE  | LEADER         | TRACK        | T3: TENTATIVE → CONFIRMED (t=0.33s, obs=2)
+[10:02:31.132] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:32.049] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:32.050] | FUSION     | TargetFusion   | SYSTEM       | T3: Fused 2 observations
+[10:02:32.050] | GUARD      | LEADER         | ASSIGN       | CAPACITY_GUARD: Drone_5763 already ACTIVE on T2
+[10:02:32.050] | ASSIGN     | LEADER         | ASSIGN       | Released T1 from Drone_5773 (one-drone-one-target)
+[10:02:32.050] | OWNERSHIP  | LEADER         | OWNERSHIP    | T3: FREE -> OWNED (assigned to Drone_5773)
+[10:02:32.050] | ASSIGN     | LEADER         | ASSIGN       | HUNGARIAN: T3 -> DRONE_5773 (Dist: 62.9m | Score: 743.7)
+[10:02:32.050] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5763: 'T2', 5773: 'T3'}
+[10:02:32.080] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:32.182] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:32.391] | LIFECYCLE  | LEADER         | TRACK        | T3: CONFIRMED → LOST (NoObs=2.0s)
+[10:02:32.435] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.0m) | Target(-35.362538, 149.165382) | HorizDist=52.6m SlantRange=52.8m | σ_r=19.4m σ_t=4.6m [+2389 suppressed in 10.0s]
+[10:02:32.545] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:02:33.086] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:33.194] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:33.959] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:34.053] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/FREE] @-35.362547,149.165339 | TID:3 Local:[5773:3,5763:7] | FREE | obs=2207 consec=2204 switch=0 GRP[G3]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362493,149.165078 | TID:11 Local:[5763:11,5773:18] | D5763 | obs=2204 consec=2202 switch=0 GRP[G1]x2
+[10:02:34.054] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:02:34.056] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 78 observations
+[10:02:34.057] | OWNERSHIP  | LEADER         | OWNERSHIP    | T3: OWNED -> RESERVED (owner 5773 lost sight)
+[10:02:34.117] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:34.216] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:35.170] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:35.177] | DEBUG      | GROUP          | CLUSTER      | Group G1 expired
+[10:02:35.177] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 5 targets | ID:21 pos:(1221,414) size:(34x93) conf:0.82 | ID:22 pos:(612,343) size:(19x54) conf:0.80 | ID:23 pos:(674,348) size:(18x56) conf:0.70 | ID:24 pos:(382,316) size:(15x42) conf:0.38 | ID:25 pos:(344,314) size:(17x38) conf:0.38 | GROUPS: [GG2 x2 @(-35.362632,149.165012)] [GG3 x2 @(-35.362648,149.164742)] 
+[10:02:35.177] | DEBUG      | DRONE_5773     | EDGE_OBS     | Edge detection (low conf): ID:21 pos=(1221,414) [+1 suppressed in 3.0s]
+[10:02:35.178] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 3→21
+[10:02:35.181] | LIFECYCLE  | LEADER         | TRACK        | T3: LOST → CONFIRMED (re-acquired)
+[10:02:35.184] | OWNERSHIP  | LEADER         | OWNERSHIP    | T3: RESERVED -> OWNED (owner 5773 re-acquired)
+[10:02:35.184] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 20→24
+[10:02:35.188] | SUCCESS    | DRONE_5773     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
+[10:02:35.188] | STATE      | DRONE_5773     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | AttackApproved=False | TargetID=None
+[10:02:35.188] | INFO       | DRONE_5773     | TRACKING     | Entering tracking loop (tracker preserved)
+[10:02:35.255] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:35.260] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 25
+[10:02:35.548] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+58 suppressed in 3.0s]
+[10:02:35.635] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 24
+[10:02:36.064] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 80 observations
+[10:02:36.075] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 68 observations
+[10:02:36.078] | FUSION     | TargetFusion   | SYSTEM       | T3: Fused 24 observations
+[10:02:36.191] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:36.220] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 24→25
+[10:02:36.266] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:36.380] | INFO       | TRACKER        | FPS          | FPS calibrated to 7.8fps | buffer=23
+[10:02:37.114] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:02:37.251] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:37.287] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 24→22
+[10:02:37.326] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:37.421] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 28
+[10:02:38.081] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ACTIVE/FREE] @-35.362546,149.165342 | TID:3 Local:[5773:21,5763:7] | FREE | obs=2349 consec=2346 switch=0 GRP[G3]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362489,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=2382 consec=2380 switch=0 GRP[G1]x2 | T3[CONFIRMED/PENDING/OWNED] @-35.362493,149.164928 | TID:28 Local:[5773:28] | D5773 | obs=112 consec=110 switch=0 GRP[G4]x2
+[10:02:38.082] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 61 observations
+[10:02:38.084] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:02:38.085] | FUSION     | TargetFusion   | SYSTEM       | T3: Fused 86 observations
+[10:02:38.312] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:38.334] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 28→22
+[10:02:38.335] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 24
+[10:02:38.395] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:38.581] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+84 suppressed in 3.0s]
+[10:02:38.753] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, -0.00) -> (-0.00, -0.00) [+2 suppressed in 3.0s]
+[10:02:39.091] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 31
+[10:02:39.152] | INFO       | TRACK          | TRACKER      | IoU Fallback: 31 -> 24 (IoU: 0.92)
+[10:02:39.158] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 25
+[10:02:39.370] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:39.401] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 25→22
+[10:02:39.449] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:40.090] | FUSION     | TargetFusion   | SYSTEM       | T3: Fused 111 observations
+[10:02:40.092] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 56 observations
+[10:02:40.093] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 56 observations
+[10:02:40.246] | DEBUG      | GROUP          | CLUSTER      | Group G3 expired
+[10:02:40.401] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 25→22
+[10:02:40.408] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:40.492] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:40.641] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:02:41.434] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 7→6
+[10:02:41.477] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 25→22
+[10:02:41.509] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:41.620] | DEBUG      | CONTROL        | TRACKER_25   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+84 suppressed in 3.0s]
+[10:02:42.096] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ACTIVE/FREE] @-35.362547,149.165340 | TID:3 Local:[5773:21,5763:7] | FREE | obs=2461 consec=2458 switch=0 GRP[G3]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362490,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=2494 consec=2492 switch=0 GRP[G1]x2 | T3[CONFIRMED/PENDING/OWNED] @-35.362495,149.164894 | TID:25 Local:[5773:25] | D5773 | obs=331 consec=329 switch=0 GRP[G4]x2
+[10:02:42.098] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 56 observations
+[10:02:42.099] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 56 observations
+[10:02:42.103] | FUSION     | TargetFusion   | SYSTEM       | T3: Fused 108 observations
+[10:02:42.104] | COLLAPSE   | LEADER         | COLLAPSE     | SPATIAL MERGE: T3 -> T1 (Dist=19.9m, Stab=1229.0 vs 164.5)
+[10:02:42.143] | CAPACITY   | LEADER         | CAPACITY     | Drone_5773 already has target - new T4 stays FREE
+[10:02:42.144] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T4 (TrackerID: 24) @ (-35.362491, 149.164923) | Owner: Drone_5773
+[10:02:42.144] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 24→25
+[10:02:42.370] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, 0.00) -> (0.00, 0.00)
+[10:02:42.443] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362901, 149.165363, alt=5.1m) | Target(-35.362555, 149.165143) | HorizDist=43.5m SlantRange=43.7m | σ_r=13.3m σ_t=3.8m [+3106 suppressed in 10.0s]
+[10:02:42.444] | LIFECYCLE  | LEADER         | TRACK        | T4: TENTATIVE → CONFIRMED (t=0.30s, obs=8)
+[10:02:42.544] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:43.195] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→24
+[10:02:43.575] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:44.107] | FUSION     | TargetFusion   | SYSTEM       | T4: Fused 56 observations
+[10:02:44.109] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 56 observations
+[10:02:44.109] | GUARD      | LEADER         | ASSIGN       | CAPACITY_GUARD: Drone_5763 already ACTIVE on T2
+[10:02:44.109] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5773: 'T1', 5763: 'T2'}
+[10:02:44.204] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→24
+[10:02:44.217] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:02:44.578] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:44.643] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+49 suppressed in 3.0s]
+[10:02:45.245] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→24
+[10:02:45.246] | STATE      | DRONE_5773     | SYSTEM       | 45 consecutive SEARCH — Ending Tracking.
+[10:02:45.247] | STATE      | DRONE_5773     | SYSTEM       | TRACKING ENDED | Frames=141 | AttackApproved=False
+[10:02:45.247] | INFO       | DRONE_5773     | SYSTEM       | Resume scanning...
+[10:02:45.590] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:46.111] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ACTIVE/OWNED] @-35.362548,149.165339 | TID:3 Local:[5773:25,5763:7] | D5773 | obs=2583 consec=2580 switch=0 GRP[G3]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362491,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=2706 consec=2704 switch=0 GRP[G1]x2 | T4[CONFIRMED/PENDING/FREE] @-35.362495,149.164894 | TID:24 Local:[5773:25] | FREE | obs=90 consec=90 switch=0 GRP[G4]x2
+[10:02:46.112] | FUSION     | TargetFusion   | SYSTEM       | T4: Fused 34 observations
+[10:02:46.114] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 66 observations
+[10:02:46.114] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5773: 'T1', 5763: 'T2'}
+[10:02:46.316] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 4 targets | ID:22 pos:(844,347) size:(19x54) conf:0.72 | ID:23 pos:(910,350) size:(21x60) conf:0.66 | ID:24 pos:(616,313) size:(17x37) conf:0.57 | ID:25 pos:(581,311) size:(16x35) conf:0.54 | GROUPS: [GG2 x2 @(-35.362550,149.165158)] [GG4 x2 @(-35.362488,149.164904)] 
+[10:02:46.321] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→24
+[10:02:46.323] | DEBUG      | DRONE_5773     | GROUP        | GROUP G2 (x2) → enriched T2
+[10:02:46.617] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:46.828] | INFO       | DRONE_5773     | SCANNER      | Single Cell Scan: Performing 360° rotation.
+[10:02:47.643] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+53 suppressed in 3.0s]
+[10:02:47.650] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:48.118] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 74 observations
+[10:02:48.119] | FUSION     | TargetFusion   | SYSTEM       | T4: Fused 2 observations
+[10:02:48.119] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5773: 'T1', 5763: 'T2'}
+[10:02:48.362] | LIFECYCLE  | LEADER         | TRACK        | T4: CONFIRMED → LOST (NoObs=2.0s)
+[10:02:48.678] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:49.556] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:02:49.718] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 9→11
+[10:02:49.718] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:02:49.816] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:50.121] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ACTIVE/OWNED] @-35.362547,149.165340 | TID:3 Local:[5773:25,5763:7] | D5773 | obs=2731 consec=2728 switch=0 GRP[G3]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362493,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=2853 consec=2851 switch=0 GRP[G1]x2
+[10:02:50.123] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 71 observations
+[10:02:50.645] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+54 suppressed in 3.0s]
+[10:02:50.756] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:51.465] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:02:51.644] | DEBUG      | GROUP          | CLUSTER      | Group G4 expired
+[10:02:51.645] | CAMERA     | DRONE_5773     | VISION       | DETECTIONS: 6 targets | ID:22 pos:(539,345) size:(19x51) conf:0.63 | ID:23 pos:(602,347) size:(20x55) conf:0.78 | ID:39 pos:(1127,405) size:(32x91) conf:0.74 | ID:40 pos:(1248,412) size:(34x89) conf:0.73 | ID:41 pos:(300,318) size:(14x42) conf:0.47 | ID:42 pos:(260,317) size:(16x38) conf:0.46 | GROUPS: [GG2 x2 @(-35.362624,149.165037)] [GG5 x2 @(-35.362621,149.165309)] [GG6 x2 @(-35.362632,149.164771)] 
+[10:02:51.646] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 25→39
+[10:02:51.646] | DEBUG      | DRONE_5773     | EDGE_OBS     | Edge detection (low conf): ID:40 pos=(1248,412) [+1 suppressed in 3.0s]
+[10:02:51.647] | LIFECYCLE  | LEADER         | TRACK        | T4: LOST → CONFIRMED (re-acquired)
+[10:02:51.647] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→41
+[10:02:51.648] | SUCCESS    | DRONE_5773     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
+[10:02:51.648] | STATE      | DRONE_5773     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | AttackApproved=False | TargetID=None
+[10:02:51.648] | INFO       | DRONE_5773     | TRACKING     | Entering tracking loop (tracker preserved)
+[10:02:51.721] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:51.721] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 40
+[10:02:51.802] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:51.874] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:51.959] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:51.999] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 9→11
+[10:02:52.000] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:02:52.036] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.114] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.127] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 64 observations
+[10:02:52.128] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 14 observations
+[10:02:52.129] | FUSION     | TargetFusion   | SYSTEM       | T4: Fused 14 observations
+[10:02:52.223] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.299] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.381] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.460] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362901, 149.165363, alt=5.1m) | Target(-35.362560, 149.165141) | HorizDist=43.1m SlantRange=43.4m | σ_r=13.1m σ_t=3.8m [+2695 suppressed in 10.0s]
+[10:02:52.472] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.473] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 48
+[10:02:52.544] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.612] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.684] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:52.685] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 25→50
+[10:02:52.685] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.768] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.769] | CAPACITY   | LEADER         | CAPACITY     | Drone_5763 already has target - new T5 stays FREE
+[10:02:52.769] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T5 (TrackerID: 6) @ (-35.362536, 149.165386) | Owner: Drone_5763
+[10:02:52.770] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 6→7
+[10:02:52.857] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:52.926] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.003] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.039] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:53.070] | LIFECYCLE  | LEADER         | TRACK        | T5: TENTATIVE → CONFIRMED (t=0.30s, obs=3)
+[10:02:53.071] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.133] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.205] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.318] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.385] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.455] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.534] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.606] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.665] | DEBUG      | CONTROL        | TRACKER_48   | CMD: vx=2.00, yaw=0.35, cov=0.00 [+69 suppressed in 3.0s]
+[10:02:53.672] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.743] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→22
+[10:02:53.744] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.777] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:53.819] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.899] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:53.965] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.037] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.079] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:54.121] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.131] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(4): T1[CONFIRMED/PENDING/OWNED] @-35.362612,149.165477 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=2940 consec=2937 switch=0 GRP[G5]x3 | T2[CONFIRMED/PENDING/OWNED] @-35.362489,149.165080 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=2999 consec=2997 switch=0 GRP[G1]x2 | T4[CONFIRMED/ACTIVE/FREE] @-35.362496,149.164936 | TID:24 Local:[5773:42] | FREE | obs=125 consec=33 switch=0 GRP[G8]x2 | T5[CONFIRMED/PENDING/FREE] @-35.362555,149.165180 | TID:6 Local:[5763:7,5773:54] | FREE | obs=34 consec=34 switch=0 GRP[G3]x2
+[10:02:54.133] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 54 observations
+[10:02:54.137] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 107 observations
+[10:02:54.138] | WARNING    | KalmanFilter   | FUSION       | Innovation gating rejected (mahal=5.2σ)
+[10:02:54.139] | FUSION     | TargetFusion   | SYSTEM       | T4: Fused 19 observations
+[10:02:54.141] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 38 observations
+[10:02:54.202] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.299] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.380] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.465] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.545] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.621] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.708] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.784] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:54.785] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.817] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:54.865] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:54.945] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.040] | LIFECYCLE  | LEADER         | TRACK        | T4: CONFIRMED → LOST (NoObs=2.0s)
+[10:02:55.042] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.113] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:55.118] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.201] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.282] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.359] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.442] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.515] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.593] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.671] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.739] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.812] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:55.813] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.880] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:55.889] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:55.969] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.044] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.136] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.147] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 56 observations
+[10:02:56.152] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:56.156] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:02:56.158] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 75 observations
+[10:02:56.229] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.296] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:02:56.312] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.365] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, 0.00) -> (0.00, 0.00) [+1 suppressed in 3.0s]
+[10:02:56.390] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.390] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00) [+4 suppressed in 3.0s]
+[10:02:56.469] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.545] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.562] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:02:56.625] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.686] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+78 suppressed in 3.0s]
+[10:02:56.699] | DEBUG      | GROUP          | CLUSTER      | Group G6 expired
+[10:02:56.707] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.786] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.869] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:56.869] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:56.899] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:56.941] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.003] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.079] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.153] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.163] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:57.229] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.303] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.391] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.462] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.537] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.616] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.694] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.764] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.841] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.914] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:57.915] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:57.938] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:57.990] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.057] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.134] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.161] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165471 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3093 consec=3090 switch=0 GRP[G5]x3 | T2[CONFIRMED/PENDING/OWNED] @-35.362491,149.165080 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=3111 consec=3109 switch=0 GRP[G1]x2 | T5[CONFIRMED/PENDING/FREE] @-35.362546,149.165342 | TID:6 Local:[5763:7,5773:54] | FREE | obs=150 consec=150 switch=0 GRP[G3]x2
+[10:02:58.165] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:02:58.167] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 54 observations
+[10:02:58.171] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:02:58.228] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.229] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:58.313] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.401] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.485] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.566] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:02:58.571] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.640] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.726] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.799] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.882] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.917] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:02:58.962] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:02:58.963] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:58.988] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:02:59.035] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.105] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.184] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.261] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.266] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:02:59.344] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.418] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.497] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.565] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.633] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.695] | DEBUG      | CONTROL        | TRACKER_48   | CMD: vx=2.00, yaw=0.01, cov=0.00 [+81 suppressed in 3.0s]
+[10:02:59.701] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.775] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.799] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:02:59.855] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:02:59.934] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.003] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:00.003] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.049] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:00.084] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.158] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.175] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:03:00.182] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:03:00.184] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 53 observations
+[10:03:00.250] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.250] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:03:00.284] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:00.338] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.413] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.489] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.560] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.628] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.701] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.778] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.859] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.932] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:00.965] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 9
+[10:03:01.009] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:01.010] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.085] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.114] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:01.115] | INFO       | HumanTracker   | TRACKING     | LOCKED: Track ID 11
+[10:03:01.167] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.247] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.331] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:01.336] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.416] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.485] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.562] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.632] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.699] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.770] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.840] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:01.918] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.016] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:02.017] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.109] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.142] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:02.186] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362618,149.165471 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3246 consec=3243 switch=0 GRP[G5]x3 | T2[CONFIRMED/PENDING/OWNED] @-35.362492,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=3218 consec=3216 switch=0 GRP[G1]x2 | T5[CONFIRMED/PENDING/FREE] @-35.362547,149.165341 | TID:6 Local:[5763:7,5773:54] | FREE | obs=264 consec=264 switch=0 GRP[G3]x2
+[10:03:02.189] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.191] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 56 observations
+[10:03:02.192] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 54 observations
+[10:03:02.194] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:03:02.290] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.364] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.394] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:02.443] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.464] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362902, 149.165012, alt=5.1m) | Target(-35.362540, 149.165382) | HorizDist=52.5m SlantRange=52.7m | σ_r=19.3m σ_t=4.6m [+2994 suppressed in 10.0s]
+[10:03:02.523] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.613] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.690] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.734] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+79 suppressed in 3.0s]
+[10:03:02.756] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.830] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.908] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:02.982] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.016] | LIFECYCLE  | LEADER         | TRACK        | T4: LOST → DELETED (NoObs=10.0s)
+[10:03:03.058] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:03.059] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.144] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.153] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:03.209] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.279] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.370] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.376] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:03:03.446] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:03.451] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.531] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.607] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.691] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.769] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.850] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:03.937] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.003] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.087] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:04.088] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.160] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.160] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, 0.00) -> (0.00, 0.00)
+[10:03:04.188] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:04.199] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:03:04.208] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:03:04.211] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 75 observations
+[10:03:04.247] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.342] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.422] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.471] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:04.497] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.567] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.644] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.717] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.795] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.867] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:04.958] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.052] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.118] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:05.119] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.196] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.232] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:05.283] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.367] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.444] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.538] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.541] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:05.616] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.690] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.747] | DEBUG      | CONTROL        | TRACKER_48   | CMD: vx=2.00, yaw=0.01, cov=0.00 [+81 suppressed in 3.0s]
+[10:03:05.756] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.831] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.898] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:05.973] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.045] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.132] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:06.133] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.205] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.214] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165471 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3402 consec=3399 switch=0 GRP[G5]x3 | T2[CONFIRMED/PENDING/OWNED] @-35.362494,149.165079 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=3334 consec=3332 switch=0 GRP[G1]x2 | T5[CONFIRMED/PENDING/FREE] @-35.362548,149.165340 | TID:6 Local:[5763:7,5773:54] | FREE | obs=380 consec=380 switch=0 GRP[G3]x2
+[10:03:06.216] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:03:06.217] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:03:06.219] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:03:06.287] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:06.294] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.377] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.446] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.524] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.563] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:06.596] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.678] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.754] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.818] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.839] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:03:06.881] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:06.952] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.019] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.085] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.156] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:07.157] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.229] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.312] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.315] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:07.389] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.470] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.546] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.586] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:07.615] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.698] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.779] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.860] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:07.933] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.011] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.011] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, 0.00) -> (0.00, 0.00)
+[10:03:08.082] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.158] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:08.159] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.225] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:03:08.227] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:03:08.229] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 78 observations
+[10:03:08.236] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.311] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.366] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:08.385] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.457] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.534] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.602] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.633] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:08.674] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.753] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.768] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+83 suppressed in 3.0s]
+[10:03:08.853] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.921] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:08.995] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.082] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.156] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.217] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:09.218] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.302] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.384] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.405] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:09.450] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.529] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.610] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.685] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:09.692] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.765] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.837] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.919] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:09.991] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:10.074] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:10.140] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:10.209] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:10.233] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165471 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3561 consec=3558 switch=0 GRP[G5]x3 | T2[CONFIRMED/PENDING/OWNED] @-35.362492,149.165080 | TID:11 Local:[5763:11,5773:23] | D5763 | obs=3450 consec=3448 switch=0 GRP[G1]x2 | T5[CONFIRMED/PENDING/FREE] @-35.362543,149.165346 | TID:6 Local:[5763:7,5773:54] | FREE | obs=496 consec=496 switch=0 GRP[G3]x2
+[10:03:10.235] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 81 observations
+[10:03:10.236] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 58 observations
+[10:03:10.237] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:03:10.282] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→39
+[10:03:10.282] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: HOVER for T1 (Pri=10)
+[10:03:10.285] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (0.00, -0.00) -> (0.00, 0.00)
+[10:03:10.306] | USER_CMD   | LEADER         | USER         | ATTACK MODE ACTIVATED
+[10:03:10.306] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T1 → ECHO_WAIT
+[10:03:10.307] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T2 → ECHO_WAIT
+[10:03:10.307] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T5 → ECHO_WAIT
+[10:03:10.374] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1726.0, Dist=45.8m)
+[10:03:10.380] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.444] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:10.444] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1727.0, Dist=45.8m)
+[10:03:10.454] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.527] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1728.0, Dist=45.8m)
+[10:03:10.533] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.594] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1729.0, Dist=45.8m)
+[10:03:10.602] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.660] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1730.0, Dist=46.2m)
+[10:03:10.687] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.729] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1731.0, Dist=46.2m)
+[10:03:10.771] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.813] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1732.0, Dist=50.6m)
+[10:03:10.852] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.883] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1733.0, Dist=50.4m)
+[10:03:10.922] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:10.966] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1734.0, Dist=62.0m)
+[10:03:11.000] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.028] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:11.029] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1735.0, Dist=89.8m)
+[10:03:11.029] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.81 vz=0.24 yaw=-0.09 pitch=-0.1° | alt=5.0m cov=0.1%
+[10:03:11.085] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.086] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.93 vz=0.25 yaw=0.07 pitch=-0.6° | alt=5.1m cov=0.2%
+[10:03:11.096] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1736.0, Dist=36.4m)
+[10:03:11.155] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.162] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1737.0, Dist=36.4m)
+[10:03:11.234] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1738.0, Dist=47.5m)
+[10:03:11.238] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.321] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1739.0, Dist=47.4m)
+[10:03:11.329] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.387] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1740.0, Dist=68.2m)
+[10:03:11.404] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.458] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5763 LocalID 7→6
+[10:03:11.458] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1741.0, Dist=68.7m)
+[10:03:11.483] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.528] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.032). Clamping to 0.050.
+[10:03:11.538] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1742.0, Dist=100.6m)
+[10:03:11.552] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.602] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1743.0, Dist=100.6m)
+[10:03:11.634] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.673] | CAPACITY   | LEADER         | CAPACITY     | Drone_5763 already has target - new T6 stays FREE
+[10:03:11.673] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T6 (TrackerID: 6) @ (-35.362624, 149.165296) | Owner: Drone_5763
+[10:03:11.673] | ID_UPDATE  | LEADER         | ID           | T6: Drone_5763 LocalID 6→7
+[10:03:11.674] | CAPACITY   | LEADER         | CAPACITY     | Drone_5763 already has target - new T7 stays FREE
+[10:03:11.674] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T7 (TrackerID: 9) @ (-35.362582, 149.165090) | Owner: Drone_5763
+[10:03:11.674] | ID_UPDATE  | LEADER         | ID           | T7: Drone_5763 LocalID 9→11
+[10:03:11.674] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1743.0, Dist=100.6m)
+[10:03:11.719] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.741] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1744.0, Dist=35.2m)
+[10:03:11.792] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=4.00, yaw=-0.01, cov=0.00 [+80 suppressed in 3.0s]
+[10:03:11.800] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1745.0, Dist=50.0m)
+[10:03:11.803] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.872] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1746.0, Dist=50.0m)
+[10:03:11.881] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:11.882] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (2.37, 0.00) -> (2.27, 0.68)
+[10:03:11.938] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1747.0, Dist=50.0m)
+[10:03:11.965] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.038] | LIFECYCLE  | LEADER         | TRACK        | T6: TENTATIVE → CONFIRMED (t=0.37s, obs=3)
+[10:03:12.038] | ASSIGN     | LEADER         | AUTO         | T6 Auto-Approved (Attack Mode Active)
+[10:03:12.043] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1748.0, Dist=76.6m)
+[10:03:12.089] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.123] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1749.0, Dist=77.1m)
+[10:03:12.171] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.192] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1750.0, Dist=99.8m)
+[10:03:12.243] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 72 observations
+[10:03:12.245] | FUSION     | TargetFusion   | SYSTEM       | T5: Fused 38 observations
+[10:03:12.247] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 51 observations
+[10:03:12.248] | FUSION     | TargetFusion   | SYSTEM       | T6: Fused 16 observations
+[10:03:12.249] | FUSION     | TargetFusion   | SYSTEM       | T7: Fused 3 observations
+[10:03:12.261] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.277] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1751.0, Dist=51.2m)
+[10:03:12.336] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.338] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1752.0, Dist=51.4m)
+[10:03:12.419] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1753.0, Dist=47.1m)
+[10:03:12.426] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.480] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362900, 149.165013, alt=4.9m) | Target(-35.362539, 149.165352) | HorizDist=50.6m SlantRange=50.9m | σ_r=18.4m σ_t=4.4m [+2860 suppressed in 10.0s]
+[10:03:12.488] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:12.488] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1754.0, Dist=46.8m)
+[10:03:12.498] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.567] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1755.0, Dist=40.5m)
+[10:03:12.574] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.631] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1756.0, Dist=40.5m)
+[10:03:12.642] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.698] | ID_UPDATE  | LEADER         | ID           | T6: Drone_5763 LocalID 64→7
+[10:03:12.699] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1757.0, Dist=32.0m)
+[10:03:12.716] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.774] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1758.0, Dist=32.0m)
+[10:03:12.794] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.849] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1759.0, Dist=77.5m)
+[10:03:12.882] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:12.938] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1760.0, Dist=57.3m)
+[10:03:12.966] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.000] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1761.0, Dist=37.2m)
+[10:03:13.034] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.075] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1762.0, Dist=37.2m)
+[10:03:13.107] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.144] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 9→11
+[10:03:13.144] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1763.0, Dist=31.9m)
+[10:03:13.191] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.208] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1764.0, Dist=28.6m)
+[10:03:13.208] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.12 vz=0.19 yaw=0.02 pitch=-8.9° | alt=4.9m cov=0.1% [+2 suppressed in 2.0s]
+[10:03:13.260] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.272] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1765.0, Dist=26.6m)
+[10:03:13.327] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.341] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1766.0, Dist=26.7m)
+[10:03:13.404] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.411] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1767.0, Dist=47.4m)
+[10:03:13.476] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1768.0, Dist=46.3m)
+[10:03:13.482] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.482] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.40 vz=0.36 yaw=-0.02 pitch=-8.6° | alt=4.9m cov=0.2% [+2 suppressed in 2.0s]
+[10:03:13.536] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1769.0, Dist=46.6m)
+[10:03:13.554] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.597] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1770.0, Dist=46.6m)
+[10:03:13.627] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.663] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1771.0, Dist=46.6m)
+[10:03:13.690] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.736] | ID_UPDATE  | LEADER         | ID           | T6: Drone_5763 LocalID 6→7
+[10:03:13.738] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1772.0, Dist=50.1m)
+[10:03:13.761] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.801] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 11→9
+[10:03:13.801] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1773.0, Dist=49.8m)
+[10:03:13.832] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.868] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1774.0, Dist=58.1m)
+[10:03:13.868] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (2.78, 0.00) -> (2.76, 0.36)
+[10:03:13.909] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.932] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1775.0, Dist=36.6m)
+[10:03:13.984] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:13.993] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1776.0, Dist=36.6m)
+[10:03:14.050] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.059] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1777.0, Dist=42.6m)
+[10:03:14.114] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.122] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1778.0, Dist=42.7m)
+[10:03:14.190] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.193] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1779.0, Dist=51.1m)
+[10:03:14.252] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(4): T1[CONFIRMED/ENGAGED/OWNED] @-35.362658,149.165457 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3698 consec=3695 switch=0 GRP[G9]x3 | T2[CONFIRMED/ENGAGED/OWNED] @-35.362433,149.165090 | TID:9 Local:[5763:9,5773:23] | D5763 | obs=3560 consec=3558 switch=0 GRP[G1]x2 | T5[CONFIRMED/ECHO_WAIT/FREE] @-35.362660,149.165426 | TID:6 Local:[5763:7,5773:40] | FREE | obs=544 consec=544 switch=0 GRP[G6]x2 | T6[CONFIRMED/ENGAGED/FREE] @-35.362495,149.165441 | TID:6 Local:[5763:6,5773:40] | FREE | obs=71 consec=71 switch=0 GRP[G7]x2
+[10:03:14.258] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1780.0, Dist=51.0m)[10:03:14.259] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 65 observations
+
+[10:03:14.266] | FUSION     | TargetFusion   | SYSTEM       | T6: Fused 58 observations
+[10:03:14.276] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 60 observations
+[10:03:14.278] | COLLAPSE   | LEADER         | COLLAPSE     | SPATIAL MERGE: T6 -> T2 (Dist=19.9m, Stab=1780.0 vs 73.0)
+[10:03:14.283] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.326] | CAPACITY   | LEADER         | CAPACITY     | Drone_5763 already has target - new T8 stays FREE
+[10:03:14.326] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T8 (TrackerID: 7) @ (-35.362494, 149.165403) | Owner: Drone_5763
+[10:03:14.328] | ID_UPDATE  | LEADER         | ID           | T8: Drone_5763 LocalID 7→6
+[10:03:14.328] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1781.0, Dist=50.9m)
+[10:03:14.361] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.397] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1782.0, Dist=61.8m)
+[10:03:14.439] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.468] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1783.0, Dist=76.2m)
+[10:03:14.515] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.537] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1784.0, Dist=39.7m)
+[10:03:14.590] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.598] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1785.0, Dist=42.7m)
+[10:03:14.659] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.663] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1786.0, Dist=42.7m)
+[10:03:14.726] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1787.0, Dist=47.5m)
+[10:03:14.736] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.785] | LIFECYCLE  | LEADER         | TRACK        | T8: TENTATIVE → CONFIRMED (t=0.46s, obs=3)
+[10:03:14.786] | ASSIGN     | LEADER         | AUTO         | T8 Auto-Approved (Attack Mode Active)
+[10:03:14.786] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1788.0, Dist=47.6m)
+[10:03:14.801] | DEBUG      | CONTROL        | TRACKER_48   | CMD: vx=2.00, yaw=0.01, cov=0.00 [+82 suppressed in 3.0s]
+[10:03:14.808] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.856] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1789.0, Dist=54.7m)
+[10:03:14.884] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.919] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1790.0, Dist=54.9m)
+[10:03:14.959] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:14.984] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1791.0, Dist=59.2m)
+[10:03:15.041] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.047] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1792.0, Dist=40.6m)
+[10:03:15.120] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1793.0, Dist=40.5m)
+[10:03:15.131] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.183] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1794.0, Dist=43.7m)
+[10:03:15.198] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.238] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1795.0, Dist=43.8m)
+[10:03:15.262] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.320] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1796.0, Dist=46.2m)
+[10:03:15.333] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.380] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1797.0, Dist=46.2m)
+[10:03:15.403] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.442] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1798.0, Dist=48.5m)
+[10:03:15.481] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.514] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1799.0, Dist=48.5m)
+[10:03:15.558] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.574] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1800.0, Dist=50.8m)
+[10:03:15.631] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1801.0, Dist=43.5m)
+[10:03:15.637] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.696] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1802.0, Dist=43.6m)
+[10:03:15.711] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.712] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=4.63 vz=0.39 yaw=0.00 pitch=-11.4° | alt=4.6m cov=0.3% [+2 suppressed in 2.0s]
+[10:03:15.712] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (4.63, 0.00) -> (4.44, 1.31)
+[10:03:15.760] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1803.0, Dist=44.4m)
+[10:03:15.795] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.823] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1804.0, Dist=45.2m)
+[10:03:15.824] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=4.74 vz=0.34 yaw=0.00 pitch=-12.4° | alt=4.5m cov=0.1% [+3 suppressed in 2.0s]
+[10:03:15.882] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:15.884] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1805.0, Dist=45.9m)
+[10:03:15.950] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1806.0, Dist=45.9m)
+[10:03:15.955] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.012] | ID_UPDATE  | LEADER         | ID           | T8: Drone_5763 LocalID 7→68
+[10:03:16.012] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1807.0, Dist=46.1m)
+[10:03:16.028] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.075] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1808.0, Dist=46.4m)
+[10:03:16.104] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.142] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1809.0, Dist=42.8m)
+[10:03:16.183] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.212] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1810.0, Dist=42.9m)
+[10:03:16.282] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)[10:03:16.283] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 32 observations
+
+[10:03:16.284] | FUSION     | TargetFusion   | SYSTEM       | T8: Fused 28 observations
+[10:03:16.289] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 60 observations
+[10:03:16.294] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1811.0, Dist=43.5m)
+[10:03:16.357] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.363] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1812.0, Dist=43.8m)
+[10:03:16.436] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1813.0, Dist=43.9m)
+[10:03:16.442] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.498] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1814.0, Dist=44.0m)
+[10:03:16.509] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.560] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1815.0, Dist=44.0m)
+[10:03:16.582] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.616] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1816.0, Dist=44.0m)
+[10:03:16.653] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.687] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1817.0, Dist=42.9m)
+[10:03:16.725] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.759] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1818.0, Dist=42.9m)
+[10:03:16.804] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.832] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1819.0, Dist=43.0m)
+[10:03:16.873] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.893] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1820.0, Dist=43.0m)
+[10:03:16.951] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:16.957] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1821.0, Dist=42.3m)
+[10:03:17.022] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1822.0, Dist=42.4m)
+[10:03:17.030] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.099] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1823.0, Dist=39.3m)
+[10:03:17.106] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.150] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1824.0, Dist=39.3m)
+[10:03:17.151] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (5.59, 0.00) -> (5.53, 0.77)
+[10:03:17.178] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.212] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1825.0, Dist=39.2m)
+[10:03:17.252] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.290] | DEBUG      | GROUP          | CLUSTER      | Group G6 expired [+3 suppressed in 3.0s]
+[10:03:17.295] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1826.0, Dist=52.5m)
+[10:03:17.332] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.366] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1827.0, Dist=45.8m)
+[10:03:17.412] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.435] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1828.0, Dist=41.0m)
+[10:03:17.476] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.499] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1829.0, Dist=35.5m)
+[10:03:17.542] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.570] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1830.0, Dist=35.5m)
+[10:03:17.612] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.640] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1831.0, Dist=32.2m)
+[10:03:17.693] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.707] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1832.0, Dist=30.6m)
+[10:03:17.778] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.780] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1833.0, Dist=30.6m)
+[10:03:17.831] | DEBUG      | CONTROL        | TRACKER_11   | CMD: vx=2.00, yaw=-0.01, cov=0.00 [+84 suppressed in 3.0s]
+[10:03:17.838] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1834.0, Dist=40.0m)
+[10:03:17.839] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=6.19 vz=0.37 yaw=0.00 pitch=-8.0° | alt=4.1m cov=0.2% [+2 suppressed in 2.0s]
+[10:03:17.845] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.898] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1835.0, Dist=40.0m)
+[10:03:17.906] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 48→40
+[10:03:17.906] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.971] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1836.0, Dist=39.4m)
+[10:03:17.978] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:17.979] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=6.34 vz=0.38 yaw=0.00 pitch=-9.2° | alt=4.0m cov=0.5% [+2 suppressed in 2.0s]
+[10:03:18.029] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1837.0, Dist=39.4m)
+[10:03:18.045] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.087] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1838.0, Dist=41.2m)
+[10:03:18.120] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.154] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1839.0, Dist=41.4m)
+[10:03:18.181] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.219] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1840.0, Dist=44.5m)
+[10:03:18.250] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.284] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1841.0, Dist=44.5m)
+[10:03:18.294] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(4): T1[CONFIRMED/ENGAGED/OWNED] @-35.362652,149.165461 | TID:40 Local:[5773:40,5763:7] | D5773 | obs=3761 consec=3758 switch=0 GRP[G9]x3 | T2[CONFIRMED/ENGAGED/OWNED] @-35.362434,149.165095 | TID:9 Local:[5763:6,5773:40] | D5763 | obs=3684 consec=3682 switch=0 GRP[G5]x2 | T5[CONFIRMED/ECHO_WAIT/FREE] @-35.362653,149.165384 | TID:6 Local:[5763:7,5773:39] | FREE | obs=637 consec=637 switch=0 GRP[G6]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362652,149.165423 | TID:7 Local:[5763:68,5773:40] | FREE | obs=28 consec=28 switch=0 GRP[G7]x2
+[10:03:18.296] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 62 observations
+[10:03:18.297] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 31 observations
+[10:03:18.329] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.359] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1842.0, Dist=38.0m)
+[10:03:18.412] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.420] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1843.0, Dist=37.9m)
+[10:03:18.490] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1844.0, Dist=37.2m)
+[10:03:18.492] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.550] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1845.0, Dist=37.3m)
+[10:03:18.566] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 40→48
+[10:03:18.566] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.612] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1846.0, Dist=34.5m)
+[10:03:18.636] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.674] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1847.0, Dist=34.5m)
+[10:03:18.705] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.735] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1848.0, Dist=31.4m)
+[10:03:18.777] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.798] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1849.0, Dist=31.5m)
+[10:03:18.843] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.863] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1850.0, Dist=31.5m)
+[10:03:18.908] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.936] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1851.0, Dist=41.6m)
+[10:03:18.968] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:18.996] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1852.0, Dist=41.7m)
+[10:03:19.027] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.065] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1853.0, Dist=35.5m)
+[10:03:19.099] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.132] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1854.0, Dist=35.5m)
+[10:03:19.185] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.202] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1855.0, Dist=32.0m)
+[10:03:19.246] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.276] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1856.0, Dist=32.0m)
+[10:03:19.323] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.344] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1857.0, Dist=31.1m)
+[10:03:19.386] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.386] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (7.16, 0.00) -> (6.86, 2.08)
+[10:03:19.409] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1858.0, Dist=31.1m)
+[10:03:19.453] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.481] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1859.0, Dist=31.7m)
+[10:03:19.519] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.545] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1860.0, Dist=31.7m)
+[10:03:19.584] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.610] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1861.0, Dist=33.6m)
+[10:03:19.661] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.680] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1862.0, Dist=34.7m)
+[10:03:19.722] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.746] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1863.0, Dist=34.6m)
+[10:03:19.785] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.816] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1864.0, Dist=36.1m)
+[10:03:19.866] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.881] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1865.0, Dist=36.2m)
+[10:03:19.938] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:19.939] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:19.954] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1866.0, Dist=36.2m)
+[10:03:20.005] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.006] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.013] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1867.0, Dist=36.2m)
+[10:03:20.072] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.072] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.072] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=7.73 vz=0.50 yaw=0.01 pitch=-7.3° | alt=3.7m cov=1.8% [+2 suppressed in 2.0s]
+[10:03:20.082] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1868.0, Dist=35.2m)
+[10:03:20.147] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.148] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.156] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1869.0, Dist=32.9m)
+[10:03:20.229] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1870.0, Dist=32.9m)
+[10:03:20.237] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.239] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.296] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1871.0, Dist=29.6m)
+[10:03:20.301] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 28 observations
+[10:03:20.303] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 60 observations
+[10:03:20.316] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.317] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.374] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1872.0, Dist=29.7m)
+[10:03:20.383] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.383] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.435] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1873.0, Dist=27.1m)
+[10:03:20.450] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.451] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.502] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1874.0, Dist=27.1m)
+[10:03:20.503] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=6.98 vz=0.44 yaw=0.01 pitch=-5.9° | alt=3.8m cov=0.4% [+3 suppressed in 2.0s]
+[10:03:20.503] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (6.98, 0.00) -> (6.91, 1.02)
+[10:03:20.528] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.529] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.564] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1875.0, Dist=24.8m)
+[10:03:20.596] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.597] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.633] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1876.0, Dist=32.2m)
+[10:03:20.659] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.660] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.712] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1877.0, Dist=30.1m)
+[10:03:20.729] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.730] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.770] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1878.0, Dist=30.2m)
+[10:03:20.801] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.801] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.838] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1879.0, Dist=28.6m)
+[10:03:20.876] | DEBUG      | CONTROL        | TRACKER_48   | CMD: vx=2.00, yaw=0.01, cov=0.03 [+88 suppressed in 3.0s]
+[10:03:20.884] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.885] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.900] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1880.0, Dist=28.6m)
+[10:03:20.966] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:20.967] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:20.971] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1881.0, Dist=28.6m)
+[10:03:21.041] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1882.0, Dist=29.1m)
+[10:03:21.048] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:21.048] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.100] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1883.0, Dist=30.3m)
+[10:03:21.124] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:21.125] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.166] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1884.0, Dist=28.6m)
+[10:03:21.192] | HANDOFF_BLOCKED | LEADER         | OWNERSHIP    | Handoff blocked for T8: Drone_5773 already has target T3
+[10:03:21.194] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.258] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1885.0, Dist=25.6m)
+[10:03:21.266] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.334] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1886.0, Dist=25.7m)
+[10:03:21.349] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.407] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1887.0, Dist=26.4m)
+[10:03:21.429] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.477] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1888.0, Dist=26.3m)
+[10:03:21.506] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.533] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1889.0, Dist=26.4m)
+[10:03:21.580] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.585] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1890.0, Dist=25.0m)
+[10:03:21.661] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1891.0, Dist=24.9m)
+[10:03:21.662] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.727] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1892.0, Dist=24.9m)
+[10:03:21.745] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.800] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1893.0, Dist=25.3m)
+[10:03:21.827] | INFO       | PUBLISH        | ACTION       | Drone_5773 action: ATTACK for T1 (Pri=30)
+[10:03:21.862] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1894.0, Dist=25.3m)
+[10:03:21.930] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1895.0, Dist=23.0m)
+[10:03:21.997] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1896.0, Dist=23.0m)
+[10:03:22.064] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1897.0, Dist=21.2m)
+[10:03:22.108] | WARNING    | TRACK          | TRACKER      | Primary ID 48 lost after 5 frames
+[10:03:22.118] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1898.0, Dist=21.2m)
+[10:03:22.188] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1899.0, Dist=21.3m)
+[10:03:22.255] | LIFECYCLE  | LEADER         | TRACK        | T5: CONFIRMED → LOST (NoObs=2.0s)
+[10:03:22.256] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1900.0, Dist=20.3m)
+[10:03:22.306] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ENGAGED/OWNED] @-35.362686,149.165452 | TID:48 Local:[5773:48,5763:7] | D5773 | obs=3810 consec=3807 switch=0 GRP[G9]x2 | T2[CONFIRMED/ENGAGED/OWNED] @-35.362552,149.165076 | TID:9 Local:[5763:6,5773:40] | D5763 | obs=3802 consec=3800 switch=0 GRP[G5]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362686,149.165396 | TID:7 Local:[5763:68,5773:69] | FREE | obs=69 consec=69 switch=0 GRP[G7]x2
+[10:03:22.306] | FUSION     | TargetFusion   | SYSTEM       | T1: Fused 21 observations
+[10:03:22.308] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 58 observations
+[10:03:22.309] | COLLAPSE   | LEADER         | COLLAPSE     | SPATIAL MERGE: T5 -> T1 (Dist=7.2m, Stab=1903.5 vs 665.0)
+[10:03:22.332] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1901.0, Dist=19.9m)
+[10:03:22.400] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1902.0, Dist=19.9m)
+[10:03:22.473] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1903.0, Dist=20.1m)
+[10:03:22.522] | GPS_CALC   | GeoMath        | SYSTEM       | RAY-GROUND: Drone(-35.362717, 149.165044, alt=3.4m) | Target(-35.362538, 149.165127) | HorizDist=21.3m SlantRange=21.6m | σ_r=4.8m σ_t=1.9m [+2190 suppressed in 10.0s]
+[10:03:22.527] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1904.0, Dist=20.1m)
+[10:03:22.528] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=7.65 vz=0.49 yaw=0.01 pitch=-3.5° | alt=3.4m cov=1.0% [+2 suppressed in 2.0s]
+[10:03:22.603] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1905.0, Dist=20.1m)
+[10:03:22.674] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1906.0, Dist=20.5m)
+[10:03:22.747] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1907.0, Dist=20.8m)
+[10:03:22.815] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1908.0, Dist=20.8m)
+[10:03:22.875] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1909.0, Dist=20.8m)
+[10:03:22.929] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1910.0, Dist=17.6m)
+[10:03:22.991] | INFO       | PUBLISH        | ACTION       | Drone_5763 action: ATTACK for T2 (Pri=30, Immut=0, Stab=1911.0, Dist=17.6m)
+[10:03:23.018] | STOP       | DRONE_5763     | MISSION_CTRL | Zero velocity sent before RTL
+[10:03:23.020] | STOP       | DRONE_5763     | MISSION_CTRL | Engagement state cleared
+[10:03:23.022] | LIFECYCLE  | LEADER         | TRACK        | Drone_5763 RELEASED: targets=['T2']
+[10:03:23.022] | STOP       | DRONE_5763     | MISSION_CTRL | Swarm assignment released
+[10:03:23.023] | STOP       | DRONE_5773     | MISSION_CTRL | Zero velocity sent before RTL
+[10:03:23.023] | STOP       | DRONE_5773     | MISSION_CTRL | Engagement state cleared
+[10:03:23.023] | LIFECYCLE  | LEADER         | TRACK        | Drone_5773 RELEASED: targets=['T1']
+[10:03:23.026] | STOP       | DRONE_5773     | MISSION_CTRL | Swarm assignment released
+[10:03:23.055] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (0.00, 0.00) -> (0.00, 0.00)
+[10:03:23.066] | STATE      | DRONE_5773     | SYSTEM       | TRACKING ENDED | Frames=410 | AttackApproved=False
+[10:03:23.071] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5763 LocalID 6→9
+[10:03:23.072] | DIRECT_REASSIGN | LEADER         | ASSIGN       | Drone_5763 reassigned to T2 (LocalID=11)
+[10:03:23.082] | STATE      | DRONE_5763     | SYSTEM       | TRACKING ENDED | Frames=1838 | AttackApproved=False
+[10:03:24.312] | FUSION     | TargetFusion   | SYSTEM       | T2: Fused 24 observations
+[10:03:26.315] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ENGAGED/OWNED] @-35.362674,149.165457 | TID:48 Local:[5773:39,5763:7] | D5773 | obs=3810 consec=3807 switch=0 GRP[G9]x2 | T2[CONFIRMED/PENDING/OWNED] @-35.362541,149.165100 | TID:9 Local:[5763:11,5773:40] | D5763 | obs=3826 consec=3824 switch=0 GRP[G5]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362686,149.165396 | TID:7 Local:[5763:68,5773:69] | FREE | obs=69 consec=69 switch=0 GRP[G7]x2
+[10:03:26.315] | OWNERSHIP  | LEADER         | OWNERSHIP    | T1: OWNED -> RESERVED (owner 5773 lost sight)
+[10:03:26.315] | OWNERSHIP  | LEADER         | OWNERSHIP    | T2: OWNED -> RESERVED (owner 5763 lost sight)
+[10:03:30.319] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ENGAGED/RESERVED] @-35.362674,149.165457 | TID:48 Local:[5773:39,5763:7] | D5773 | obs=3810 consec=3807 switch=0 GRP[G9]x2 | T2[CONFIRMED/PENDING/RESERVED] @-35.362541,149.165100 | TID:9 Local:[5763:11,5773:40] | D5763 | obs=3826 consec=3824 switch=0 GRP[G5]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362686,149.165396 | TID:7 Local:[5763:68,5773:69] | FREE | obs=69 consec=69 switch=0 GRP[G7]x2
+[10:03:34.324] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ENGAGED/RESERVED] @-35.362674,149.165457 | TID:48 Local:[5773:39,5763:7] | D5773 | obs=3810 consec=3807 switch=0 GRP[G9]x2 | T2[CONFIRMED/PENDING/RESERVED] @-35.362541,149.165100 | TID:9 Local:[5763:11,5773:40] | D5763 | obs=3826 consec=3824 switch=0 GRP[G5]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362686,149.165396 | TID:7 Local:[5763:68,5773:69] | FREE | obs=69 consec=69 switch=0 GRP[G7]x2
+[10:03:38.328] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/ENGAGED/RESERVED] @-35.362674,149.165457 | TID:48 Local:[5773:39,5763:7] | D5773 | obs=3810 consec=3807 switch=0 GRP[G9]x2 | T2[CONFIRMED/PENDING/RESERVED] @-35.362541,149.165100 | TID:9 Local:[5763:11,5773:40] | D5763 | obs=3826 consec=3824 switch=0 GRP[G5]x2 | T8[CONFIRMED/ENGAGED/FREE] @-35.362686,149.165396 | TID:7 Local:[5763:68,5773:69] | FREE | obs=69 consec=69 switch=0 GRP[G7]x2
