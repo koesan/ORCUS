@@ -32,16 +32,21 @@
 
 ## 📖 About the Project
 
-**ORCUS v2.0** is an autonomous **Swarm Kamikaze Drone System** designed for multi-drone coordination in surveillance and target engagement scenarios. The system implements a **leader-follower architecture** where a coordinator drone manages target assignments and orchestrates attack missions across the swarm.
+**ORCUS v2.0** is an autonomous **Swarm Kamikaze Drone System** built around real-time perception, coordinated decision-making, and multi-agent mission execution.
 
-Built with a modular architecture, ORCUS provides real-time human detection and tracking, GPS-based position estimation from monocular camera feeds, and autonomous attack guidance. The web-based control hub enables operators to monitor all drones, define mission areas, and track target assignments through a unified interface.
+The system enables multiple drones to operate as a coordinated swarm where each unit contributes visual observations, shares situational awareness, and executes assigned tasks under a leader–follower architecture. Rather than acting independently, drones continuously exchange information to maintain a consistent understanding of targets and mission state.
 
-**Key System Capabilities:**
-- Multi-drone swarm coordination with centralized command
-- Real-time target detection and persistent tracking
-- GPS position estimation from visual data
-- Autonomous attack trajectory guidance
-- Web-based monitoring and control interface
+Core capabilities of the system include:
+
+* **Real-time detection and persistent tracking** using modern vision pipelines
+* **Geometric position calculation from monocular camera data**, transforming image-space detections into world coordinates through camera models and spatial transformations
+* **Multi-drone observation fusion**, where detections coming from different drones are combined into a single, more stable target representation to reduce uncertainty and improve consistency
+* **Dynamic drone–target assignment**, ensuring efficient task distribution across the swarm
+* **Autonomous guidance and control**, connecting perception outputs directly to flight behavior
+
+ORCUS is designed as a complete end-to-end system where perception, estimation, coordination, and control operate together in real time. The project focuses on clean modular architecture, allowing each subsystem to be understood, improved, or replaced without breaking the overall pipeline.
+
+The result is a practical engineering implementation that demonstrates how modern computer vision, control systems, and multi-agent coordination can be integrated into a single operational framework.
 
 ### What's New in v2.0?
 
@@ -603,16 +608,21 @@ This project is for **educational and research purposes only**. The developers a
 
 ## 📖 Proje Hakkında
 
-**ORCUS v2.0**, gözetleme ve hedef angajman senaryolarında çoklu drone koordinasyonu için tasarlanmış otonom bir **Sürü Kamikaze İHA Sistemi**'dir. Sistem, koordinatör dronun hedef atamalarını yönettiği ve sürü genelinde saldırı görevlerini orkestre ettiği **lider-takipçi mimarisi** uygular.
+**ORCUS v2.0**, gerçek zamanlı algılama, koordineli karar verme ve çoklu ajan görev yürütme süreçlerini bir araya getiren otonom bir **Sürü Kamikaze Drone Sistemi**dir.
 
-Modüler bir mimari ile inşa edilen ORCUS, gerçek zamanlı insan tespiti ve takibi, monoküler kamera görüntülerinden GPS tabanlı konum tahmini ve otonom saldırı güdümlemesi sağlar. Web tabanlı kontrol merkezi, operatörlerin tüm droneleri izlemesine, görev alanlarını tanımlamasına ve hedef atamalarını takip etmesine olanak tanır.
+Sistem, birden fazla dronenin tek başına hareket etmek yerine ortak bir sürü mantığıyla çalışmasını sağlar. Her drone kendi görsel verisini üretir, hedef bilgilerini paylaşır ve lider–takipçi mimarisi altında kendisine atanan görevi yerine getirir. Böylece tüm sistem, hedefler ve görev durumu hakkında ortak bir durumsal farkındalık oluşturur.
 
-**Temel Sistem Yetenekleri:**
-- Merkezi komut ile çoklu drone sürü koordinasyonu
-- Gerçek zamanlı hedef tespiti ve kalıcı takip
-- Görsel verilerden GPS konum tahmini
-- Otonom saldırı yörünge güdümlemesi
-- Web tabanlı izleme ve kontrol arayüzü
+Projenin temel yetenekleri şunlardır:
+
+* **Gerçek zamanlı tespit ve kalıcı hedef takibi**
+* **Monoküler kamera verisinden geometrik konum hesaplama**, yani görüntü üzerindeki tespitlerin kamera modeli ve uzamsal dönüşümler kullanılarak dünya koordinatlarına dönüştürülmesi
+* **Çoklu drone gözlemlerinin birleştirilmesi**, farklı dronelerden gelen verilerin tek ve daha kararlı bir hedef bilgisine dönüştürülerek belirsizliğin azaltılması
+* **Dinamik drone–hedef görev dağılımı**, sürü içerisindeki kaynakların verimli kullanılması
+* **Algıdan uçuş kontrolüne uzanan otonom yönlendirme sistemi**
+
+ORCUS, algılama, konumlama, koordinasyon ve kontrol katmanlarının gerçek zamanlı olarak birlikte çalıştığı uçtan uca bir sistem mimarisi sunar. Modüler yapısı sayesinde her bileşen bağımsız olarak geliştirilebilir veya iyileştirilebilir.
+
+Ortaya çıkan yapı; bilgisayarlı görü, kontrol sistemleri ve çoklu ajan koordinasyonunun tek bir operasyonel sistem içinde nasıl birleşebileceğini gösteren kapsamlı bir mühendislik uygulamasıdır.
 
 ### v2.0'daki Yenilikler
 
@@ -631,14 +641,23 @@ Modüler bir mimari ile inşa edilen ORCUS, gerçek zamanlı insan tespiti ve ta
 
 ## 🎯 Temel Özellikler
 
-- **Lider-Takipçi Mimarisi**: Bir drone sürüyü koordine eder, hedef atamalarını yönetir ve saldırı görevlerini orkestre eder
-- **YOLOv12 + BoT-SORT**: Kalıcı çoklu nesne takibi ile gerçek zamanlı insan tespiti
-- **Işın-Zemin Kesişimi**: Monoküler kamera konum tahmini ile kovaryans belirsizlik ölçümü (geo_math.py)
-- **Kalman Filtre Füzyonu**: Hedef konum doğruluğunu artırmak için çoklu drone gözlem füzyonu
-- **Hungarian Ataması**: Cost matrix skorlaması ile optimal drone-hedef eşleştirmesi (görünürlük, yönelim, mesafe, kovaryans)
-- **Hedef Durum Makinesi**: Tam yaşam döngüsü yönetimi (FREE → OWNED → LOCKED → ATTACKING)
-- **IBVS Güdümlemesi**: Hassas saldırı yörüngeleri için PID kontrollü Görüntü Tabanlı Görsel Servoing
-- **Web Kontrol Merkezi**: Gerçek zamanlı izleme ve görev kontrol arayüzü
+- **Lider–Takipçi Mimarisi**  
+  Sürü içerisindeki koordinasyon merkezi bir drone tarafından yönetilir. Görev dağılımı ve hedef atamaları sistem genelinde optimize edilerek yürütülür.
+
+- **Gerçek Zamanlı Tespit ve Kalıcı Takip**  
+  Görüntü işleme ve takip algoritmaları sayesinde hedefler sürekli izlenir ve sistem genelinde tutarlı kimliklerle yönetilir.
+
+- **Monoküler Kamera Verisinden Geometrik Konum Hesaplama**  
+  Görüntü düzleminde tespit edilen hedefler; kamera modeli, drone pozisyonu ve uzamsal dönüşümler kullanılarak dünya koordinatlarına dönüştürülür. Böylece yalnızca görsel veriden fiziksel konum bilgisi elde edilir.
+
+- **Çoklu Drone Gözlem Birleştirme (Observation Fusion)**  
+  Farklı dronelerden gelen hedef gözlemleri tek bir ortak hedef temsiline dönüştürülerek ölçüm belirsizliği azaltılır ve karar kararlılığı artırılır.
+
+- **Dinamik Drone–Hedef Atama**  
+  Görevler; mesafe, görünürlük, hareket yönü ve ölçüm güvenilirliği gibi kriterlere göre otomatik olarak dağıtılır.
+
+- **Algıdan Uçuş Kontrolüne Entegre Otonom Yönlendirme**  
+  Algılama katmanından elde edilen bilgiler doğrudan uçuş davranışına aktarılır ve sistem gerçek zamanlı olarak tepki verebilir.
 
 ---
 
@@ -646,12 +665,12 @@ Modüler bir mimari ile inşa edilen ORCUS, gerçek zamanlı insan tespiti ve ta
 
 | Bileşen | Teknoloji |
 |---------|-----------|
-| Uçuş Kontrolcüsü | ArduPilot SITL |
+| Uçuş Kontrolü | ArduPilot SITL |
 | Simülasyon | Gazebo + ROS |
-| Nesne Tespiti | YOLOv12 (Ultralytics) |
+| Nesne Tespiti | YOLOv12 |
 | Nesne Takibi | BoT-SORT |
 | Durum Tahmini | Kalman Filtre |
-| Atama | Hungarian Algoritması |
+| Görev Atama | Hungarian Algoritması |
 | İletişim | DroneKit, MAVLink |
 | Backend | Flask |
 | Frontend | MJPEG Streaming |
@@ -661,55 +680,55 @@ Modüler bir mimari ile inşa edilen ORCUS, gerçek zamanlı insan tespiti ve ta
 ## 🔗 Modül Bağımlılıkları
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          MODÜL MİMARİSİ                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────┐                                                            │
-│  │   app.py    │  ◀── Giriş Noktası (Flask Web Sunucusu)                   │
-│  └──────┬──────┘                                                            │
-│         │                                                                    │
-│         ▼                                                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        ÇEKİRDEK KATMANI                              │    │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                          MODÜL MİMARİSİ                                    │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  ┌─────────────┐                                                           │
+│  │   app.py    │  ◀── Giriş Noktası (Flask Web Sunucusu)                  │
+│  └──────┬──────┘                                                           │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                        ÇEKİRDEK KATMANI                            │    │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │    │
 │  │  │fleet_manager │──│   logger     │──│  geo_math    │              │    │
 │  │  └──────┬───────┘  └──────────────┘  └──────┬───────┘              │    │
-│  │         │                              ▲     │                       │    │
-│  │         │                              │     │                       │    │
-│  │  ┌──────┴───────┐  ┌──────────────┐  │  ┌──┴───────┐              │    │
-│  │  │kalman_filter │  │pid_controller│  │  │  logger  │              │    │
-│  │  └──────────────┘  └──────────────┘  │  └──────────┘              │    │
-│  └───────────────────────────────────────┼─────────────────────────────┘    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                        GÖRÜNTÜ KATMANI│                              │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐           │    │
-│  │  │  detector    │──│group_tracker │──┼──│camera_handler│           │    │
-│  │  └──────┬───────┘  └──────────────┘  │  └──────────────┘           │    │
-│  │         │                           │                               │    │
-│  │  ┌──────┴───────┐                  │                               │    │
-│  │  │   tracker/   │                  │                               │    │
-│  │  │  (BoT-SORT)  │                  │                               │    │
-│  │  └──────────────┘                  │                               │    │
-│  └─────────────────────────────────────┼─────────────────────────────────┘    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                         SÜRÜ KATMANI  │                              │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │                               │    │
-│  │  │   swarm_     │──│ target_fusion│──┘                              │    │
-│  │  │ coordinator  │  └──────────────┘                                  │    │
-│  │  └──────────────┘                                                    │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                         ▲                                    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                        GÖREV KATMANI  │                              │    │
+│  │         │                              ▲     │                     │    │
+│  │         │                              │     │                     │    │
+│  │  ┌──────┴───────┐  ┌──────────────┐  │  ┌──┴───────┐               │    │
+│  │  │kalman_filter │  │pid_controller│  │  │  logger  │               │    │
+│  │  └──────────────┘  └──────────────┘  │  └──────────┘               │    │
+│  └──────────────────────────────────────┼─────────────────────────────┘    │
+│                                         │                                  │
+│  ┌──────────────────────────────────────┼────────────────────────────┐    │
+│  │                       GÖRÜNTÜ KATMANI│                            │    │
+│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐          │    │
+│  │  │  detector    │──│group_tracker │──┼──│camera_handler│          │    │
+│  │  └──────┬───────┘  └──────────────┘  │  └──────────────┘          │    │
+│  │         │                            │                            │    │
+│  │  ┌──────┴───────┐                    │                            │    │
+│  │  │   tracker/   │                    │                            │    │
+│  │  │  (BoT-SORT)  │                    │                            │    │
+│  │  └──────────────┘                    │                            │    │
+│  └──────────────────────────────────────┼───────── ──────────────────┘    │
+│                                         │                                 │
+│  ┌──────────────────────────────────────┼────────────────────── ─────┐    │
+│  │                        SÜRÜ KATMANI  │                            │    │
+│  │  ┌──────────────┐  ┌──────────────┐  │                            │    │
+│  │  │   swarm_     │──│ target_fusion│──┘                            │    │
+│  │  │ coordinator  │  └──────────────┘                               │    │
+│  │  └──────────────┘                                                 │    │
+│  └───────────────────────────────────────────────────────────────────┘    │
+│                                         ▲                                 │
+│                                         │                                 │
+│  ┌──────────────────────────────────────┼────────────────────────────┐    │
+│  │                        GÖREV KATMANI │                            │    │
 │  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐           │    │
 │  │  │   mission_   │──│  tracking_   │──┼──│    ibvs_     │           │    │
 │  │  │ controller   │  │ controller   │  │  │  guidance    │           │    │
 │  │  └──────┬───────┘  └──────┬───────┘  │  └──────────────┘           │    │
-│  │         │                 │          │                               │    │
+│  │         │                 │          │                              │    │
 │  │  ┌──────┴───────┐        │          │                               │    │
 │  │  │   flight_    │────────┘          │                               │    │
 │  │  │ controller   │                   │                               │    │
@@ -746,7 +765,7 @@ Modüler bir mimari ile inşa edilen ORCUS, gerçek zamanlı insan tespiti ve ta
 
 ## 🚀 Kurulum ve Yapılandırma
 
-### Gereksinimler
+### Gereksinimler(Zorunlı)
 - Ubuntu 20.04
 - Python 3.8+
 - ROS Noetic
