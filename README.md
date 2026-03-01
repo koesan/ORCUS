@@ -18,7 +18,7 @@
 
 ---
 
-**Navigation / Navigasyon:** [English](#-english-documentation) | [Türkçe](#-türkçe-dokümantasyon)
+🇬🇧[English](#-english-documentation) | 🇹🇷[Türkçe](#-türkçe-dokümantasyon)
 
 ---
 
