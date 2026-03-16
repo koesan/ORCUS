@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="800"/>
+<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="600"/>
 
 ---
 
