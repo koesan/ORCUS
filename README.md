@@ -164,7 +164,7 @@ The objective is not to merge aggressively. The objective is to:
 - avoid merging physically separate targets
 - avoid corrupting an active attack family with unrelated observations
 
-That is why v2.1 favors **controlled fusion, duplicate suppression, and family-aware guards** over naive merge pressure.
+ORCUS uses **controlled fusion, duplicate suppression, and family-aware guard** logic.
 
 ### 3. Group Analysis and Multi-Target Separation
 
@@ -240,7 +240,7 @@ This pipeline also:
 | State management | more vulnerable mission transitions | soft reset, pause/resume, stop interlocks, runtime cleanup |
 | UI safety | looser command behavior | stronger Start / Pause / Stop interlocks |
 | Chronic failure classes addressed | state leak, overwrite, stale attack instability, pause-side radar drift risk | guarded and hardened in the v2.1 architecture |
-| Operational stability | demonstration-grade | significantly hardened for repeatable runs and GitHub release quality |
+| Operational stability | demonstration-grade | significantly hardened for repeatable runs |
 
 ---
 
@@ -494,7 +494,7 @@ Amaç agresif merge yapmak değildir. Amaç:
 - farklı fiziksel hedefleri yanlış birleştirmemek
 - aktif saldırı hattını alakasız gözlemlerle kirletmemektir
 
-Bu nedenle v2.1, **kontrollü füzyon, duplicate suppression ve family-aware guard** mantığını kullanır.
+ORCUS, **kontrollü füzyon, duplicate suppression ve family-aware guard** mantığını kullanır.
 
 ### 3. Grup Analizi ve Çoklu Hedef Ayrıştırma
 
@@ -506,7 +506,7 @@ ORCUS her tespiti düz bir hedef listesi gibi işlemez. Grup analizi hattı:
 - radar görünümünde grup hedefleri tekil hedeflerden ayırır
 - assignment ve deconfliction kararlarında bu bilgiyi kullanır
 
-Bu katman özellikle `2x`, `2x`, `3x` gibi sahne düzenlerinde kritik fark yaratır; çünkü karar motoru artık sadece koordinata değil, hedefin **birey mi grup mu** olduğuna da bakar.
+Bu katman özellikle `2x`, `2x`, `3x` gibi sahne düzenlerinde kritik fark yaratır; çünkü karar motoru sadece koordinata değil, hedefin **birey mi grup mu** olduğuna da bakar.
 
 ### 4. Dynamic Assignment / Dinamik Saldırı Ataması
 
@@ -572,7 +572,7 @@ Bu hat aynı zamanda:
 | State yönetimi | görev geçişlerinde daha kırılgan alanlar | soft reset, pause/resume, stop interlock ve runtime cleanup zinciri |
 | UI güvenlik kilitleri | daha gevşek | Start/Pause/Stop interlock mantığı ve tekrar başlatma güvenliği |
 | Çözülen kronik sorunlar | state leak, hedef overwrite, stale attack kararsızlığı, pause sonrası radar bozulması riski | bu sınıflar v2.1'de sistematik guard ve reset mimarisiyle sertleştirildi |
-| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirilmiş ve GitHub yayınına uygun |
+| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirilDİ |
 
 ---
 
