@@ -1,7 +1,7 @@
 <div align="center">
 
 # ORCUS
-### Swarm Kamikaze Drone System
+### Autonomous Swarm Kamikaze Drone System
 
 <img src="image/ORCUS_nbg.png" alt="ORCUS Logo" width="400"/>
 
