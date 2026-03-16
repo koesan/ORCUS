@@ -18,7 +18,7 @@
 🎥 **Demo Video**  
 <p align="center">
   <a href="https://youtu.be/V8X-XiSy9as">
-    <img src="image/video.png" width="900">
+    <img src="image/video.png" width="600">
   </a>
 </p>
 
