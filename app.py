@@ -5,6 +5,7 @@ Provides RESTful API for swarm connection, parallel mission management, and live
 """
 
 from flask import Flask, render_template, request, jsonify, Response
+import atexit
 import threading
 import logging
 import rospy
@@ -16,6 +17,30 @@ app = Flask(__name__, template_folder='templates')
 
 # Main Drone Manager
 drone_manager = DroneManager()
+atexit.register(drone_manager.shutdown)
+_mission_command_lock = threading.Lock()
+_rtl_monitor_lock = threading.Lock()
+_rtl_monitors = {}
+
+
+def _monitor_rtl_completion(controllers_to_watch):
+    """Background watcher for post-stop RTL completion."""
+    for port, controller in controllers_to_watch:
+        try:
+            vehicle = drone_manager.drones.get(port)
+            if vehicle and vehicle != "connecting":
+                with drone_manager.drone_context(port, vehicle):
+                    controller.await_rtl_completion()
+        except Exception:
+            logging.exception("RTL monitor error for Drone %s", port)
+    with _rtl_monitor_lock:
+        for port, _controller in controllers_to_watch:
+            _rtl_monitors.pop(port, None)
+
+
+def _json_payload():
+    """Safely parse JSON request bodies."""
+    return request.get_json(silent=True) or {}
 
 @app.route('/')
 def index():
@@ -25,7 +50,7 @@ def index():
 @app.route('/connect_drone', methods=['POST'])
 def connect_drone():
     """Handles drone connection requests."""
-    data = request.json
+    data = _json_payload()
     connection_string = data.get('connection_string')
     if not connection_string:
          return jsonify({'status': 'error', 'message': 'No connection string provided'})
@@ -34,13 +59,13 @@ def connect_drone():
 @app.route('/select_drone', methods=['POST'])
 def select_drone():
     """Selects the active drone for control/viewing."""
-    port = request.json.get('port')
+    port = _json_payload().get('port')
     return jsonify(drone_manager.select_drone(port))
 
 @app.route('/set_area', methods=['POST'])
 def set_area():
     """Sets the mission area for all drones with intelligent grid partitioning."""
-    data = request.json
+    data = _json_payload()
     coordinates = data.get('coordinates')
 
     if not coordinates:
@@ -69,40 +94,77 @@ def set_area():
 @app.route('/start_mission', methods=['POST'])
 def start_mission():
     """Starts the mission for all connected drones."""
-    data = request.json
+    if not _mission_command_lock.acquire(blocking=False):
+        return jsonify({'status': 'error', 'message': 'Another mission command is already in progress'})
+    data = _json_payload()
     mission_type = data.get('mission_type')
     
     if not mission_type:
         return jsonify({'status': 'error', 'message': 'Mission type not specified'})
     
     try:
+        with drone_manager.lock:
+            ready_ports = [port for port, vehicle in drone_manager.drones.items() if vehicle != "connecting"]
+        if not ready_ports:
+            return jsonify({'status': 'error', 'message': 'No connected drones available'})
+
+        missing_area = []
+        for port in ready_ports:
+            controller = drone_manager.get_or_create_controller(port)
+            if not getattr(controller, "mission_coordinates", None):
+                missing_area.append(str(port))
+        if missing_area:
+            return jsonify({
+                'status': 'error',
+                'message': f'Area/cell assignment missing for drones: {", ".join(missing_area)}'
+            })
+
         started_drones = []
+        resumed_drones = []
         failed_drones = []
         
-        for port, vehicle in drone_manager.drones.items():
+        with drone_manager.lock:
+            drones_snapshot = list(drone_manager.drones.items())
+        for port, vehicle in drones_snapshot:
             if vehicle == "connecting":
                 continue
             
             try:
                 controller = drone_manager.get_or_create_controller(port)
                 with drone_manager.drone_context(port, vehicle):
-                    result = controller.start_mission(mission_type)
+                    was_paused = bool(getattr(controller, "is_paused", False))
+                    if was_paused:
+                        result = controller.resume_mission()
+                    else:
+                        result = controller.start_mission(mission_type)
                 
                 if result['status'] == 'ok':
-                    started_drones.append(str(port))
+                    if was_paused:
+                        resumed_drones.append(str(port))
+                    elif controller.is_mission_active:
+                        started_drones.append(str(port))
+                    else:
+                        started_drones.append(str(port))
                 else:
                     failed_drones.append(f"{port}: {result.get('message', 'Error')}")
             except Exception as e:
                 failed_drones.append(f"{port}: {str(e)}")
         
-        if started_drones:
-            message = f"{len(started_drones)} drones started (Ports: {', '.join(started_drones)})"
+        if started_drones or resumed_drones:
+            parts = []
+            if started_drones:
+                parts.append(f"{len(started_drones)} drones started (Ports: {', '.join(started_drones)})")
+            if resumed_drones:
+                parts.append(f"{len(resumed_drones)} drones resumed (Ports: {', '.join(resumed_drones)})")
+            message = " | ".join(parts)
             if failed_drones:
                 message += f" | Failed: {'; '.join(failed_drones)}"
             return jsonify({'status': 'ok', 'message': message})
         return jsonify({'status': 'error', 'message': 'No drones could be started'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    finally:
+        _mission_command_lock.release()
 
 @app.route('/stop_mission', methods=['POST'])
 def stop_mission():
@@ -116,32 +178,34 @@ def status():
 
 @app.route('/pause_all', methods=['POST'])
 def pause_all():
-    """Pauses missions for all drones - sends zero velocity before pausing."""
+    """Pauses missions for all drones and preserves mission state."""
+    if not _mission_command_lock.acquire(blocking=False):
+        return jsonify({'status': 'error', 'message': 'Another mission command is already in progress'})
     results = []
-    for port, controller in drone_manager.drone_controllers.items():
-        if controller.is_mission_active:
-            try:
-                vehicle = drone_manager.drones.get(port)
-                if vehicle and vehicle != "connecting":
-                    controller.send_ned_velocity(vehicle, 0, 0, 0)
-            except Exception:
-                pass
-            controller.is_mission_active = False
-            results.append(f"Drone {port} paused")
-    
-    if results:
-        return jsonify({'status': 'ok', 'message': '; '.join(results)})
-    else:
-        return jsonify({'status': 'error', 'message': 'No active missions'})
+    try:
+        with drone_manager.lock:
+            controllers_snapshot = list(drone_manager.drone_controllers.items())
+        for port, controller in controllers_snapshot:
+            result = controller.pause_mission()
+            if result.get('status') == 'ok':
+                results.append(f"Drone {port} paused")
+        
+        if results:
+            return jsonify({'status': 'ok', 'message': '; '.join(results)})
+        else:
+            return jsonify({'status': 'error', 'message': 'No active missions'})
+    finally:
+        _mission_command_lock.release()
 
 @app.route('/resume_all', methods=['POST'])
 def resume_all():
     """Resumes missions for all drones."""
     results = []
-    for port, controller in drone_manager.drone_controllers.items():
-        # Check if thread is alive but flag is False
-        if not controller.is_mission_active and controller._mission_thread and controller._mission_thread.is_alive():
-            controller.is_mission_active = True
+    with drone_manager.lock:
+        controllers_snapshot = list(drone_manager.drone_controllers.items())
+    for port, controller in controllers_snapshot:
+        result = controller.resume_mission()
+        if result.get('status') == 'ok':
             results.append(f"Drone {port} resuming")
     
     if results:
@@ -151,25 +215,48 @@ def resume_all():
 
 @app.route('/stop_all', methods=['POST'])
 def stop_all():
-    """Stops missions for all drones."""
+    """Stop active missions and always clear volatile mission runtime state."""
+    if not _mission_command_lock.acquire(blocking=False):
+        return jsonify({'status': 'error', 'message': 'Another mission command is already in progress'})
     results = []
-    for port in list(drone_manager.drone_controllers.keys()):
-        try:
-            controller = drone_manager.drone_controllers[port]
-            if port in drone_manager.drones:
-                vehicle = drone_manager.drones[port]
-                if vehicle != "connecting":
+    controllers_to_watch = []
+    try:
+        with drone_manager.lock:
+            controller_items = list(drone_manager.drone_controllers.items())
+
+        for port, controller in controller_items:
+            try:
+                vehicle = drone_manager.drones.get(port)
+                if vehicle == "connecting" or vehicle is None:
+                    continue
+                if controller.is_running() or getattr(controller, "is_paused", False):
                     with drone_manager.drone_context(port, vehicle):
                         result = controller.stop_mission()
-                    
-                    if result['status'] == 'ok':
-                        results.append(f"Drone {port} stopped")
-        except Exception as e:
-            logging.error(f"Error stopping Drone {port}: {e}")
-    
-    if results:
-        return jsonify({'status': 'ok', 'message': '; '.join(results)})
-    return jsonify({'status': 'error', 'message': 'No drones stopped'})
+                    if result.get('status') == 'ok':
+                        results.append(f"Drone {port} RTL started")
+                        controllers_to_watch.append((port, controller))
+                controller.soft_reset_state()
+            except Exception as e:
+                logging.error(f"Error stopping Drone {port}: {e}", exc_info=True)
+
+        if drone_manager.swarm_manager:
+            drone_manager.swarm_manager.reset_runtime_state()
+
+        with _rtl_monitor_lock:
+            pending = [(port, controller) for port, controller in controllers_to_watch if port not in _rtl_monitors]
+            for port, controller in pending:
+                _rtl_monitors[port] = time.time()
+        if pending:
+            watcher = threading.Thread(target=_monitor_rtl_completion, args=(pending,), daemon=True)
+            watcher.start()
+
+        if results:
+            message = '; '.join(results) + ' | Soft reset completed, RTL continues in background'
+        else:
+            message = 'Soft reset completed. No active missions were running.'
+        return jsonify({'status': 'ok', 'message': message})
+    finally:
+        _mission_command_lock.release()
 
 @app.route('/camera_feed')
 def camera_feed():
@@ -181,7 +268,7 @@ def camera_feed():
     if port_arg:
         try:
             target_port = int(port_arg)
-        except:
+        except Exception:
              pass
     
     if target_port is None:
@@ -196,7 +283,7 @@ def camera_feed():
 @app.route('/select_camera', methods=['POST'])
 def select_camera():
     """Selects the camera to view."""
-    data = request.json
+    data = _json_payload()
     port = data.get('port')
     
     if not port:
@@ -221,10 +308,14 @@ def swarm_data():
     """Returns swarm and target data in JSON format."""
     if not drone_manager.swarm_manager:
          return jsonify({})
-         
-    data = drone_manager.swarm_manager.get_battlespace_state()
-    data['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
-    return jsonify(data)
+    
+    try:
+        data = drone_manager.swarm_manager.get_battlespace_state()
+        data['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
+        return jsonify(data)
+    except Exception as e:
+        logging.error(f"swarm_data error: {e}")
+        return jsonify({'targets': {}, 'drones': {}, 'raw_targets': {}})
 
 @app.route('/approve_attack/<target_id>')
 def approve_attack(target_id):

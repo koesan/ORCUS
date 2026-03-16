@@ -34,151 +34,235 @@
 
 # 📚 English Documentation
 
-## 📖 About the Project
+## What Is ORCUS?
 
-**ORCUS v2.0** is an autonomous **Swarm Kamikaze Drone System** built around real-time perception, coordinated decision-making, and multi-agent mission execution.
+**ORCUS** is a **fully autonomous swarm kamikaze drone system** designed to fuse perception, localization, coordination, and terminal attack execution into a single operational stack. The current stable release in this repository is **v2.1**.
 
-The system enables multiple drones to operate as a coordinated swarm where each unit contributes visual observations, shares situational awareness, and executes assigned tasks under a leader–follower architecture. Rather than acting independently, drones continuously exchange information to maintain a consistent understanding of targets and mission state.
+The system detects **both individual and grouped targets**, estimates their geo-location from monocular imagery, fuses observations coming from multiple drones into a shared battlespace picture, computes the most rational drone-to-target match, and drives terminal engagement through a guarded attack protocol.
 
-Core capabilities of the system include:
+This is not a "flying demo" architecture. ORCUS is built to:
 
-* **Real-time detection and persistent tracking** using modern vision pipelines
-* **Geometric position calculation from monocular camera data**, transforming image-space detections into world coordinates through camera models and spatial transformations
-* **Multi-drone observation fusion**, where detections coming from different drones are combined into a single, more stable target representation to reduce uncertainty and improve consistency
-* **Dynamic drone–target assignment**, ensuring efficient task distribution across the swarm
-* **Autonomous guidance and control**, connecting perception outputs directly to flight behavior
-
-ORCUS is designed as a complete end-to-end system where perception, estimation, coordination, and control operate together in real time. The project focuses on clean modular architecture, allowing each subsystem to be understood, improved, or replaced without breaking the overall pipeline.
-
-The result is a practical engineering implementation that demonstrates how modern computer vision, control systems, and multi-agent coordination can be integrated into a single operational framework.
-
-### What's New in v2.0?
-
-| Feature | v1.0 | v2.0 |
-|---------|------|------|
-| **Target Tracking** | Simple tracker, first-seen target locked | Multi-target tracking with BoT-SORT |
-| **Attack Strategy** | Lock first detected target, immediate attack | Optimal assignment via Hungarian algorithm |
-| **Position Estimation** | None | Ray-Ground Intersection algorithm (geo_math.py) |
-| **Multi-Drone Fusion** | None (independent drones) | Kalman Filter observation fusion |
-| **Swarm Coordination** | Grid partitioning, independent operation | Leader-follower with ownership states |
-| **Target States** | DETECTED → ATTACKING | Full state machine (FREE, OWNED, LOCKED, ATTACKING) |
-| **Assignment Logic** | First-come-first-served | Cost matrix scoring (visibility, heading, distance, covariance) |
-| **Measurement Quality** | None | Covariance-based uncertainty tracking |
+- detect targets and **estimate where they are**
+- distinguish **single entities and grouped targets**
+- turn local detections into a **canonical battlespace model**
+- assign the **most appropriate platform**, not merely the first observer
+- preserve terminal autonomy while preventing unstable swarm-side interference
+- restart missions without poisoning the next cycle with stale state
 
 ---
 
-## 🎯 Key Features
+## Highlighted Capabilities
 
-- **Leader-Follower Architecture**: One drone coordinates the swarm, managing target assignments and orchestrating attack missions
-- **YOLOv12 + BoT-SORT**: Real-time human detection with persistent multi-object tracking
-- **Ray-Ground Intersection**: Monocular camera position estimation with covariance uncertainty quantification (geo_math.py)
-- **Kalman Filter Fusion**: Multi-drone observation fusion for improved target position accuracy
-- **Hungarian Assignment**: Optimal drone-target pairing with cost matrix scoring (visibility, heading, distance, covariance)
-- **Target State Machine**: Full lifecycle management (FREE → OWNED → LOCKED → ATTACKING)
-- **IBVS Guidance**: Image-Based Visual Servoing with PID control for precision attack trajectories
-- **Web Control Hub**: Real-time monitoring and mission control interface
-
----
-
-## 🛠️ Technology Stack
-
-| Component | Technology |
-|-----------|------------|
-| Flight Controller | ArduPilot SITL |
-| Simulation | Gazebo + ROS |
-| Object Detection | YOLOv12 (Ultralytics) |
-| Object Tracking | BoT-SORT |
-| State Estimation | Kalman Filter |
-| Assignment | Hungarian Algorithm |
-| Communication | DroneKit, MAVLink |
-| Backend | Flask |
-| Frontend | MJPEG Streaming |
+- **Ray-Ground Intersection (RGI) geo-localization:** Monocular detections are projected onto the ground plane to produce target GPS with covariance-aware confidence.
+- **EKF-backed multi-drone sensor fusion:** Observations from separate drones are consolidated into a single canonical target representation while suppressing duplicates and noise.
+- **Individual / group target discrimination:** The system models both single entities and grouped targets such as `2x` and `3x`, and carries group size into downstream decision logic.
+- **Hungarian-based dynamic attack assignment:** Drone-to-target pairing is optimized using distance, visibility, target quality, and ownership state.
+- **Family-aware deconfliction and target isolation:** Similar, nearby, or same-family targets are protected against false merge, false lock, overwrite, and double-attack conditions.
+- **Handshake-driven terminal attack pipeline:** Lock, echo, confirmation, and terminal phases are explicitly separated rather than blended into a loose attack trigger.
+- **IBVS-driven terminal guidance:** Final approach and dive commands are generated directly from image-space feedback.
+- **Operator-grade control panel:** Radar, map, target ownership, drone states, and mission buttons are unified in a single web control surface.
+- **Lifecycle and ownership state machine:** States such as `FREE`, `OWNED`, `LOCKED`, `CONFIRMED_ATTACK`, and `ATTACKING` keep the swarm decision layer deterministic.
 
 ---
 
-## � Module Dependencies
+## End-to-End Workflow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MODULE ARCHITECTURE                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────┐                                                            │
-│  │   app.py    │  ◀── Entry Point (Flask Web Server)                       │
-│  └──────┬──────┘                                                            │
-│         │                                                                    │
-│         ▼                                                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        CORE LAYER                                    │    │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │    │
-│  │  │fleet_manager │──│   logger     │──│  geo_math    │              │    │
-│  │  └──────┬───────┘  └──────────────┘  └──────┬───────┘              │    │
-│  │         │                              ▲     │                       │    │
-│  │         │                              │     │                       │    │
-│  │  ┌──────┴───────┐  ┌──────────────┐  │  ┌──┴───────┐              │    │
-│  │  │kalman_filter │  │pid_controller│  │  │  logger  │              │    │
-│  │  └──────────────┘  └──────────────┘  │  └──────────┘              │    │
-│  └───────────────────────────────────────┼─────────────────────────────┘    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                        VISION LAYER   │                              │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐           │    │
-│  │  │  detector    │──│group_tracker │──┼──│camera_handler│           │    │
-│  │  └──────┬───────┘  └──────────────┘  │  └──────────────┘           │    │
-│  │         │                           │                               │    │
-│  │  ┌──────┴───────┐                  │                               │    │
-│  │  │   tracker/   │                  │                               │    │
-│  │  │  (BoT-SORT)  │                  │                               │    │
-│  │  └──────────────┘                  │                               │    │
-│  └─────────────────────────────────────┼─────────────────────────────────┘    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                        SWARM LAYER    │                              │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │                               │    │
-│  │  │   swarm_     │──│ target_fusion│──┘                              │    │
-│  │  │ coordinator  │  └──────────────┘                                  │    │
-│  │  └──────────────┘                                                    │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                         ▲                                    │
-│                                         │                                    │
-│  ┌───────────────────────────────────────┼─────────────────────────────┐    │
-│  │                       MISSION LAYER   │                              │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐           │    │
-│  │  │   mission_   │──│  tracking_   │──┼──│    ibvs_     │           │    │
-│  │  │ controller   │  │ controller   │  │  │  guidance    │           │    │
-│  │  └──────┬───────┘  └──────┬───────┘  │  └──────────────┘           │    │
-│  │         │                 │          │                               │    │
-│  │  ┌──────┴───────┐        │          │                               │    │
-│  │  │   flight_    │────────┘          │                               │    │
-│  │  │ controller   │                   │                               │    │
-│  │  └──────────────┘                   │                               │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  LEGEND:                                                                     │
-│  ──▶ Depends on / Imports from                                               │
-│  ──▶ Data flow / Communication                                              │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A[Operator Control Panel] --> B[Area Selection and Cell Partition]
+    B --> C[MissionController]
+    C --> D[Takeoff and Area Approach]
+    D --> E[Scanner]
+    E --> F[YOLOv12 + Tracker]
+    F --> G[DetectionProcessor]
+    G --> H[GeoMath / Ray-Ground Intersection]
+    H --> I[Covariance and Quality Scoring]
+    I --> J[Swarm Coordinator]
+
+    J --> K[Identity Index]
+    J --> L[Ownership State]
+    J --> M[Target Lifecycle]
+    J --> N[Fusion Engine]
+    J --> O[Assignment Engine]
+    J --> P[Attack Protocol]
+    J --> Q[Battlespace / Radar / Map]
+
+    N --> R[EKF-Filtered Canonical Target]
+    O --> S[Drone-Target Assignment]
+    P --> T[Lock / Echo / Confirm]
+
+    R --> S
+    S --> T
+    T --> U[TrackingController]
+    U --> V[AttackFSM]
+    V --> W[IBVS Guidance]
+    W --> X[FlightController / MAVLink]
+    X --> Y[Terminal Engagement and Impact / RTL]
+
+    A --> AB[Pause]
+    A --> AC[Stop]
+    AB --> AD[In-Place Hold]
+    AC --> AE[RTL]
+    AE --> AF[Mission Cleanup and Reset]
+    AF --> A
 ```
 
-### Module Responsibilities
+---
 
-| Module | Layer | Responsibility |
-|--------|-------|----------------|
-| `fleet_manager` | Core | Drone connection management, video stream coordination |
-| `geo_math` | Core | GPS coordinate estimation from camera data |
-| `kalman_filter` | Core | State estimation and sensor fusion |
-| `pid_controller` | Core | Control loops for guidance |
-| `logger` | Core | Centralized logging system |
-| `detector` | Vision | YOLOv12 detection and BoT-SORT tracking |
-| `camera_handler` | Vision | Camera stream acquisition and processing |
-| `group_tracker` | Vision | Group clustering for multiple targets |
-| `swarm_coordinator` | Swarm | Leader-follower logic, target assignment |
-| `target_fusion` | Swarm | Multi-drone observation fusion |
-| `mission_controller` | Mission | Mission state machine, attack logic, area scanning |
-| `tracking_controller` | Mission | Target tracking and engagement |
-| `flight_controller` | Mission | MAVLink commands, drone movement |
-| `ibvs_guidance` | Mission | Image-Based Visual Servoing for attacks |
+## System Architecture
+
+ORCUS uses a modular architecture rather than a monolithic mission script. Responsibilities are separated cleanly so that perception, swarm logic, and flight behavior can evolve without destabilizing the entire system.
+
+### Layers
+
+| Layer | Primary Modules | Role |
+|---|---|---|
+| `core` | `fleet_manager`, `geo_math`, `logger`, `pid_controller` | platform control, math utilities, logging, low-level helpers |
+| `vision` | `detector`, `camera_handler`, `group_tracker`, `tracker/` | detection, tracking, group analysis, camera processing |
+| `mission` | `mission_controller`, `navigation`, `scanner`, `tracking_controller`, `attack_fsm`, `ibvs_guidance`, `swarm_bridge` | mission execution, target tracking, attack FSM, command generation |
+| `swarm` | `coordinator`, `target`, `state_machine`, `assignment`, `ownership`, `protocol`, `fusion_engine`, `target_fusion`, `battlespace` | swarm decisions, target lifecycle, fusion, assignment, radar/map view |
+
+### Core Architectural Principles
+
+- **One physical target, one canonical record:** Local tracker identities are mapped into a shared registry.
+- **Perception and decision are separated:** Vision produces evidence; swarm logic makes commitment decisions.
+- **State-first control:** Attack, hover, lost, and reset behavior are managed as state transitions, not scattered conditionals.
+- **Leader authority with terminal autonomy:** The leader coordinates assignment; the drone executes the last phase without unstable micromanagement.
+- **Unified modeling of individuals and groups:** Single targets and grouped targets coexist in the same battlespace, but they are not processed blindly as the same entity.
+- **Deterministic mission cycling:** Pause, stop, resume, and restart belong to the same controlled mission lifecycle.
+
+---
+
+## Core Algorithms
+
+### 1. Geo-Localization and Target Position Estimation
+
+ORCUS is built around **position credibility**, not detection alone. It uses **Ray-Ground Intersection (RGI)** to intersect the camera ray with the ground plane and produce a world-coordinate estimate for each target.
+
+That chain is:
+
+1. extract the image-space target center
+2. apply camera model and drone pose
+3. compute a GPS hypothesis via RGI
+4. attach covariance / sigma rather than a blind point estimate
+5. feed that confidence into fusion, assignment, and radar decisions
+
+This allows the system to say not only "the target is here," but also "the target is here with this level of confidence."
+
+### 2. Sensor Fusion and Canonical Target Construction
+
+In a multi-drone scene, the same physical target may appear under different local tracker IDs. In addition, the scene may contain both **single entities and grouped targets**. ORCUS evaluates:
+
+- spatial proximity
+- group-size evidence
+- local identity overlap
+- covariance quality
+- ownership and attack-pipeline protections
+
+The objective is not to merge aggressively. The objective is to:
+
+- avoid showing the same target twice
+- avoid merging physically separate targets
+- avoid corrupting an active attack family with unrelated observations
+
+That is why v2.1 favors **controlled fusion, duplicate suppression, and family-aware guards** over naive merge pressure.
+
+### 3. Group Analysis and Multi-Target Separation
+
+ORCUS does not treat every detection as a flat list of unrelated blobs. The grouping pipeline:
+
+- clusters individuals into group hypotheses
+- converts clusters into group targets
+- carries group member count into target metadata
+- distinguishes grouped targets from single entities in radar and assignment logic
+- uses group evidence in deconfliction and attack decisions
+
+This matters in scenes such as `2x`, `2x`, `3x`, where correct target separation is mission-critical.
+
+### 4. Dynamic Attack Assignment
+
+The assignment engine abandons the simplistic "first observer attacks" pattern. Instead, it builds a cost model using:
+
+- drone-to-target distance
+- visibility
+- target quality
+- covariance
+- ownership state
+- immutable attack protections
+
+It then solves the pairing with the **Hungarian algorithm**, reducing duplicate commitments, cross-over routes, and uneven load distribution across the swarm.
+
+### 5. Deconfliction, Ownership, and Swarm Isolation
+
+Once a target family enters the attack pipeline, nearby duplicates or wrong family evidence can destabilize the system. ORCUS counters this with:
+
+- immutable terminal attack states
+- proximity lock guards
+- family evidence checks
+- group-size and group-member validation
+- owner / reserved / handoff ownership modeling
+
+This prevents same-target pile-on, family contamination, and overwrite during terminal engagement.
+
+---
+
+## Attack Execution Logic
+
+The attack path is not a single loose trigger. ORCUS runs a guarded engagement handshake:
+
+1. the leader approves the target
+2. the drone requests lock
+3. the leader validates lock and ownership
+4. the drone echoes the target for verification
+5. the leader confirms engagement
+6. the drone enters centering
+7. IBVS drives the terminal dive
+
+The goal is to avoid a system that jumps directly from a noisy positive to a dive command. ORCUS separates **detection**, **commitment**, and **terminal execution** on purpose.
+
+This pipeline also:
+
+- stabilizes representative target choice in grouped scenes
+- blocks mid-attack target swaps
+- preserves a controlled contract between leader decisions and terminal drone behavior
+
+---
+
+## Evolution: v2.0 vs v2.1
+
+| Topic | v2.0 | v2.1 |
+|---|---|---|
+| Swarm architecture | leader-follower core | modular coordinator + lifecycle + protocol + ownership layers |
+| Target fusion | working but more fragile merge/fusion path | stronger canonical target logic, duplicate suppression, family evidence |
+| Geo-localization | RGI-based estimate | RGI + filtered target pipeline + covariance-aware stability |
+| Assignment | Hungarian-based pairing | assignment guards, family suppression, attack-aware distribution |
+| Group handling | more limited practical separation | stronger individual/group discrimination and grouped-target metadata |
+| Attack protocol | baseline approval flow | 7-step handshake with lock / echo / confirm separation |
+| State management | more vulnerable mission transitions | soft reset, pause/resume, stop interlocks, runtime cleanup |
+| UI safety | looser command behavior | stronger Start / Pause / Stop interlocks |
+| Chronic failure classes addressed | state leak, overwrite, stale attack instability, pause-side radar drift risk | guarded and hardened in the v2.1 architecture |
+| Operational stability | demonstration-grade | significantly hardened for repeatable runs and GitHub release quality |
+
+---
+
+## Repository Layout
+
+```text
+ORCUS-main/
+├── app.py
+├── config.py
+├── modules/
+│   ├── core/
+│   ├── mission/
+│   ├── swarm/
+│   └── vision/
+├── simulator/
+├── static/
+├── templates/
+├── tests/
+├── logs/
+└── README.md
+```
 
 ---
 
@@ -251,348 +335,16 @@ http://localhost:5000/
 
 ---
 
-## 📋 System Workflow
+## Why v2.1?
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         ORCUS SYSTEM WORKFLOW                           │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐         │
-│  │  START   │───▶│ CONNECT  │───▶│ DEFINE   │───▶│  TAKEOFF │         │
-│  │          │    │  DRONES  │    │  AREA    │    │          │         │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘         │
-│                                                        │               │
-│                                                        ▼               │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐         │
-│  │  ATTACK  │◀───│  LOCK    │◀───│  TRACK   │◀───│  SEARCH  │         │
-│  │  MODE    │    │  TARGET  │    │  TARGET  │    │  AREA    │         │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘         │
-│       │                                                                │
-│       ▼                                                                │
-│  ┌──────────┐                                                         │
-│  │ COLLISION│                                                         │
-│  │ MISSION  │                                                         │
-│  └──────────┘                                                         │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+Because this release is not just "more features." It is a stability-focused hardening step that separates:
 
----
+- seeing a target from locating it correctly
+- observing a target from owning it
+- approving an attack from executing a terminal strike
+- stopping a mission from leaving hidden mission state behind
 
-## 🎯 Detection & Localization Workflow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    DETECTION & LOCALIZATION PIPELINE                    │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌─────────────┐                                                       │
-│  │  RGB CAMERA │ ◀── Drone onboard camera (30 FPS)                    │
-│  └──────┬──────┘                                                       │
-│         │                                                               │
-│         ▼                                                               │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │   YOLOv12   │────▶│ BOUNDING    │  Detection: Class, Confidence    │
-│  │  DETECTION  │     │    BOX      │  (x, y, w, h, conf, class)        │
-│  └─────────────┘     └──────┬──────┘                                   │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │  BoT-SORT   │────▶│   TRACK     │  Persistent ID assignment         │
-│  │  TRACKING   │     │    ID       │  Track state management           │
-│  └─────────────┘     └──────┬──────┘                                   │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────────────────────────────────────────────┐              │
-│  │         RAY-GROUND INTERSECTION ALGORITHM            │              │
-│  ├─────────────────────────────────────────────────────┤              │
-│  │  1. Camera Intrinsics (fx, fy, cx, cy)              │              │
-│  │  2. Drone State (lat, lon, alt, heading, pitch)    │              │
-│  │  3. Gimbal Angles (roll, pitch, yaw)               │              │
-│  │  4. Bounding Box Center → Pixel Coordinates        │              │
-│  │  5. Ray Casting → Ground Intersection              │              │
-│  │  6. Coordinate Transform → GPS (lat, lon)          │              │
-│  └──────────────────────────┬──────────────────────────┘              │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │   TARGET    │────▶│  COVARIANCE │  Position uncertainty            │
-│  │  POSITION   │     │  MATRIX     │  (σ_lat, σ_lon)                   │
-│  │ (lat, lon)  │     │             │                                   │
-│  └─────────────┘     └─────────────┘                                   │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## ⚔️ Attack Mission Workflow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      ATTACK MISSION PIPELINE                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  TARGET STATE MACHINE:                                                  │
-│                                                                         │
-│  ┌─────────┐   detection    ┌─────────┐   confirm     ┌─────────┐     │
-│  │  FREE   │ ──────────────▶│  OWNED  │ ─────────────▶│ LOCKED  │     │
-│  └─────────┘                └─────────┘               └─────────┘     │
-│       ▲                          │                         │          │
-│       │                          │                         │          │
-│       │                     lost │                    attack │          │
-│       │                          ▼                         │          │
-│       │                    ┌─────────┐                      ▼          │
-│       └────────────────────│  LOST   │             ┌──────────┐      │
-│                            └─────────┘             │ ATTACKING │      │
-│                                                    └──────────┘      │
-│                                                         │              │
-│                                                         ▼              │
-│                                                  ┌──────────┐         │
-│                                                  │ COLLISION│         │
-│                                                  └──────────┘         │
-│                                                                         │
-│  ASSIGNMENT FLOW:                                                       │
-│                                                                         │
-│  ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐  │
-│  │   DETECT   │───▶│    FUSE    │───▶│   ASSIGN   │───▶│   LOCK     │  │
-│  │   TARGET   │    │ OBSERVATIONS│   │   DRONE    │    │   TARGET   │  │
-│  └────────────┘    └────────────┘    └────────────┘    └────────────┘  │
-│        │                 │                 │                 │          │
-│        ▼                 ▼                 ▼                 ▼          │
-│  YOLO+BoT-SORT    Kalman Filter    Hungarian Alg.    State Machine    │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🧠 Algorithms
-
-### 1. Ray-Ground Intersection Geolocation
-
-Position estimation from monocular RGB camera using ray-ground intersection:
-
-```
-Input: Bounding box center (pixel_x, pixel_y), Drone state (lat, lon, alt, roll, pitch, yaw)
-Output: GPS coordinates (lat, lon) with 3x3 covariance matrix
-
-Algorithm (geo_math.py):
-1. Pixel → Normalized Camera: (x_norm, y_norm) = ((px - cx)/fx, (py - cy)/fy)
-2. Camera → Body Frame: Axis transformation for drone body alignment
-3. Apply Camera Pitch Offset: Compensate for gimbal mounting angle
-4. Body → NED Frame: Transform using RPY rotation matrix (ZYX sequence)
-5. Ray-Ground Intersection: Solve for t where ray meets z=0 plane
-   - intersection = p0 + t * ray_ned
-   - Clamp shallow rays (ray_z < threshold) for numerical stability
-6. NED → GPS: Convert (d_north, d_east) to (lat, lon) offsets
-
-Covariance Estimation (Jacobian Propagation):
-- σ_azimuth = √(σ_yaw² + σ_pixel²) → σ_cross = slant_range * σ_azimuth
-- σ_elevation = √(σ_pitch² + σ_pixel²) → σ_radial = slant_range * cot(ε) * σ_elevation
-- Build 3x3 covariance in NED frame, transform to GPS bearing
-```
-
-### 2. BoT-SORT Tracking
-
-Multi-object tracking algorithm:
-
-```
-Features:
-- Kalman Filter for motion prediction
-- IoU-based track association
-- Track management (new, confirmed, lost, deleted)
-- Camera motion compensation (CMC)
-```
-
-### 3. Target Fusion (Kalman Filter)
-
-Multi-drone observation fusion:
-
-```
-State Vector: [lat, lon, v_lat, v_lon]
-Process Model: Constant velocity
-Measurement Model: GPS + covariance
-
-Fusion Steps:
-1. Predict state using process model
-2. Receive observations from multiple drones
-3. Mahalanobis distance gating
-4. Update state with valid observations
-5. Output: Fused position with reduced covariance
-```
-
-### 4. Hungarian Assignment
-
-Optimal drone-target assignment:
-
-```
-Cost Matrix Factors:
-- Distance (base cost)
-- Visibility (drone sees target: bonus)
-- Heading (target in front: bonus, behind: penalty)
-- Motion (moving drone: penalty)
-- Distribution (close to assigned targets: penalty, far: bonus)
-- Covariance (high uncertainty: penalty, low: bonus)
-- Stickiness (current assignment: bonus)
-
-Algorithm: linear_sum_assignment (scipy.optimize)
-```
-
----
-
-## 🏗️ Project Structure
-
-```
-ORCUS/
-├── app.py                              # Main Flask application
-├── config.py                           # System configuration
-├── requirements.txt                    # Python dependencies
-│
-├── modules/
-│   ├── core/
-│   │   ├── logger.py                   # Logging system
-│   │   ├── geo_math.py                 # Ray-ground intersection GPS estimation
-│   │   ├── kalman_filter.py            # Kalman Filter implementation
-│   │   ├── pid_controller.py           # PID control
-│   │   └── fleet_manager.py            # Fleet state management
-│   │
-│   ├── mission/
-│   │   ├── flight_controller.py       # MAVLink flight control
-│   │   ├── mission_controller.py      # Mission orchestration
-│   │   ├── tracking_controller.py     # Target tracking control
-│   │   └── ibvs_guidance.py            # Image-Based Visual Servoing
-│   │
-│   ├── swarm/
-│   │   ├── swarm_coordinator.py        # Swarm leader-follower logic
-│   │   └── target_fusion.py            # Kalman Filter fusion
-│   │
-│   ├── vision/
-│   │   ├── detector.py                 # YOLOv12 detection + tracking
-│   │   ├── camera_handler.py           # Camera stream handling
-│   │   ├── group_tracker.py            # Group tracking logic
-│   │   └── tracker/
-│   │       ├── bot_sort.py             # BoT-SORT implementation
-│   │       ├── mc_bot_sort.py          # Motion-compensated BoT-SORT
-│   │       ├── kalman_filter.py        # Tracker Kalman Filter
-│   │       ├── matching.py             # Track association
-│   │       ├── gmc.py                  # Camera motion compensation
-│   │       ├── basetrack.py            # Base track class
-│   │       └── weights/
-│   │           └── yolov12n.pt         # YOLO model weights
-│
-├── templates/
-│   └── index.html                      # Web interface
-│
-├── static/
-│   ├── css/                            # Stylesheets
-│   └── js/                             # JavaScript
-│
-├── simulator/
-│   ├── drone/                          # Gazebo drone models
-│   └── worlds/                         # Gazebo world files
-│
-├── logs/
-│   └── swarm_log.txt                   # System logs
-│
-└── tests/                              # Unit tests
-```
-
----
-
-## 📊 Area Partitioning Algorithm (v1.0 Legacy)
-
-> **Note:** This grid-based partitioning was used in v1.0. In v2.0, the leader-follower architecture provides more flexible coordination.
-
-```
-Total Area (16 cells):
-┌──┬──┬──┬──┐
-│ 1│ 2│ 3│ 4│  → Row 0
-├──┼──┼──┼──┤
-│ 5│ 6│ 7│ 8│  → Row 1  } Drone 1 (Port 5760)
-├──┼──┼──┼──┤  ═══════════════════════
-│ 9│10│11│12│  → Row 2
-├──┼──┼──┼──┤
-│13│14│15│16│  → Row 3  } Drone 2 (Port 5761)
-└──┴──┴──┴──┘
-
-Boustrophedon Pattern:
-Drone 1: 1→2→3→4, 8←7←6←5
-Drone 2: 9→10→11→12, 16←15←14←13
-```
-
----
-
-## ⚙️ Configuration
-
-Key parameters in `config.py`:
-
-```python
-# Drone Settings
-TAKEOFF_ALTITUDE = 5                    # meters
-DRONE_SPEED = 90                        # cm/s
-
-# Collision Mission
-COLLISION_FORWARD_SPEED = 2.0           # m/s
-COLLISION_SCREEN_THRESHOLD = 0.40       # 40% screen coverage triggers collision
-HUMAN_LOST_TIMEOUT = 5.0                # seconds
-
-# AI Detection
-YOLO_CONF_THRESHOLD = 0.25              # Detection confidence threshold
-YOLO_IOU_THRESHOLD = 0.40               # IoU threshold for NMS
-
-# Tracker Parameters (v2.0) - Instance attributes in BotSortArgs
-# new_track_thresh = 0.25               # New track creation threshold
-# track_buffer = 90                      # Track retention (frames)
-# match_thresh = 0.7                     # Association threshold
-
-# Fusion Parameters
-FUSION_MATCH_THRESHOLD_M = 8.0          # Target fusion distance (meters)
-KALMAN_PROCESS_NOISE_SCALE = 0.01       # Process noise scale
-```
-
----
-
-## 🔮 Upcoming: v2.1 Roadmap
-
-**Status: Planning Phase**
-
-v2.1 focuses on system optimization, architecture consolidation, and algorithm refinement:
-
-### Core Objectives
-
-| Goal | Description |
-|------|-------------|
-| **System Optimization** | Reduce parameter complexity, streamline algorithms, improve performance |
-| **Architecture Cleanup** | Remove legacy code, resolve algorithm conflicts, consolidate redundant logic |
-| **Tracking Stability** | Eliminate ID flip-flop, improve track persistence, enhance assignment consistency |
-| **Position Accuracy** | Refine Ray-Ground Intersection, improve covariance estimation |
-
-### Key Improvements
-
-**Algorithm Consolidation:**
-- Remove deprecated/legacy algorithms accumulated from incremental development
-- Resolve conflicts between overlapping algorithms
-- Unify duplicate implementations into single, optimized modules
-
-**Tracking & Assignment:**
-- Reduce tracker ID flip-flop through improved association logic
-- Stabilize drone-target assignments with refined cost matrix scoring
-- Enhance multi-target scenario handling
-
-**Position Estimation:**
-- Improve Ray-Ground Intersection accuracy and edge case handling
-- Better covariance estimation for uncertain measurements
-- More robust fusion under challenging conditions
-
-### Known Issues Being Addressed
-
-- Excessive parameter count causing configuration complexity
-- Algorithm conflicts from incremental development history
-- Tracker ID instability in multi-target scenarios
-- Drone-target assignment flip-flop during concurrent detections
-- Performance bottlenecks for larger swarm sizes
+That separation is what turns a demo chain into a serious systems-engineering project.
 
 ---
 
@@ -610,160 +362,239 @@ This project is for **educational and research purposes only**. The developers a
 
 # 📚 Türkçe Dokümantasyon
 
-## 📖 Proje Hakkında
+## ORCUS Nedir?
 
-**ORCUS v2.0**, gerçek zamanlı algılama, koordineli karar verme ve çoklu ajan görev yürütme süreçlerini bir araya getiren otonom bir **Sürü Kamikaze Drone Sistemi**dir.
+**ORCUS**, çoklu platformun ortak algı, ortak hedef resmi ve koordineli terminal taarruz mantığıyla çalıştığı **tam otonom bir sürü kamikaze drone sistemidir**. Bu depodaki mevcut kararlı sürüm **v2.1**'dir.
 
-Sistem, birden fazla dronenin tek başına hareket etmek yerine ortak bir sürü mantığıyla çalışmasını sağlar. Her drone kendi görsel verisini üretir, hedef bilgilerini paylaşır ve lider–takipçi mimarisi altında kendisine atanan görevi yerine getirir. Böylece tüm sistem, hedefler ve görev durumu hakkında ortak bir durumsal farkındalık oluşturur.
+Sistem; sahadaki **bireyleri ve grup hedeflerini** görüntüden çıkarır, hedeflerin coğrafi konumunu hesaplar, farklı platformlardan gelen gözlemleri tek hedef resmine birleştirir, sürü içinde en doğru drone-hedef eşleşmesini üretir ve terminal taarruzu kontrollü bir protokol üzerinden yürütür.
 
-Projenin temel yetenekleri şunlardır:
+Bu mimari yalnızca "uçan bir demo" üretmek için kurulmadı. ORCUS:
 
-* **Gerçek zamanlı tespit ve kalıcı hedef takibi**
-* **Monoküler kamera verisinden geometrik konum hesaplama**, yani görüntü üzerindeki tespitlerin kamera modeli ve uzamsal dönüşümler kullanılarak dünya koordinatlarına dönüştürülmesi
-* **Çoklu drone gözlemlerinin birleştirilmesi**, farklı dronelerden gelen verilerin tek ve daha kararlı bir hedef bilgisine dönüştürülerek belirsizliğin azaltılması
-* **Dinamik drone–hedef görev dağılımı**, sürü içerisindeki kaynakların verimli kullanılması
-* **Algıdan uçuş kontrolüne uzanan otonom yönlendirme sistemi**
-
-ORCUS, algılama, konumlama, koordinasyon ve kontrol katmanlarının gerçek zamanlı olarak birlikte çalıştığı uçtan uca bir sistem mimarisi sunar. Modüler yapısı sayesinde her bileşen bağımsız olarak geliştirilebilir veya iyileştirilebilir.
-
-Ortaya çıkan yapı; bilgisayarlı görü, kontrol sistemleri ve çoklu ajan koordinasyonunun tek bir operasyonel sistem içinde nasıl birleşebileceğini gösteren kapsamlı bir mühendislik uygulamasıdır.
-
-### v2.0'daki Yenilikler
-
-| Özellik | v1.0 | v2.0 |
-|---------|------|------|
-| **Hedef Takibi** | Basit tracker, ilk görülen hedef kilitlenir | BoT-SORT ile çoklu hedef takibi |
-| **Saldırı Stratejisi** | İlk tespit edilen hedefe kilitle, anında saldır | Hungarian algoritması ile optimal atama |
-| **Konum Tahmini** | Yok | Işın-Zemin Kesişimi algoritması (geo_math.py) |
-| **Çoklu Drone Füzyonu** | Yok (bağımsız dronelar) | Kalman Filtre gözlem füzyonu |
-| **Sürü Koordinasyonu** | Izgara bölme, bağımsız çalışma | Sahiplik durumlu lider-takipçi |
-| **Hedef Durumları** | TESPİT → SALDIRI | Tam durum makinesi (FREE, OWNED, LOCKED, ATTACKING) |
-| **Atama Mantığı** | İlk-gelen-ilk-saldırır | Cost matrix skorlaması (görünürlük, yönelim, mesafe, kovaryans) |
-| **Ölçüm Kalitesi** | Yok | Kovaryans tabanlı belirsizlik takibi |
+- hedefi sadece görmez, **konumunu hesaplar**
+- tekil birey ile **grup hedefi** ayırt eder
+- yerel tespitleri **kanonik bir battlespace resmine** dönüştürür
+- ilk göreni değil, **en uygun platformu** hedefe yollar
+- terminal fazda gereksiz lider müdahalesini keser, ama sürü güvenliğini korur
+- görev çevrimleri arasında stale state, overwrite ve kararsızlık üretmeden yeniden çalışabilir
 
 ---
 
-## 🎯 Temel Özellikler
+## Öne Çıkan Yetenekler
 
-- **Lider–Takipçi Mimarisi**  
-  Sürü içerisindeki koordinasyon merkezi bir drone tarafından yönetilir. Görev dağılımı ve hedef atamaları sistem genelinde optimize edilerek yürütülür.
-
-- **Gerçek Zamanlı Tespit ve Kalıcı Takip**  
-  Görüntü işleme ve takip algoritmaları sayesinde hedefler sürekli izlenir ve sistem genelinde tutarlı kimliklerle yönetilir.
-
-- **Monoküler Kamera Verisinden Geometrik Konum Hesaplama**  
-  Görüntü düzleminde tespit edilen hedefler; kamera modeli, drone pozisyonu ve uzamsal dönüşümler kullanılarak dünya koordinatlarına dönüştürülür. Böylece yalnızca görsel veriden fiziksel konum bilgisi elde edilir.
-
-- **Çoklu Drone Gözlem Birleştirme (Observation Fusion)**  
-  Farklı dronelerden gelen hedef gözlemleri tek bir ortak hedef temsiline dönüştürülerek ölçüm belirsizliği azaltılır ve karar kararlılığı artırılır.
-
-- **Dinamik Drone–Hedef Atama**  
-  Görevler; mesafe, görünürlük, hareket yönü ve ölçüm güvenilirliği gibi kriterlere göre otomatik olarak dağıtılır.
-
-- **Algıdan Uçuş Kontrolüne Entegre Otonom Yönlendirme**  
-  Algılama katmanından elde edilen bilgiler doğrudan uçuş davranışına aktarılır ve sistem gerçek zamanlı olarak tepki verebilir.
+- **Ray-Ground Intersection (RGI) tabanlı monoküler coğrafi konumlandırma:** Kamera ışınını zeminle kestirerek hedef GPS üretir; karar katmanına kovaryansla birlikte besler.
+- **EKF destekli çoklu drone sensor fusion:** Aynı fiziksel hedefe ait farklı gözlemler tek kanonik hedefte toplanır, gürültü filtrelenir, yalancı duplicate'ler bastırılır.
+- **Birey / grup hedef ayrıştırma ve group clustering:** Sistem sahadaki tekil bireyleri ve `2x`, `3x` gibi grup hedeflerini ayrı kategoriler olarak izler; grup boyutu karar katmanına taşınır.
+- **Hungarian tabanlı dinamik saldırı ataması:** Drone-hedef eşleşmesi mesafe, kalite, görünürlük ve sahiplik durumlarına göre optimize edilir.
+- **Family-aware deconfliction, grouping ve target isolation:** Yakın, benzer veya aynı aileye ait birey/grup hedeflerde yanlış merge, yanlış lock, grup overwrite ve çift saldırı riskini baskılar.
+- **Handshake kontrollü terminal taarruz hattı:** Lock, echo, doğrulama ve attack fazları birbirinden ayrılmıştır; terminal faz kontrollü ama gereksiz müdahalesiz yürütülür.
+- **IBVS tabanlı terminal guidance:** Görüntü merkezleme ve dalış komutları doğrudan görüntü tabanlı servo mantığıyla üretilir.
+- **Operatör merkezli kontrol paneli:** Radar, harita, hedef sahipliği, drone görev durumu ve görev butonları tek web komuta ekranında birleşir.
+- **Ownership ve lifecycle state machine:** `FREE`, `OWNED`, `LOCKED`, `CONFIRMED_ATTACK`, `ATTACKING` gibi hedef durumları karar akışını deterministik tutar.
 
 ---
 
-## 🛠️ Teknoloji Yığını
+## Uçtan Uca İş Akışı
 
-| Bileşen | Teknoloji |
-|---------|-----------|
-| Uçuş Kontrolü | ArduPilot SITL |
-| Simülasyon | Gazebo + ROS |
-| Nesne Tespiti | YOLOv12 |
-| Nesne Takibi | BoT-SORT |
-| Durum Tahmini | Kalman Filtre |
-| Görev Atama | Hungarian Algoritması |
-| İletişim | DroneKit, MAVLink |
-| Backend | Flask |
-| Frontend | MJPEG Streaming |
+```mermaid
+flowchart TD
+    A[Operator Control Panel] --> B[Alan Seçimi ve Cell Partition]
+    B --> C[MissionController]
+    C --> D[Takeoff ve Area Approach]
+    D --> E[Scanner]
+    E --> F[YOLOv12 + Tracker]
+    F --> G[DetectionProcessor]
+    G --> H[GeoMath / Ray-Ground Intersection]
+    H --> I[Covariance ve Quality Scoring]
+    I --> J[Swarm Coordinator]
 
----
+    J --> K[Identity Index]
+    J --> L[Ownership State]
+    J --> M[Target Lifecycle]
+    J --> N[Fusion Engine]
+    J --> O[Assignment Engine]
+    J --> P[Attack Protocol]
+    J --> Q[Battlespace / Radar / Harita]
 
-## 🔗 Modül Bağımlılıkları
+    N --> R[EKF-Filtered Canonical Target]
+    O --> S[Drone-Target Assignment]
+    P --> T[Lock / Echo / Confirm]
 
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                          MODÜL MİMARİSİ                                    │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                            │
-│  ┌─────────────┐                                                           │
-│  │   app.py    │  ◀── Giriş Noktası (Flask Web Sunucusu)                  │
-│  └──────┬──────┘                                                           │
-│         │                                                                  │
-│         ▼                                                                  │
-│  ┌────────────────────────────────────────────────────────────────────┐    │
-│  │                        ÇEKİRDEK KATMANI                            │    │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │    │
-│  │  │fleet_manager │──│   logger     │──│  geo_math    │              │    │
-│  │  └──────┬───────┘  └──────────────┘  └──────┬───────┘              │    │
-│  │         │                              ▲     │                     │    │
-│  │         │                              │     │                     │    │
-│  │  ┌──────┴───────┐  ┌──────────────┐  │  ┌──┴───────┐               │    │
-│  │  │kalman_filter │  │pid_controller│  │  │  logger  │               │    │
-│  │  └──────────────┘  └──────────────┘  │  └──────────┘               │    │
-│  └──────────────────────────────────────┼─────────────────────────────┘    │
-│                                         │                                  │
-│  ┌──────────────────────────────────────┼────────────────────────────┐    │
-│  │                       GÖRÜNTÜ KATMANI│                            │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐          │    │
-│  │  │  detector    │──│group_tracker │──┼──│camera_handler│          │    │
-│  │  └──────┬───────┘  └──────────────┘  │  └──────────────┘          │    │
-│  │         │                            │                            │    │
-│  │  ┌──────┴───────┐                    │                            │    │
-│  │  │   tracker/   │                    │                            │    │
-│  │  │  (BoT-SORT)  │                    │                            │    │
-│  │  └──────────────┘                    │                            │    │
-│  └──────────────────────────────────────┼───────── ──────────────────┘    │
-│                                         │                                 │
-│  ┌──────────────────────────────────────┼────────────────────── ─────┐    │
-│  │                        SÜRÜ KATMANI  │                            │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │                            │    │
-│  │  │   swarm_     │──│ target_fusion│──┘                            │    │
-│  │  │ coordinator  │  └──────────────┘                               │    │
-│  │  └──────────────┘                                                 │    │
-│  └───────────────────────────────────────────────────────────────────┘    │
-│                                         ▲                                 │
-│                                         │                                 │
-│  ┌──────────────────────────────────────┼────────────────────────────┐    │
-│  │                        GÖREV KATMANI │                            │    │
-│  │  ┌──────────────┐  ┌──────────────┐  │  ┌──────────────┐           │    │
-│  │  │   mission_   │──│  tracking_   │──┼──│    ibvs_     │           │    │
-│  │  │ controller   │  │ controller   │  │  │  guidance    │           │    │
-│  │  └──────┬───────┘  └──────┬───────┘  │  └──────────────┘           │    │
-│  │         │                 │          │                              │    │
-│  │  ┌──────┴───────┐        │          │                               │    │
-│  │  │   flight_    │────────┘          │                               │    │
-│  │  │ controller   │                   │                               │    │
-│  │  └──────────────┘                   │                               │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  AÇIKLAMA:                                                                   │
-│  ──▶ Bağımlı olduğu / İçe aktardığı                                         │
-│  ──▶ Veri akışı / İletişim                                                  │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+    R --> S
+    S --> T
+    T --> U[TrackingController]
+    U --> V[AttackFSM]
+    V --> W[IBVS Guidance]
+    W --> X[FlightController / MAVLink]
+    X --> Y[Terminal Engagement and Impact / RTL]
+
+    A --> AB[Pause]
+    A --> AC[Stop]
+    AB --> AD[In-Place Hold]
+    AC --> AE[RTL]
+    AE --> AF[Mission Cleanup and Reset]
+    AF --> A
 ```
 
-### Modül Sorumlulukları
+---
 
-| Modül | Katman | Sorumluluk |
-|-------|--------|------------|
-| `fleet_manager` | Çekirdek | Drone bağlantı yönetimi, video akış koordinasyonu |
-| `geo_math` | Çekirdek | Kamera verilerinden GPS koordinat tahmini |
-| `kalman_filter` | Çekirdek | Durum tahmini ve sensör füzyonu |
-| `pid_controller` | Çekirdek | Güdümleme için kontrol döngüleri |
-| `logger` | Çekirdek | Merkezi loglama sistemi |
-| `detector` | Görüntü | YOLOv12 tespiti ve BoT-SORT takibi |
-| `camera_handler` | Görüntü | Kamera akışı edinimi ve işleme |
-| `group_tracker` | Görüntü | Çoklu hedefler için grup kümeleme |
-| `swarm_coordinator` | Sürü | Lider-takipçi mantığı, hedef ataması |
-| `target_fusion` | Sürü | Çoklu drone gözlem füzyonu |
-| `mission_controller` | Görev | Görev durum makinesi, saldırı mantığı, alan tarama |
-| `tracking_controller` | Görev | Hedef takibi ve angajman |
-| `flight_controller` | Görev | MAVLink komutları, drone hareketi |
-| `ibvs_guidance` | Görev | Saldırılar için Görüntü Tabanlı Görsel Servoing |
+## Sistem Mimarisi
+
+ORCUS, tek dosyaya sıkışmış bir görev mantığı yerine, sorumlulukları açık biçimde ayrılmış modüler bir mimari kullanır. Böylece algılama, sürü zekası ve uçuş kontrolü aynı proje içinde birlikte çalışırken birbirini kırmadan gelişebilir.
+
+### Katmanlar
+
+| Katman | Ana Modüller | Rol |
+|---|---|---|
+| `core` | `fleet_manager`, `geo_math`, `logger`, `pid_controller` | platform yönetimi, matematiksel yardımcılar, kayıt ve temel kontrol |
+| `vision` | `detector`, `camera_handler`, `group_tracker`, `tracker/` | tespit, takip, grup analizi ve kamera işleme |
+| `mission` | `mission_controller`, `navigation`, `scanner`, `tracking_controller`, `attack_fsm`, `ibvs_guidance`, `swarm_bridge` | görev akışı, hedef takibi, attack FSM ve komut üretimi |
+| `swarm` | `coordinator`, `target`, `state_machine`, `assignment`, `ownership`, `protocol`, `fusion_engine`, `target_fusion`, `battlespace` | sürü kararı, hedef yaşam döngüsü, füzyon, atama ve radar/harita görünümü |
+
+### Temel Mimari İlkeler
+
+- **Tek fiziksel hedef, tek kanonik kayıt:** Yerel tracker kimlikleri ortak hedef kaydına bağlanır.
+- **Observation ile decision ayrımı:** Görüntü verisi kanıt üretir; sürü katmanı karar verir.
+- **State-first yaklaşım:** Attack, hover, lost ve reset davranışları dağınık koşullarla değil, durum geçişleriyle yönetilir.
+- **Leader authority + terminal autonomy:** Lider atama ve sürü koordinasyonunu yönetir; drone terminal fazı kontrollü biçimde yürütür.
+- **Birey ve grup için ortak ama bilinçli model:** Tekil hedefler ve grup hedefleri aynı battlespace içinde tutulur, ancak körlemesine aynı nesne gibi işlenmez.
+- **Deterministik görev çevrimi:** Pause, stop, resume ve yeniden başlatma aynı görev yaşam döngüsünün parçasıdır.
+
+---
+
+## Çekirdek Algoritmalar
+
+### 1. Konum Tespiti ve Coğrafi Kestirim
+
+ORCUS'un en kritik unsurlarından biri **konum tespiti doğruluğudur**. Sistem yalnızca bbox üretmez; **Ray-Ground Intersection (RGI)** ile kamera ışınını zemin düzlemiyle kesiştirerek hedefin dünya koordinatını kestirir.
+
+Bu zincir:
+
+1. görüntüde bbox merkezi çıkarılır
+2. kamera modeli ve drone duruşu uygulanır
+3. RGI ile hedef GPS hipotezi üretilir
+4. sonuç sadece tek nokta değil, **kovaryans / sigma** ile birlikte taşınır
+5. bu güven metriği fusion, assignment ve radar kararlarına beslenir
+
+Bu sayede sistem yalnızca "hedef burada olabilir" demez; "hedef burada ve bu kadar güvenilir" diyebilir.
+
+### 2. Sensor Fusion ve Kanonik Hedef Üretimi
+
+Çoklu drone sahaya baktığında aynı fiziksel hedef farklı local ID'lerle görülebilir. Üstelik sahne sadece bireylerden değil, **grup hedeflerinden** de oluşabilir. ORCUS bu verileri:
+
+- mekansal yakınlık
+- grup boyutu kanıtı
+- local identity eşleşmesi
+- kovaryans kalitesi
+- sahiplik ve attack pipeline korumaları
+
+üzerinden değerlendirir.
+
+Amaç agresif merge yapmak değildir. Amaç:
+
+- aynı hedefi iki kez göstermemek
+- farklı fiziksel hedefleri yanlış birleştirmemek
+- aktif saldırı hattını alakasız gözlemlerle kirletmemektir
+
+Bu nedenle v2.1, **kontrollü füzyon, duplicate suppression ve family-aware guard** mantığını kullanır.
+
+### 3. Grup Analizi ve Çoklu Hedef Ayrıştırma
+
+ORCUS her tespiti düz bir hedef listesi gibi işlemez. Grup analizi hattı:
+
+- bireyleri kümeler
+- kümeleri grup hedefe dönüştürür
+- grup üye sayısını hedef metadata'sına taşır
+- radar görünümünde grup hedefleri tekil hedeflerden ayırır
+- assignment ve deconfliction kararlarında bu bilgiyi kullanır
+
+Bu katman özellikle `2x`, `2x`, `3x` gibi sahne düzenlerinde kritik fark yaratır; çünkü karar motoru artık sadece koordinata değil, hedefin **birey mi grup mu** olduğuna da bakar.
+
+### 4. Dynamic Assignment / Dinamik Saldırı Ataması
+
+Atama motoru, ilk görenin saldırdığı kaba mantığı terk eder. Bunun yerine:
+
+- drone-hedef mesafesi
+- görünürlük
+- hedef kalitesi
+- kovaryans
+- sahiplik durumu
+- immutable attack korumaları
+
+üzerinden bir maliyet matrisi kurar ve **Hungarian algoritması** ile en uygun eşleşmeyi üretir.
+
+Sonuç: sürü içinde aynı hedefe yığılma, gereksiz çapraz rota ve asimetrik yüklenme azalır.
+
+### 5. Çakışma Önleme, Sahiplik ve Sürü İzolasyonu
+
+Bir hedef family’si saldırı hattına girdikten sonra, yakın duplicate veya yanlış grup üyeliği başka drone'ları da aynı aileye çekebilir. ORCUS bunu şu yapılarla baskılar:
+
+- immutable terminal attack state'leri
+- proximity lock guard
+- family evidence kontrolleri
+- grup boyutu ve group-member doğrulaması
+- owner / reserved / handoff sahiplik modeli
+
+Bu sayede aynı hedefe çift saldırı, family contamination ve terminal overwrite riski azaltılır.
+
+---
+
+## Taarruz Yürütme Mantığı
+
+Taarruz hattı tek bir gevşek tetikleyiciyle başlamaz. ORCUS kontrollü bir el sıkışma protokolü kullanır:
+
+1. lider hedefi onaylar
+2. drone lock ister
+3. lider lock ve ownership durumunu doğrular
+4. drone echo ile hedefi tekrar teyit eder
+5. lider saldırıyı doğrular
+6. drone centering fazına girer
+7. IBVS terminal dalışı yürütür
+
+Amaç, false positive lock ile doğrudan dalışa giden zayıf mimariden uzak durmak; saldırı kararını doğrulamak ve terminal fazda gereksiz state salınımını önlemektir.
+
+Bu hat aynı zamanda:
+
+- grup hedeflerde temsilci hedef seçimini kararlı tutar
+- mid-attack target swap riskini baskılar
+- lider kararı ile terminal drone davranışı arasında kontrollü bir rol ayrımı kurar
+
+---
+
+## v2.0 -> v2.1 Evrimi
+
+| Başlık | v2.0 | v2.1 |
+|---|---|---|
+| Sürü mimarisi | leader-follower temel yapı | modüler coordinator + lifecycle + protocol + ownership katmanları |
+| Hedef birleştirme | çalışan ama daha kırılgan merge/fusion akışı | duplicate suppression, family evidence ve daha kontrollü canonical target yapısı |
+| Konum tespiti | RGI tabanlı konum kestirimi | RGI + filtered target pipeline + covariance farkındalığı |
+| Görev atama | Hungarian temelli atama | assignment guard, family suppression ve attack-aware dağıtım |
+| Grup yönetimi | daha sınırlı pratik ayrıştırma | daha güçlü birey/grup ayrımı ve grup metadata hattı |
+| Attack protokolü | temel onay akışı | 7 adımlı handshake, lock/echo/confirm ayrımı, terminal immutability |
+| State yönetimi | görev geçişlerinde daha kırılgan alanlar | soft reset, pause/resume, stop interlock ve runtime cleanup zinciri |
+| UI güvenlik kilitleri | daha gevşek | Start/Pause/Stop interlock mantığı ve tekrar başlatma güvenliği |
+| Çözülen kronik sorunlar | state leak, hedef overwrite, stale attack kararsızlığı, pause sonrası radar bozulması riski | bu sınıflar v2.1'de sistematik guard ve reset mimarisiyle sertleştirildi |
+| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirilmiş ve GitHub yayınına uygun |
+
+---
+
+## Dizin Yapısı
+
+```text
+ORCUS-main/
+├── app.py
+├── config.py
+├── modules/
+│   ├── core/
+│   ├── mission/
+│   ├── swarm/
+│   └── vision/
+├── simulator/
+├── static/
+├── templates/
+├── tests/
+├── logs/
+└── README.md
+```
 
 ---
 
@@ -833,298 +664,6 @@ python3 app.py
 ```
 http://localhost:5000/
 ```
-
----
-
-## 📋 Sistem İş Akışı
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      ORCUS SİSTEM İŞ AKIŞI                              │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐         │
-│  │  BAŞLAT  │───▶│ DRONE    │───▶│  ALAN    │───▶│ KALKIŞ   │         │
-│  │          │    │ BAĞLA    │    │ TANIMLA  │    │          │         │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘         │
-│                                                        │               │
-│                                                        ▼               │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐         │
-│  │ SALDIRI  │◀───│  KİLİT   │◀───│  TAKİP   │◀───│  TARAMA  │         │
-│  │  MODU    │    │  HEDEF   │    │  HEDEF   │    │  ALANI   │         │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘         │
-│       │                                                                │
-│       ▼                                                                │
-│  ┌──────────┐                                                         │
-│  │ ÇARPIŞMA │                                                         │
-│  │ GÖREVİ   │                                                         │
-│  └──────────┘                                                         │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🎯 Tespit ve Konumlandırma İş Akışı
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    TESPİT VE KONUMLANDIRMA SÜRECİ                      │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌─────────────┐                                                       │
-│  │  RGB KAMERA │ ◀── Drone onboard kamera (30 FPS)                    │
-│  └──────┬──────┘                                                       │
-│         │                                                               │
-│         ▼                                                               │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │   YOLOv12   │────▶│ SINIR       │  Tespit: Sınıf, Güven            │
-│  │  TESPİT     │     │ KUTUSU      │  (x, y, w, h, conf, class)        │
-│  └─────────────┘     └──────┬──────┘                                   │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │  BoT-SORT   │────▶│   TRACK     │  Kalıcı ID ataması                │
-│  │  TAKİP      │     │    ID       │  Track durum yönetimi             │
-│  └─────────────┘     └──────┬──────┘                                   │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────────────────────────────────────────────┐              │
-│  │        IŞIN-ZEMİN KESİŞİMİ ALGORİTMASI             │              │
-│  ├─────────────────────────────────────────────────────┤              │
-│  │  1. Kamera İç Parametreler (fx, fy, cx, cy)        │              │
-│  │  2. Drone Durumu (lat, lon, alt, heading, pitch)   │              │
-│  │  3. Gimbal Açıları (roll, pitch, yaw)              │              │
-│  │  4. Sinir Kutusu Merkezi → Piksel Koordinatları    │              │
-│  │  5. Işın Atma → Zemin Kesişimi                     │              │
-│  │  6. Koordinat Dönüşümü → GPS (lat, lon)            │              │
-│  └──────────────────────────┬──────────────────────────┘              │
-│                             │                                          │
-│                             ▼                                          │
-│  ┌─────────────┐     ┌─────────────┐                                   │
-│  │   HEDEF     │────▶│  KOVARYANS  │  Konum belirsizliği              │
-│  │  KONUM      │     │  MATRİSİ    │  (σ_lat, σ_lon)                   │
-│  │ (lat, lon)  │     │             │                                   │
-│  └─────────────┘     └─────────────┘                                   │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## ⚔️ Saldırı Görevi İş Akışı
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      SALDIRI GÖREVİ SÜRECİ                              │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  HEDEF DURUM MAKİNESİ:                                                  │
-│                                                                         │
-│  ┌─────────┐   tespit       ┌─────────┐   onay        ┌─────────┐     │
-│  │  FREE   │ ──────────────▶│  OWNED  │ ─────────────▶│ KİLİTLİ │     │
-│  └─────────┘                └─────────┘               └─────────┘     │
-│       ▲                          │                         │          │
-│       │                          │                         │          │
-│       │                     kayıp │                    saldırı│         │
-│       │                          ▼                         │          │
-│       │                    ┌─────────┐                      ▼          │
-│       └────────────────────│  KAYIP  │             ┌──────────┐       │
-│                            └─────────┘             │SALDIRIYOR│       │
-│                                                    └──────────┘       │
-│                                                         │              │
-│                                                         ▼              │
-│                                                  ┌──────────┐         │
-│                                                  │ ÇARPIŞMA │         │
-│                                                  └──────────┘         │
-│                                                                         │
-│  ATAMA AKIŞI:                                                           │
-│                                                                         │
-│  ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐  │
-│  │   TESPİT   │───▶│   FÜZYON   │───▶│   ATAMA    │───▶│   KİLİT    │  │
-│  │   HEDEF    │    │ GÖZLEMLER  │    │   DRONE    │    │   HEDEF    │  │
-│  └────────────┘    └────────────┘    └────────────┘    └────────────┘  │
-│        │                 │                 │                 │          │
-│        ▼                 ▼                 ▼                 ▼          │
-│  YOLO+BoT-SORT    Kalman Filtre    Hungarian Alg.   Durum Makinesi    │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🧠 Algoritmalar
-
-### 1. Işın-Zemin Kesişimi Jeolokasyonu
-
-Monoküler RGB kamera ile ışın-zemin kesişimi kullanarak konum tahmini:
-
-```
-Girdi: Sınırlayıcı kutu merkezi (pixel_x, pixel_y), Drone durumu (lat, lon, alt, roll, pitch, yaw)
-Çıktı: 3x3 kovaryans matrisi ile GPS koordinatları (lat, lon)
-
-Algoritma (geo_math.py):
-1. Piksel → Normalize Kamera: (x_norm, y_norm) = ((px - cx)/fx, (py - cy)/fy)
-2. Kamera → Gövde Çerçevesi: Drone gövde hizalaması için eksen dönüşümü
-3. Kamera Pitch Offseti Uygula: Gimbal montaj açısını telafi et
-4. Gövde → NED Çerçevesi: RPY rotasyon matrisi ile dönüşüm (ZYX sırası)
-5. Işın-Zemin Kesişimi: Işının z=0 düzlemiyle buluştuğu t'yi çöz
-   - kesişim = p0 + t * ray_ned
-   - Sığ ışınları (ray_z < eşik) sayısal kararlılık için sıkıştır
-6. NED → GPS: (d_north, d_east) değerlerini (lat, lon) ofsetlerine dönüştür
-
-Kovaryans Tahmini (Jakobi Yayılımı):
-- σ_azimuth = √(σ_yaw² + σ_pixel²) → σ_cross = slant_range * σ_azimuth
-- σ_elevation = √(σ_pitch² + σ_pixel²) → σ_radial = slant_range * cot(ε) * σ_elevation
-- NED çerçevesinde 3x3 kovaryans oluştur, GPS bearing'e dönüştür
-```
-
-### 2. BoT-SORT Takibi
-
-Çoklu nesne takibi algoritması:
-
-```
-Özellikler:
-- Hareket tahmini için Kalman Filtre
-- IoU tabanlı track ilişkilendirme
-- Track yönetimi (yeni, onaylı, kayıp, silindi)
-- Kamera hareket telafisi (CMC)
-```
-
-### 3. Hedef Füzyonu (Kalman Filtre)
-
-Çoklu drone gözlem füzyonu:
-
-```
-Durum Vektörü: [lat, lon, v_lat, v_lon]
-Süreç Modeli: Sabit hız
-Ölçüm Modeli: GPS + kovaryans
-
-Füzyon Adımları:
-1. Süreç modeli ile durumu tahmin et
-2. Birden fazla drondan gözlemleri al
-3. Mahalanobis mesafesi kapısı
-4. Geçerli gözlemlerle durumu güncelle
-5. Çıktı: Azaltılmış kovaryanslı füzyonlanmış konum
-```
-
-### 4. Hungarian Ataması
-
-Optimal drone-hedef ataması:
-
-```
-Cost Matrix Faktörleri:
-- Mesafe (temel maliyet)
-- Görünürlük (drone hedefi görüyor: bonus)
-- Yönelim (hedef önde: bonus, arkada: ceza)
-- Hareket (hareketli drone: ceza)
-- Dağılım (atanmış hedeflere yakın: ceza, uzak: bonus)
-- Kovaryans (yüksek belirsizlik: ceza, düşük: bonus)
-- Yapışkanlık (mevcut atama: bonus)
-
-Algoritma: linear_sum_assignment (scipy.optimize)
-```
-
----
-
-## 🏗️ Proje Yapısı
-
-```
-ORCUS/
-├── app.py                              # Ana Flask uygulaması
-├── config.py                           # Sistem yapılandırması
-├── requirements.txt                    # Python bağımlılıkları
-│
-├── modules/
-│   ├── core/
-│   │   ├── logger.py                   # Loglama sistemi
-│   │   ├── geo_math.py                 # Işın-zemin kesişimi GPS tahmini
-│   │   ├── kalman_filter.py            # Kalman Filtre uygulaması
-│   │   ├── pid_controller.py           # PID kontrol
-│   │   └── fleet_manager.py            # Filo durum yönetimi
-│   │
-│   ├── mission/
-│   │   ├── flight_controller.py       # MAVLink uçuş kontrolü
-│   │   ├── mission_controller.py      # Görev orkestrasyonu
-│   │   ├── tracking_controller.py     # Hedef takip kontrolü
-│   │   └── ibvs_guidance.py            # Görüntü tabanlı görsel servoing
-│   │
-│   ├── swarm/
-│   │   ├── swarm_coordinator.py        # Sürü lider-takipçi mantığı
-│   │   └── target_fusion.py            # Kalman Filtre füzyonu
-│   │
-│   ├── vision/
-│   │   ├── detector.py                 # YOLOv12 tespit + takip
-│   │   ├── camera_handler.py           # Kamera akış yönetimi
-│   │   ├── group_tracker.py            # Grup takip mantığı
-│   │   └── tracker/
-│   │       ├── bot_sort.py             # BoT-SORT uygulaması
-│   │       ├── mc_bot_sort.py          # Hareket telafili BoT-SORT
-│   │       ├── kalman_filter.py        # Tracker Kalman Filtre
-│   │       ├── matching.py             # Track ilişkilendirme
-│   │       ├── gmc.py                  # Kamera hareket telafisi
-│   │       ├── basetrack.py            # Temel track sınıfı
-│   │       └── weights/
-│   │           └── yolov12n.pt         # YOLO model ağırlıkları
-│
-├── templates/
-│   └── index.html                      # Web arayüzü
-│
-├── static/
-│   ├── css/                            # Stil dosyaları
-│   └── js/                             # JavaScript
-│
-├── simulator/
-│   ├── drone/                          # Gazebo drone modelleri
-│   └── worlds/                         # Gazebo dünya dosyaları
-│
-├── logs/
-│   └── swarm_log.txt                   # Sistem logları
-│
-└── tests/                              # Birim testleri
-```
-
----
-
-## 🔮 Yaklaşan: v2.1 Yol Haritası
-
-**Durum: Planlama Aşaması**
-
-v2.1, sistem optimizasyonu, mimari konsolidasyonu ve algoritma iyileştirmelerine odaklanacak:
-
-### Temel Hedefler
-
-| Amaç | Açıklama |
-|------|----------|
-| **Sistem Optimizasyonu** | Parametre karmaşıklığını azalt, algoritmaları sadeleştir, performansı artır |
-| **Mimari Temizliği** | Eski kodları kaldır, algoritma çakışmalarını çöz, yedek mantığı birleştir |
-| **Takip Stabilitesi** | ID değişimini engelle, takip kalıcılığını artır, atama tutarlılığını güçlendir |
-| **Konum Doğruluğu** | Işın-Zemin Kesişimi'ni iyileştir, kovaryans tahminini geliştir |
-
-### Ana İyileştirmeler
-
-**Algoritma Konsolidasyonu:**
-- Artımlı geliştirmeden biriken eski/kullanılmayan algoritmaları kaldır
-- Çakışan algoritmalar arasındaki uyumsuzlukları çöz
-- Yinelenen uygulamaları tek, optimize edilmiş modüllerde birleştir
-
-**Takip ve Atama:**
-- İyileştirilmiş ilişkilendirme mantığı ile tracker ID değişimini azalt
-- Gelişmiş cost matrix skorlaması ile drone-hedef atamalarını stabilize et
-- Çoklu hedef senaryolarında performansı artır
-
-**Konum Tahmini:**
-- Işın-Zemin Kesişimi doğruluğunu ve kenar durumları iyileştir
-- Belirsiz ölçümler için daha iyi kovaryans tahmini
-- Zorlu koşullarda daha sağlam füzyon
-
-### Ele Alınan Bilinen Sorunlar
-
-- Aşırı parametre sayısının neden olduğu yapılandırma karmaşıklığı
-- Artımlı geliştirme geçmişinden kaynaklanan algoritma çakışmaları
-- Çoklu hedef senaryolarında tracker ID kararsızlığı
-- Eşzamanlı tespitlerde drone-hedef atama değişimleri
-- Daha büyük sürüler için performans darboğazları
 
 ---
 

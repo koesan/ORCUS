@@ -144,7 +144,7 @@ class GroupClusterEngine:
         valid_indices = []
 
         for i, c in enumerate(candidates):
-            cx, cy = c['center']
+            cx, cy = c.get('ground_point', c['center'])
             result = GeoMath.ray_ground_intersection(
                 drone_lat, drone_lon, drone_alt,
                 roll, pitch, yaw,

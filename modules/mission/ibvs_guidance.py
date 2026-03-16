@@ -73,7 +73,6 @@ class IBVSGuidance:
         self.attack_start_time = None
         self.attack_phase = "STARTUP"
         self.last_attack_phase = None
-        self.phase_transition_time = None
         
         # Impact detection
         self.impact_detected = False
@@ -95,7 +94,6 @@ class IBVSGuidance:
         self.attack_start_time = None
         self.attack_phase = "STARTUP"
         self.last_attack_phase = None
-        self.phase_transition_time = None
         self.impact_detected = False
     
     def compute_velocity(
@@ -108,7 +106,10 @@ class IBVSGuidance:
     ) -> Tuple[float, float, float, float]:
         """Generate NED velocity command from pixel error.
         
-        Returns (vx, vy, vz, yaw_rate). vz is always >= 0 (no climb).
+        Returns (vx, vy, vz, yaw_rate).
+        `vy` provides lateral body-frame correction and `vz` is signed in NED
+        (positive=down, negative=up) so the drone can climb if the target sits
+        high in the image during terminal attack.
         """
         img_w, img_h = frame_size
         
@@ -144,26 +145,32 @@ class IBVSGuidance:
         yaw_rate_raw = IBVS_KP_YAW * error_x
         yaw_rate = self.yaw_filter.update(yaw_rate_raw)
         yaw_rate = max(min(yaw_rate, IBVS_YAW_RATE_MAX), -IBVS_YAW_RATE_MAX)
+
+        # Lateral body-frame correction: keep advancing while allowing
+        # side-slip toward the target instead of relying on yaw-only pursuit.
+        lateral_cap = max(0.3, IBVS_VX_MAX * 0.5)
+        vy = max(-lateral_cap, min(lateral_cap, error_x * lateral_cap))
         
-        # Calculate vz (dive)
-        vz_from_error = IBVS_KP_DIVE * max(0.0, error_y)
+        # Calculate vz (signed vertical correction)
+        vz_from_error = IBVS_KP_DIVE * error_y
         ff_pitch = math.tan(CAMERA_PITCH_OFFSET)
         vx_estimated = IBVS_VX_MAX * (1.0 - 0.5 * min(math.sqrt(error_x**2 + error_y**2), 1.0))
         vz_feedforward = vx_estimated * ff_pitch * 0.5
         vz_raw = vz_from_error + vz_feedforward
         
-        # Limit vz to prevent pitch-down
-        vz_pitch_limited = vx_estimated * IBVS_MAX_PITCH_TAN
-        vz_raw = min(vz_raw, vz_pitch_limited)
+        # Limit vz to prevent excessive pitch-up / pitch-down.
+        vz_pitch_down_limited = vx_estimated * IBVS_MAX_PITCH_TAN
+        vz_pitch_up_limited = -min(1.0, max(0.4, vz_pitch_down_limited * 0.5))
+        vz_raw = max(vz_pitch_up_limited, min(vz_raw, vz_pitch_down_limited))
         vz = self.vz_filter.update(vz_raw)
         
         # Phase-based limits
         if self.state.is_terminal:
-            vz = max(IBVS_VZ_MIN, min(vz, IBVS_STEEP_DIVE_VZ_MAX))
+            vz = max(vz_pitch_up_limited, min(vz, IBVS_STEEP_DIVE_VZ_MAX))
         elif coverage >= IBVS_STEEP_DIVE_COVERAGE:
-            vz = max(IBVS_VZ_MIN, min(vz, IBVS_STEEP_DIVE_VZ_MAX))
+            vz = max(vz_pitch_up_limited, min(vz, IBVS_STEEP_DIVE_VZ_MAX))
         else:
-            vz = max(IBVS_VZ_MIN, min(vz, IBVS_SHALLOW_DIVE_VZ_MAX))
+            vz = max(vz_pitch_up_limited, min(vz, IBVS_SHALLOW_DIVE_VZ_MAX))
         
         # Calculate vx (forward speed)
         error_mag = math.sqrt(error_x**2 + error_y**2)
@@ -182,18 +189,24 @@ class IBVSGuidance:
         else:
             self.attack_phase = "STARTUP"
         
-        # Phase transition smoothing - reset filters on phase change
+        # Phase transition smoothing — soft init instead of hard reset
+        # Düzeltme: Filter.reset() çağrıldığında value=None olur ve bir sonraki
+        # frame'de ham değer direkt geçer → velocity sıçraması. Bunun yerine
+        # filtrenin mevcut değerini koruyarak soft geçiş sağla.
         if prev_phase != self.attack_phase:
             self.last_attack_phase = prev_phase
-            self.phase_transition_time = time.time()
-            # Reset velocity filter for smooth transition
-            self.vx_filter.reset()
-            self.vz_filter.reset()
+            # Soft init: mevcut filtre değerini koru, filter None'a düşmesin
+            # Bu sayede yeni phase'in kontrol yasası mevcut hızdan yumuşak geçiş yapar
+            if self.vx_filter.value is not None:
+                pass  # Değeri koru — filter kendisi yeni hedef değere smooth geçer
+            if self.vz_filter.value is not None:
+                pass  # Değeri koru
         
         # Calculate vx based on phase
         if self.attack_phase == "TERMINAL":
             vx = IBVS_VX_MAX
             yaw_rate *= 0.3
+            vy *= 0.4
             
         elif self.attack_phase == "STARTUP":
             vx_raw = IBVS_STARTUP_VX_MIN + (IBVS_VX_MIN - IBVS_STARTUP_VX_MIN) * (1.0 - min(error_mag, 1.0))
@@ -219,11 +232,12 @@ class IBVSGuidance:
         else:
             max_pitch_tan = IBVS_APPROACH_PITCH_TAN
         
-        vz = min(vz, vx * max_pitch_tan)
+        climb_cap = -min(1.0, max(0.4, vx * max_pitch_tan * 0.5))
+        vz = max(climb_cap, min(vz, vx * max_pitch_tan))
         
-        self.last_valid_command = (vx, 0.0, vz, yaw_rate)
+        self.last_valid_command = (vx, vy, vz, yaw_rate)
         
-        return vx, 0.0, vz, yaw_rate
+        return vx, vy, vz, yaw_rate
     
     def _handle_target_lost(self) -> Tuple[float, float, float, float]:
         """Ghost mode - continue in last known direction."""

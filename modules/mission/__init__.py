@@ -1,29 +1,30 @@
-"""ORCUS Mission Package - Flight control, navigation, scanning, tracking, IBVS guidance."""
+"""ORCUS Mission Package — lazy exported mission-layer API."""
 
-# Lazy imports for test mocking
+_EXPORTS = {
+    "MissionController": ("modules.mission.mission_controller", "MissionController"),
+    "CollisionMissionController": ("modules.mission.mission_controller", "MissionController"),
+    "FlightController": ("modules.mission.flight_controller", "FlightController"),
+    "Navigation": ("modules.mission.navigation", "Navigation"),
+    "Scanner": ("modules.mission.scanner", "Scanner"),
+    "TrackingController": ("modules.mission.tracking_controller", "TrackingController"),
+    "IBVSGuidance": ("modules.mission.ibvs_guidance", "IBVSGuidance"),
+    "AttackFSM": ("modules.mission.attack_fsm", "AttackFSM"),
+    "SwarmBridge": ("modules.mission.swarm_bridge", "SwarmBridge"),
+    "DetectionProcessor": ("modules.mission.detection_processor", "DetectionProcessor"),
+}
+
+
 def __getattr__(name):
-    if name == 'MissionController':
-        from modules.mission.mission_controller import MissionController
-        return MissionController
-    if name == 'FlightController':
-        from modules.mission.flight_controller import FlightController
-        return FlightController
-    if name == 'Navigation':
-        from modules.mission.navigation import Navigation
-        return Navigation
-    if name == 'Scanner':
-        from modules.mission.scanner import Scanner
-        return Scanner
-    if name == 'TrackingController':
-        from modules.mission.tracking_controller import TrackingController
-        return TrackingController
-    if name == 'CollisionMissionController':
-        from modules.mission.mission_controller import MissionController
-        return MissionController
-    if name == 'IBVSGuidance':
-        from modules.mission.ibvs_guidance import IBVSGuidance
-        return IBVSGuidance
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    target = _EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name, attr_name = target
+    module = __import__(module_name, fromlist=[attr_name])
+    return getattr(module, attr_name)
+
+
+def __dir__():
+    return sorted(list(globals().keys()) + list(_EXPORTS.keys()))
 
 __all__ = [
     'MissionController',
@@ -33,4 +34,7 @@ __all__ = [
     'Scanner',
     'TrackingController',
     'IBVSGuidance',
+    'AttackFSM',
+    'SwarmBridge',
+    'DetectionProcessor',
 ]

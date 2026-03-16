@@ -18,6 +18,8 @@ TAKEOFF_ALTITUDE = 5                # Takeoff altitude (meters)
 TAKEOFF_ARM_WAIT_S = 1.0            # Wait time for armable state (seconds)
 TAKEOFF_ARMING_CYCLE_S = 0.5        # Wait time during arming cycle (seconds)
 TAKEOFF_POST_DELAY_S = 1.0          # Delay after takeoff complete (seconds)
+TAKEOFF_ARMABLE_TIMEOUT_S = 20.0    # Max wait for vehicle to become armable
+TAKEOFF_ALTITUDE_TIMEOUT_S = 45.0   # Max wait to reach target altitude
 CRITICAL_BATTERY_LEVEL = 20         # RTH Trigger Battery Level (%)
 MAX_TOUR_COUNT = 1                  # Number of times to repeat a mission
 SQUARE_SIZE = 20                    # Size of the observation area (meters)
@@ -100,8 +102,10 @@ APPROACH_BOOST_SPEED = 4.0            # Boost speed if target is very small (m/s
 RESUME_SCAN_AFTER_LOST = True         # Resume scanning if target lost (True) or RTL (False)
 
 # 360° Scanning Settings
-ROTATION_YAW_INCREMENT = 45           # Rotation angle per step (degrees)
-ROTATION_YAW_SPEED = 10               # Rotation speed (deg/s) - reduced by 20% for target obs accumulation
+ROTATION_YAW_INCREMENT = 30           # Rotation angle per step (degrees) - finer scan reduces late acquisition
+ROTATION_YAW_SPEED = 18               # Rotation speed (deg/s) - faster sweep without large blur penalties
+SCAN_DETECTION_POLL_INTERVAL_S = 0.12 # Scan-mode detection poll period during yaw motion
+SCAN_YAW_SETTLE_MARGIN_S = 0.05       # Extra settle time after each yaw command
 ROTATION_DIRECTION = 1                # Rotation direction (1=CW, -1=CCW)
 
 # ==============================================================================
@@ -117,6 +121,9 @@ TRACKING_YAW_PID_INT_MIN = -0.01      # Integrator min limit
 TRACKING_YAW_PID_OUT_MAX = 3.14159    # Output max (rad/s)
 TRACKING_YAW_PID_OUT_MIN = -3.14159   # Output min (rad/s)
 TRACKING_YAW_DEADZONE_DEG = 5.0       # Deadzone to prevent oscillation (degrees)
+TRACKING_PIXEL_DEADZONE_PX = 60.0     # Pixel deadzone for pre-attack framing and centering
+GROUP_FRAME_MARGIN_PX = 16            # Safety padding around group envelope bbox
+OBSERVER_TARGET_LOSS_GRACE_S = 1.0    # Hold last observer yaw for brief visual dropouts
 
 # PITCH (Vertical) PID Parameters
 TRACKING_PITCH_PID_TAU = 0.1
@@ -146,6 +153,10 @@ CAMERA_FX = CAMERA_WIDTH / (2 * math.tan(CAMERA_HFOV / 2))  # ~467.7 px
 CAMERA_FY = CAMERA_FX                 # Assuming square pixels
 CAMERA_CX = CAMERA_WIDTH / 2.0        # Optical center X
 CAMERA_CY = CAMERA_HEIGHT / 2.0       # Optical center Y
+CAMERA_GROUND_CONTACT_Y_RATIO = 0.92  # Use lower bbox section as footpoint for ground projection
+RGI_EDGE_COMPENSATION_MAX = 0.16      # Max bounded mean correction near FOV edges
+RGI_EDGE_COMPENSATION_SIN_EPS = 0.18  # Strength rises as depression angle gets shallower
+RGI_EDGE_COMPENSATION_POWER = 2.0     # Non-linear growth toward FOV edge
 
 # Compatibility Alias
 CAMERA_RESOLUTION_WIDTH = CAMERA_WIDTH
@@ -193,7 +204,7 @@ METERS_PER_DEGREE_LAT = 111320.0
 RGI_RAY_Z_MIN = 0.05                    # Minimum ray Z component for valid intersection
 RGI_MAX_HORIZ_DIST_M = 500.0            # Maximum horizontal distance for valid target (meters)
 RGI_SIN_EPS_MIN = 0.01                  # Minimum sin(depression angle) to avoid singularity
-RGI_COT_EPS_CLAMP = 100.0               # Maximum cot(eps) for radial error calculation
+RGI_COT_EPS_CLAMP = 10.0                # Maximum cot(eps) for radial error calculation (100.0 was too large)
 RGI_MIN_SIGMA_CROSS_M = 1.0             # Minimum cross-range uncertainty (meters)
 RGI_MIN_SIGMA_RADIAL_M = 2.0            # Minimum radial uncertainty (meters)
 RGI_SHALLOW_VARIANCE_MULT = 1000.0      # Variance multiplier for shallow rays
@@ -203,6 +214,10 @@ RGI_Z_STD_M = 0.5                       # Z-axis standard deviation (meters)
 KALMAN_MAHALANOBIS_THRESHOLD = 9.21     # Chi-square 99% threshold for 2 DOF outlier rejection
 KALMAN_MIN_DT = 0.05                    # Minimum time step for prediction (seconds)
 
+# --- Kalman Tuning (for TargetKalmanFilter) ---
+KALMAN_PROCESS_NOISE_TARGET = 0.1       # TargetKalmanFilter process noise (old: 0.5 was too large)
+KALMAN_INITIAL_COV = 1e-4               # Initial covariance (old: 1e-8 was too small)
+
 # IBVS Guidance Limits
 IBVS_YAW_RATE_MAX = 1.0                 # Maximum yaw rate (rad/s) ±1 rad/s
 
@@ -210,8 +225,8 @@ IBVS_YAW_RATE_MAX = 1.0                 # Maximum yaw rate (rad/s) ±1 rad/s
 ATTACK_TIMEOUT_S = 30.0                 # Attack phase timeout before abort (seconds)
 
 # Target Fusion Thresholds
-MAHALANOBIS_5SIGMA_SQ = 25.0            # 5σ squared for outlier rejection in fusion
-MAHALANOBIS_5SIGMA = 5.0                # 5σ threshold for fusion acceptance
+MAHALANOBIS_3SIGMA_SQ = 9.0             # 3σ squared for outlier rejection (previous 25.0/5σ was too wide)
+MAHALANOBIS_3SIGMA = 3.0                # 3σ threshold for fusion acceptance
 
 # IBVS Pitch Limits
 IBVS_MAX_PITCH_TAN = 0.27               # ~15 degrees max pitch tangent (terminal dive)
@@ -234,6 +249,16 @@ IOU_THRESHOLD = 0.60                    # IoU threshold for track matching
 DRONE_YAW_STD_DEV_DEG = 5.0           # Compass/Yaw uncertainty (increased to cover 25m drift)
 DRONE_PITCH_STD_DEV_DEG = 2.0         # Pitch/Attitude uncertainty
 DRONE_PIXEL_NOISE_STD_DEV = 5.0       # Pixel detection noise (pixels)
+
+# --- ROOT CAUSE FIXES: Missing Error Models ---
+DRONE_GPS_POSITION_STD_M = 2.5       # Standalone GPS position error (meters CEP)
+DRONE_ALTITUDE_STD_M = 1.5            # Barometric altitude error (meters)
+CAMERA_MOUNT_PITCH_STD_DEG = 0.5      # Camera mount pitch tolerance (degrees)
+CAMERA_MOUNT_ROLL_STD_DEG = 0.3       # Camera mount roll tolerance (degrees)
+
+# --- Shallow Angle Handling ---
+RGI_SHALLOW_ANGLE_THRESHOLD = 0.1     # sin(depression) < this value = shallow
+RGI_SHALLOW_VARIANCE_MULT = 10.0      # Previous 1000.0 was too aggressive, 10x is sufficient
 
 
 # ==============================================================================
@@ -319,7 +344,7 @@ MISSION_STATUS_MESSAGES = {
 SWARM_LOG_PATH = os.path.join(PROJECT_ROOT, "logs", "swarm_log.txt")
 SWARM_MERGE_DISTANCE_M = 12.0       # Merge distance for close targets (m) - reduced to prevent false merges
 SWARM_FUSION_HARD_CAP_M = 15.0      # Absolute max distance for merge (prevents 28m+ wrong merges)
-SWARM_FUSION_MAX_SIGMA_M = 0.0      # Max sigma for covariance quality gating (0=disabled)
+SWARM_FUSION_MAX_SIGMA_M = 50.0      # Max sigma for covariance quality gating (0=disabled, 50m=reasonable cap)
 SWARM_LOCAL_ID_INDEX_MAX_JUMP_M = 60.0  # Max GPS jump for local ID index matching (meters)
 SWARM_LOCAL_ID_INDEX_TTL_S = 3.0     # Time-to-live for local ID index entries (seconds)
 SWARM_COV_REG_EPS = 1e-6            # Covariance regularization epsilon for matrix inversion
@@ -345,9 +370,9 @@ ENABLE_ATTACK_IMMUTABILITY = True   # Protect targets from reassignment/merge du
 SWARM_ATTACK_MIN_CONFIDENCE = 0.25  # Min YOLO confidence for attack approval
 
 # Handoff Policy - STABLE ownership
-HANDOFF_CONSECUTIVE_FRAMES = 30     # 15 → 30: Daha fazla frame gerekli
-HANDOFF_QUALITY_RATIO = 1.5         # 1.3 → 1.5: Candidate %50 daha kaliteli olmalı
-HANDOFF_COOLDOWN_S = 10.0           # 3 → 10 saniye cooldown
+HANDOFF_CONSECUTIVE_FRAMES = 30     # 15 → 30: More frames required
+HANDOFF_QUALITY_RATIO = 1.5         # 1.3 → 1.5: Candidate must be 50% higher quality
+HANDOFF_COOLDOWN_S = 10.0           # 3 → 10 seconds cooldown
 
 # Proactive Assignment Loop
 ASSIGNMENT_LOOP_INTERVAL_S = 2.0    # Assignment loop interval (seconds)
@@ -360,9 +385,14 @@ SWARM_ZOMBIE_SWITCH_TIME_S = 2.0 # Time to consider an assigned target "lost" an
 SWARM_IMMUTABLE_TIMEOUT_S = 10.0  # Time to blindly follow invisible locked target before aborting
 SWARM_ALIGNMENT_TOLERANCE_M = 5.0 # Tolerance for leader verification and cross-checks
 
-# FUSION CONSTANTS
-FUSION_MATCH_THRESHOLD_M = 8.0
-KALMAN_PROCESS_NOISE_SCALE = 0.01
+# ==============================================================================
+# FUSION CONSTANTS (Hierarchy: FUSION_MATCH < SWARM_MERGE < HARD_CAP)
+# ==============================================================================
+# FUSION_MATCH_THRESHOLD_M: First threshold for Mahalanobis gating (covariance-based)
+# SWARM_MERGE_DISTANCE_M: Distance threshold for duplicate merge
+# SWARM_FUSION_HARD_CAP_M: Absolute maximum distance (safety hard cap)
+FUSION_MATCH_THRESHOLD_M = 8.0    # For Mahalanobis gating (covariance-based)
+# Note: KALMAN_PROCESS_NOISE_SCALE is no longer used, use KALMAN_PROCESS_NOISE_TARGET
 
 # ==============================================================================
 # GROUP CLUSTERING (DBSCAN - GPS/ENU meter-space)
@@ -386,9 +416,40 @@ GROUP_VISUAL_COLOR_BGR = (0, 200, 255) # Camera overlay group rect color (BGR, y
 TRACK_CONFIRMATION_TIME_SEC = 0.3     # Time to promote TENTATIVE → CONFIRMED
 TRACK_MIN_OBSERVATIONS = 3            # Minimum detections before confirmation (safety floor)
 TRACK_MIN_OBSERVATIONS_SEARCH = 2     # Minimum detections in SEARCH mode (faster confirmation)
-TRACK_TENTATIVE_TIMEOUT_SEC = 2.5     # TENTATIVE auto-delete if no re-observation (increased to survive full 360 scan)
-TRACK_LOST_TIMEOUT_SEC = 2.0          # CONFIRMED → LOST timeout (tolerates occlusion)
-TRACK_DELETE_TIMEOUT_SEC = 10.0       # LOST → DELETE timeout (covers full scan cycle)
+TRACK_TENTATIVE_TIMEOUT_SEC = 1.2     # TENTATIVE auto-delete if no re-observation
+TRACK_LOST_TIMEOUT_SEC = 1.3          # CONFIRMED → LOST timeout for out-of-FOV targets
+TRACK_DELETE_TIMEOUT_SEC = 4.0        # LOST → DELETE timeout
+TRACK_OBSERVER_STALE_TIMEOUT_SEC = 1.5  # Per-drone visibility TTL for local IDs and observer state
+TRACK_IDENTITY_CONFLICT_WINDOW_SEC = 0.7  # Same-drone identity evidence must be this fresh to block merge/match
+
+# ==============================================================================
+# BBOX TEMPORAL SMOOTHING (Phase 1)
+# ==============================================================================
+BBOX_SMOOTH_ALPHA = 0.3              # EMA smoothing factor (0=no smoothing, 1=no memory)
+BBOX_SMOOTH_MIN_CONF = 0.5           # Minimum confidence to apply smoothing
+BBOX_SIZE_STABILITY_THRESHOLD = 0.3  # Max bbox size ratio change before reset
+
+# ==============================================================================
+# TARGET GRACE PERIOD (Phase 1)
+# ==============================================================================
+TARGET_GRACE_PERIOD_S = 0.9          # Grace period for short detection losses
+TARGET_STALE_COAST_S = 2.5           # Max coasting time before forcing LOST
+TARGET_MAX_COAST_VELOCITY = 10.0     # Maximum velocity in coast mode (m/s)
+TARGET_MAX_COAST_DISPLACEMENT_M = 30.0   # Maximum total displacement in coast mode (meters)
+TARGET_STALE_VELOCITY_THRESHOLD = 15.0   # Velocity considered stale (m/s)
+
+# ==============================================================================
+# EKF RECOVERY & LOCK-UP FIX (Phase 1 - CRITICAL)
+# ==============================================================================
+EKF_RECOVERY_THRESHOLD = 3           # Consecutive reject count → recovery mode
+EKF_HARD_RESET_THRESHOLD = 7         # Consecutive reject count → hard reset
+EKF_COAST_MAX_SIGMA_M = 50.0         # Maximum sigma in coast mode (meters)
+
+# ==============================================================================
+# EKF ADAPTIVE BEHAVIOR (Phase 2)
+# ==============================================================================
+EKF_CONFIDENCE_COV_SCALE = 2.0       # Low confidence measurement covariance multiplier
+EKF_COAST_PROCESS_NOISE_MULT = 3.0   # Process noise multiplier during coast mode
 
 # ==============================================================================
 # ASSOCIATION PARAMETERS (SPATIAL-FIRST)

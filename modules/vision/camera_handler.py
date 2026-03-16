@@ -20,9 +20,11 @@ class CameraAIHandler:
         self.bridge = CvBridge()
         self.camera_feeds = {}
         self.lock = threading.Lock()
+        self._subscribe_lock = threading.Lock()
         self.is_ros_node_initialized = False
         self.subscribed_ports = set()
         self.last_log_time = {}
+        self._placeholder_cache = {}
 
     def init_ros_node(self):
         if not self.is_ros_node_initialized:
@@ -36,23 +38,24 @@ class CameraAIHandler:
     def subscribe_to_camera_topic_for_port(self, port):
         if port is None:
             return False
-        if port in self.subscribed_ports:
-            return True
-        topic = CAMERA_TOPICS.get(port)
-        if not topic:
-            SwarmLogger.log("WARNING", "Camera", f"Port not found in CAMERA_TOPICS: {port}", "ROS")
-            return False
+        with self._subscribe_lock:
+            if port in self.subscribed_ports:
+                return True
+            topic = CAMERA_TOPICS.get(port)
+            if not topic:
+                SwarmLogger.log("WARNING", "Camera", f"Port not found in CAMERA_TOPICS: {port}", "ROS")
+                return False
 
-        self.init_ros_node()
+            self.init_ros_node()
 
-        try:
-            rospy.Subscriber(topic, Image, self._camera_callback_wrapper, callback_args=port, queue_size=1)
-            self.subscribed_ports.add(port)
-            SwarmLogger.log("INFO", "Camera", f"Subscribed: {topic} (port: {port})", "ROS")
-            return True
-        except Exception as e:
-            SwarmLogger.log("ERROR", "Camera", f"Error creating subscriber: {e}", "ROS")
-            return False
+            try:
+                rospy.Subscriber(topic, Image, self._camera_callback_wrapper, callback_args=port, queue_size=1)
+                self.subscribed_ports.add(port)
+                SwarmLogger.log("INFO", "Camera", f"Subscribed: {topic} (port: {port})", "ROS")
+                return True
+            except Exception as e:
+                SwarmLogger.log("ERROR", "Camera", f"Error creating subscriber: {e}", "ROS")
+                return False
 
     def _camera_callback_wrapper(self, msg, port):
         """Receive camera message and store as RAW."""
@@ -66,21 +69,29 @@ class CameraAIHandler:
             return
 
         with self.lock:
-            self.camera_feeds[port] = {'raw': cv_image, 'jpeg': None}
+            self.camera_feeds[port] = {'raw': cv_image, 'annotated': None, 'jpeg': None}
 
 
     def get_latest_frame(self, port):
-        """Return latest JPEG frame for web stream (lazy encoding)."""
+        """Return latest JPEG frame for web stream (lazy encoding).
+        
+        Prefers annotated frame (with bounding boxes) over raw.
+        """
         with self.lock:
             data = self.camera_feeds.get(port)
-            if data is None or not isinstance(data, dict) or 'raw' not in data:
+            if data is None or not isinstance(data, dict):
                 return None
             
-            if data['jpeg'] is not None:
+            if data.get('jpeg') is not None:
                 return data['jpeg']
             
+            # Prefer annotated over raw for streaming
+            source = data.get('annotated') or data.get('raw')
+            if source is None:
+                return None
+            
             try:
-                ret, buf = cv2.imencode('.jpg', data['raw'], [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
+                ret, buf = cv2.imencode('.jpg', source, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
                 if ret:
                     jpeg_bytes = buf.tobytes()
                     data['jpeg'] = jpeg_bytes
@@ -99,19 +110,33 @@ class CameraAIHandler:
             return None
 
     def set_annotated_frame(self, port, annotated_frame):
-        """Store processed frame from tracker for streaming."""
+        """Store processed frame from tracker for streaming.
+        
+        Raw frame is preserved separately for inference.
+        """
         with self.lock:
             if port not in self.camera_feeds:
                 self.camera_feeds[port] = {}
             
-            self.camera_feeds[port]['raw'] = annotated_frame
-            self.camera_feeds[port]['jpeg'] = None
+            self.camera_feeds[port]['annotated'] = annotated_frame
+            self.camera_feeds[port]['jpeg'] = None  # Invalidate cache
 
     def clear_frame(self, port):
         """Clear frame info for specified port."""
         with self.lock:
             if port in self.camera_feeds:
                 del self.camera_feeds[port]
+
+    def reset_runtime_state(self, ports=None):
+        """Clear volatile frame caches without dropping ROS subscriptions."""
+        with self.lock:
+            target_ports = set(self.camera_feeds.keys())
+            if ports is None:
+                target_ports.update(self.subscribed_ports)
+            else:
+                target_ports.update(int(port) for port in ports if port is not None)
+            for port in target_ports:
+                self.camera_feeds[port] = {"raw": None, "annotated": None, "jpeg": None}
 
     def generate_frames(self, active_drone_port):
         if active_drone_port is not None:
@@ -148,6 +173,9 @@ class CameraAIHandler:
 
     def _create_placeholder_image(self, text):
         try:
+            cached = self._placeholder_cache.get(text)
+            if cached is not None:
+                return cached
             w, h = PLACEHOLDER_IMAGE_SIZE
             img = np.zeros((h, w, 3), dtype=np.uint8)
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -158,7 +186,9 @@ class CameraAIHandler:
             ret, buf = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
             if not ret:
                 return None
-            return buf.tobytes()
+            jpeg = buf.tobytes()
+            self._placeholder_cache[text] = jpeg
+            return jpeg
         except Exception as e:
             SwarmLogger.log("ERROR", "Camera", f"Placeholder creation error: {e}", "STREAM")
             return None

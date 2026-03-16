@@ -7,7 +7,6 @@ from contextlib import contextmanager
 from typing import Dict, Any, Optional, List, Tuple
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 import rospy
-from modules.vision.camera_handler import CameraAIHandler
 from modules.core.logger import SwarmLogger
 from config import (
     CONNECTION_TIMEOUT,
@@ -28,15 +27,39 @@ class DroneManager:
         self.active_drone_port = None
         self.connection_status = CONNECTION_STATUS_NOT_CONNECTED
         self.mission_status_message = MISSION_STATUS_MESSAGES["NOT_CONNECTED"]
+        
+        # Lazy import — avoids core→vision circular dependency
+        from modules.vision.camera_handler import CameraAIHandler
         self.camera_handler = CameraAIHandler()
         self.lock = threading.Lock()
         
-        # Swarm Manager
-        from modules.swarm.swarm_coordinator import SwarmManager
+        # Swarm Manager (lazy import)
+        from modules.swarm.coordinator import SwarmManager
         self.swarm_manager = SwarmManager(self)
+
+    def shutdown(self):
+        """Best-effort shutdown for background loops and active missions."""
+        with self.lock:
+            controllers_snapshot = list(self.drone_controllers.values())
+            swarm_manager = self.swarm_manager
+
+        for controller in controllers_snapshot:
+            try:
+                controller.is_mission_active = False
+            except Exception:
+                pass
+
+        if swarm_manager is not None:
+            try:
+                swarm_manager.stop()
+            except Exception:
+                pass
 
     def connect_drone_async(self, connection_string, port):
         """Asynchronously connects to a single drone on the specified port."""
+        # ------------------------------------------------------------------
+        # CONNECTION MANAGEMENT
+        # ------------------------------------------------------------------
         corrected_connection_string = f"tcp:127.0.0.1:{port}"
         vehicle = None
 
@@ -56,20 +79,22 @@ class DroneManager:
                     SwarmLogger.log("ERROR", "DroneManager", MISSION_STATUS_MESSAGES["ALL_RETRIES_FAILED"], "CONNECTION")
 
         if vehicle:
-            self.drones[port] = vehicle
-            if not self.active_drone:
-                self.active_drone = vehicle
-                self.active_drone_port = port
+            with self.lock:
+                self.drones[port] = vehicle
+                if not self.active_drone:
+                    self.active_drone = vehicle
+                    self.active_drone_port = port
             SwarmLogger.log("SUCCESS", "DroneManager", f"Drone {port} connected.", "CONNECTION")
             self.connection_status = CONNECTION_STATUS_CONNECTED
             self.mission_status_message = MISSION_STATUS_MESSAGES["CONNECTED"]
             self.camera_handler.subscribe_to_camera_topic_for_port(port)
         else:
-            self.drones.pop(port, None)
-            # Notify swarm of disconnect
-            if hasattr(self, 'swarm_manager'):
-                self.swarm_manager.handle_drone_disconnect(port)
-                
+            with self.lock:
+                self.drones.pop(port, None)
+            # Connection failed — drone was never connected, no disconnect needed
+            SwarmLogger.log("WARNING", "DroneManager",
+                            f"Port {port} connection failed — skipping disconnect.",
+                            "CONNECTION")
             self.connection_status = CONNECTION_STATUS_NOT_CONNECTED
             self.mission_status_message = MISSION_STATUS_MESSAGES["CONNECTION_ERROR"]
             if not self.drones:
@@ -82,7 +107,8 @@ class DroneManager:
                 _ = vehicle.location.global_relative_frame
             except Exception as e:
                 SwarmLogger.log("ERROR", "DroneManager", f"FAILSAFE: Drone {port} link test failed: {e}", "CONNECTION")
-                self.drones.pop(port, None)
+                with self.lock:
+                    self.drones.pop(port, None)
                 self.connection_status = CONNECTION_STATUS_NOT_CONNECTED
                 self.mission_status_message = MISSION_STATUS_MESSAGES["CONNECTION_ERROR"]
     
@@ -90,10 +116,13 @@ class DroneManager:
         """Initiates connection process for a drone."""
         try:
             extracted_port = int(connection_string.split(':')[-1])
-            if extracted_port in self.drones and self.drones[extracted_port] != "connecting":
-                return {"status": "error", "message": f"Drone already connected on port: {extracted_port}"}
-
-            self.drones[extracted_port] = "connecting"
+            with self.lock:
+                existing = self.drones.get(extracted_port)
+                if existing is not None:
+                    if existing == "connecting":
+                        return {"status": "error", "message": f"Drone on port {extracted_port} is already connecting"}
+                    return {"status": "error", "message": f"Drone already connected on port: {extracted_port}"}
+                self.drones[extracted_port] = "connecting"
             threading.Thread(target=self.connect_drone_async, args=(connection_string, extracted_port), daemon=True).start()
             
             return {"status": "ok", "message": MISSION_STATUS_MESSAGES["CONNECTING"]}
@@ -105,14 +134,23 @@ class DroneManager:
         """Sets the active drone for UI/Telemetry."""
         try:
             port = int(port)
-            if port in self.drones and self.drones[port] != "connecting":
-                self.active_drone = self.drones[port]
-                self.active_drone_port = port
+            with self.lock:
+                vehicle = self.drones.get(port)
+                if vehicle is not None and vehicle != "connecting":
+                    self.active_drone = vehicle
+                    self.active_drone_port = port
+                else:
+                    vehicle = None
+            if vehicle is not None:
                 SwarmLogger.log("INFO", "DroneManager", f"Drone {port} selected as active.", "SELECTION")
                 return {"status": "ok", "message": f"Drone {port} selected."}
             return {"status": "error", "message": "Invalid selection or drone still connecting."}
         except (ValueError, TypeError):
             return {"status": "error", "message": "Invalid port number."}
+
+    # ------------------------------------------------------------------
+    # CONTROLLER FACTORY
+    # ------------------------------------------------------------------
 
     def get_or_create_controller(self, port: int):
         """Returns or creates a mission controller for the specified port."""
@@ -142,8 +180,16 @@ class DroneManager:
                     self.active_drone_port = original_port
 
     
+    # ------------------------------------------------------------------
+    # GRID PARTITION
+    # ------------------------------------------------------------------
+
     def partition_grid_intelligently(self, cell_centers: List[Tuple[float, float]]) -> Dict[int, List[Tuple[float, float]]]:
-        """Partition grid cells among drones using horizontal stripes."""
+        """Partition grid cells among drones using horizontal stripes.
+
+        Grid dimensions: num_cols = int(sqrt(N)), num_rows = ceil(N / num_cols).
+        Must match navigation.py create_grid() formula for consistency.
+        """
         if not cell_centers or not self.drones:
             return {}
         
@@ -196,11 +242,18 @@ class DroneManager:
         
         return drone_assignments
     
+    # ------------------------------------------------------------------
+    # TELEMETRY & STATUS
+    # ------------------------------------------------------------------
+
     def get_all_drones_status(self) -> Dict[int, Dict[str, Any]]:
         """Returns detailed status for all drones."""
         all_status = {}
-        
-        for port, vehicle in self.drones.items():
+        with self.lock:
+            drones_snapshot = dict(self.drones)
+            controllers_snapshot = dict(self.drone_controllers)
+
+        for port, vehicle in drones_snapshot.items():
             if vehicle == "connecting":
                 all_status[port] = {
                     "port": port,
@@ -219,6 +272,8 @@ class DroneManager:
                 "is_armed": False,
                 "location": {"lat": 0, "lon": 0, "alt": 0},
                 "is_mission_active": False,
+                "is_paused": False,
+                "has_area": False,
                 "mission_status": "Idle"
             }
             
@@ -237,9 +292,11 @@ class DroneManager:
                 if hasattr(vehicle, 'armed'):
                     status_data["is_armed"] = vehicle.armed
                     
-                if port in self.drone_controllers:
-                    controller = self.drone_controllers[port]
+                if port in controllers_snapshot:
+                    controller = controllers_snapshot[port]
                     status_data["is_mission_active"] = controller.is_mission_active
+                    status_data["is_paused"] = bool(getattr(controller, "is_paused", False))
+                    status_data["has_area"] = bool(getattr(controller, "mission_coordinates", None))
                     status_data["mission_status"] = getattr(self, 'mission_status_message', 'Idle')
                     
             except Exception as e:
@@ -251,43 +308,52 @@ class DroneManager:
     
     def get_status(self):
         """General system status including active drone details."""
+        with self.lock:
+            drones_snapshot = dict(self.drones)
+            controllers_snapshot = dict(self.drone_controllers)
+            active_drone = self.active_drone
+            active_drone_port = self.active_drone_port
         connected_drones_list = []
-        for port, vehicle_obj in self.drones.items():
+        for port, vehicle_obj in drones_snapshot.items():
             connected_drones_list.append({
                 "port": port,
-                "is_active": (self.active_drone_port == port) if vehicle_obj != "connecting" else False
+                "is_active": (active_drone_port == port) if vehicle_obj != "connecting" else False
             })
 
         # Detailed status for all drones
         all_drones_status = self.get_all_drones_status()
 
-        if not self.active_drone or self.active_drone == "connecting":
+        if not active_drone or active_drone == "connecting":
             return {
                 "status": CONNECTION_STATUS_NOT_CONNECTED,
                 "connected_drones": connected_drones_list,
                 "all_drones": all_drones_status,
-                "is_mission_active": False,
+                "is_mission_active": any(
+                    c.is_mission_active for c in controllers_snapshot.values()
+                ),
                 "status_message": self.mission_status_message
             }
 
         current_location = {"lat": 0, "lon": 0, "alt": 0}
         ground_speed = 0
-        if hasattr(self.active_drone, 'location') and self.active_drone.location.global_relative_frame:
-            loc = self.active_drone.location.global_relative_frame
+        if hasattr(active_drone, 'location') and active_drone.location.global_relative_frame:
+            loc = active_drone.location.global_relative_frame
             current_location = {"lat": loc.lat, "lon": loc.lon, "alt": loc.alt}
-            ground_speed = self.active_drone.ground_speed if hasattr(self.active_drone, 'ground_speed') else 0
+            ground_speed = active_drone.ground_speed if hasattr(active_drone, 'ground_speed') else 0
 
         try:
             return {
                 "status": CONNECTION_STATUS_CONNECTED,
                 "current_location": current_location,
                 "ground_speed": ground_speed,
-                "battery_level": self.active_drone.battery.level if hasattr(self.active_drone, 'battery') and self.active_drone.battery else 0,
-                "mode": self.active_drone.mode.name if hasattr(self.active_drone, 'mode') and self.active_drone.mode else "UNKNOWN",
-                "is_armed": self.active_drone.armed if hasattr(self.active_drone, 'armed') else False,
+                "battery_level": active_drone.battery.level if hasattr(active_drone, 'battery') and active_drone.battery else 0,
+                "mode": active_drone.mode.name if hasattr(active_drone, 'mode') and active_drone.mode else "UNKNOWN",
+                "is_armed": active_drone.armed if hasattr(active_drone, 'armed') else False,
                 "connected_drones": connected_drones_list,
                 "all_drones": all_drones_status,
-                "is_mission_active": False,
+                "is_mission_active": any(
+                    c.is_mission_active for c in controllers_snapshot.values()
+                ),
                 "status_message": self.mission_status_message
             }
         except Exception as e:
@@ -296,6 +362,8 @@ class DroneManager:
                 "status": CONNECTION_STATUS_NOT_CONNECTED,
                 "connected_drones": connected_drones_list,
                 "all_drones": all_drones_status,
-                "is_mission_active": False,
+                "is_mission_active": any(
+                    c.is_mission_active for c in controllers_snapshot.values()
+                ),
                 "status_message": f"Status error: {e}"
             }

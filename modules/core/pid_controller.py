@@ -24,7 +24,7 @@ class PID:
         self.prev_error = 0.0
 
     def step(self, error, dt):
- 
+        """Compute PID output for given error and time step dt."""
         if dt <= 0:
             return 0.0
         self.integral += error * dt
@@ -39,6 +39,14 @@ class FilteredPID:
     def __init__(self, tau, kp, ki, kd,
                  integrator_max, integrator_min,
                  pid_max, pid_min):
+        """Create filtered PID with anti-windup and derivative filter.
+
+        Args:
+            tau: Derivative filter time constant (s)
+            kp, ki, kd: PID gains
+            integrator_max/min: Anti-windup clamp limits
+            pid_max/min: Output saturation limits
+        """
 
         self.previous_measurement = 0
         self.previous_error = 0
@@ -55,6 +63,7 @@ class FilteredPID:
         self.pid_min = pid_min
 
     def update(self, error, timestamp, measurement, freeze_integral=False):
+        """Compute PID output with derivative filter and trapezoidal integral."""
 
         delta_t = timestamp - self.previous_timestamp
         if delta_t <= 0:

@@ -9,7 +9,6 @@ let dronePaths = {};    // port -> polyline mapping
 let connectedDrones = [];
 let currentCameraPort = null;
 let cameraSelectionInProgress = false; // Camera selection lock
-let cameraUpdateTimeout = null; // Camera update timeout
 
 // --- RADAR GLOBALS ---
 let followTarget = 'LEADER'; // 'LEADER' or Drone Port
@@ -17,6 +16,45 @@ let followTarget = 'LEADER'; // 'LEADER' or Drone Port
 // --- PERFORMANCE OPTIMIZATIONS ---
 let _statusAbortController = null;   // AbortController for stale request cancellation
 let _statusFetchInProgress = false;  // Prevent overlapping status fetches
+let _missionCommandInFlight = null;  // Prevent double-clicked mission commands
+let _uiMissionState = {
+  hasConnectedDrones: false,
+  allAssigned: false,
+  anyRunning: false,
+  anyPaused: false
+};
+let _suppressBreadcrumbs = false;
+
+function clearRuntimeVisualState({ preserveMap = true } = {}) {
+  drawnItems?.clearLayers();
+  gridLayer?.clearLayers();
+  pathLayer?.clearLayers();
+  isDrawing = false;
+  gridCells = [];
+  followTarget = 'LEADER';
+  cameraSelectionInProgress = false;
+  _uiMissionState.anyRunning = false;
+  _uiMissionState.anyPaused = false;
+  isTooltipPinned = false;
+  pinnedElementId = null;
+  byId('radarTooltip')?.classList.add('hidden');
+  const radarLayer = byId('radarTargetsLayer');
+  if (radarLayer) radarLayer.replaceChildren();
+  Object.values(dronePaths).forEach(path => {
+    try {
+      path.setLatLngs([]);
+    } catch (_err) {
+    }
+  });
+  if (!preserveMap && map && connectedDrones.length === 0) {
+    map.setView([39.925533, 32.864353], 15);
+  }
+  updateButtonStates();
+}
+
+function byId(id) {
+  return document.getElementById(id);
+}
 
 /** Debounce utility — delays execution until pause in calls */
 function debounce(fn, delay) {
@@ -51,13 +89,22 @@ function togglePanel(id) {
   // Toggle state
   if (content.style.height === '0px') {
     // Expand
-    content.style.height = (id === 'radarWidget') ? '24rem' : '270px'; // 24rem = h-96
+    if (id === 'radarWidget') {
+      content.style.height = '24rem'; // 24rem = h-96
+      content.style.maxHeight = '24rem';
+    } else {
+      // Keep camera panel aspect ratio stable when resized.
+      content.style.height = '';
+      content.style.maxHeight = 'none';
+      content.style.aspectRatio = '16 / 9';
+    }
     content.style.opacity = '1';
     content.style.marginTop = '0';
     panel.classList.remove('h-[40px]'); // remove min height constraint
   } else {
     // Collapse
     content.style.height = '0px';
+    content.style.maxHeight = '0px';
     content.style.opacity = '0';
     content.style.marginTop = '0';
     // Optional: add a class to panel to reduce specific padding if needed
@@ -75,17 +122,20 @@ function formatLocalIDs(localIds) {
 }
 
 function setRadarMode(mode) {
+  const leaderBtn = byId('radarModeLeader');
+  const droneBtn = byId('radarModeDrone');
+  if (!leaderBtn || !droneBtn) return;
   // Overridden: 'leader' -> follow Leader, 'drone' -> follow selected drone
   if (mode === 'leader') {
     followTarget = 'LEADER';
-    document.getElementById('radarModeLeader').className = "px-2 py-0.5 text-[10px] rounded bg-blue-600 text-white";
-    document.getElementById('radarModeDrone').className = "px-2 py-0.5 text-[10px] rounded text-white/50 hover:text-white";
+    leaderBtn.className = "px-2 py-0.5 text-[10px] rounded bg-blue-600 text-white";
+    droneBtn.className = "px-2 py-0.5 text-[10px] rounded text-white/50 hover:text-white";
   } else {
     // Switch to currently selected camera drone, if any
     if (currentCameraPort) {
       followTarget = currentCameraPort;
-      document.getElementById('radarModeLeader').className = "px-2 py-0.5 text-[10px] rounded text-white/50 hover:text-white";
-      document.getElementById('radarModeDrone').className = "px-2 py-0.5 text-[10px] rounded bg-blue-600 text-white";
+      leaderBtn.className = "px-2 py-0.5 text-[10px] rounded text-white/50 hover:text-white";
+      droneBtn.className = "px-2 py-0.5 text-[10px] rounded bg-blue-600 text-white";
     } else {
       showToast("Select a drone first", "info");
     }
@@ -148,14 +198,16 @@ function drawErrorEllipse(container, x, y, pxPerMeter, covariance) {
 function drawRadar(data) {
   const radarLayer = document.getElementById('radarTargetsLayer');
   if (!radarLayer) return;
+  const drones = data?.drones || {};
+  const targets = data?.targets || {};
 
   // 1. Determine Center
   let centerLat = 0, centerLon = 0;
 
   // Find Leader Position first
   let leaderPos = null;
-  if (data.drones) {
-    Object.values(data.drones).forEach(d => {
+  if (Object.keys(drones).length > 0) {
+    Object.values(drones).forEach(d => {
       if (d.role === 'LEADER') leaderPos = d;
     });
   }
@@ -163,8 +215,8 @@ function drawRadar(data) {
   if (followTarget === 'LEADER' && leaderPos) {
     centerLat = leaderPos.lat;
     centerLon = leaderPos.lon;
-  } else if (followTarget !== 'LEADER' && data.drones && data.drones[followTarget]) {
-    const d = data.drones[followTarget];
+  } else if (followTarget !== 'LEADER' && drones[followTarget]) {
+    const d = drones[followTarget];
     centerLat = d.lat;
     centerLon = d.lon;
   } else if (leaderPos) {
@@ -173,7 +225,7 @@ function drawRadar(data) {
   } else {
     // Fallback to centroid
     let sLat = 0, sLon = 0, c = 0;
-    if (data.drones) Object.values(data.drones).forEach(d => { if (d.lat != 0) { sLat += d.lat; sLon += d.lon; c++ } });
+    Object.values(drones).forEach(d => { if (d.lat != 0) { sLat += d.lat; sLon += d.lon; c++ } });
     if (c > 0) { centerLat = sLat / c; centerLon = sLon / c; }
   }
 
@@ -196,16 +248,16 @@ function drawRadar(data) {
   };
 
   // 3. Draw Lines (Drone -> Target)
-  if (data.drones && data.targets) {
-    Object.entries(data.drones).forEach(([pid, d]) => {
+  if (Object.keys(drones).length > 0 && Object.keys(targets).length > 0) {
+    Object.entries(drones).forEach(([pid, d]) => {
       // Check engagements/assignments
       let targetId = null;
       let styleClass = 'border-t border-white/40 border-dashed'; // PENDING / Assigned
 
       // If actively engaging
-      if (d.engaged_target_id && data.targets[d.engaged_target_id]) {
+      if (d.engaged_target_id && targets[d.engaged_target_id]) {
         targetId = d.engaged_target_id;
-        const tgtStatus = data.targets[targetId].status;
+        const tgtStatus = targets[targetId].status;
 
         if (['ECHO_WAIT', 'CENTERING'].includes(tgtStatus)) {
           styleClass = 'border-t-2 border-yellow-400 border-dashed shadow-[0_0_5px_yellow]'; // Preparing/Centering
@@ -215,17 +267,30 @@ function drawRadar(data) {
           styleClass = 'border-t-2 border-orange-500 border-dashed'; // LOCKED or transitioning
         }
       }
+      // Else prefer the controller's current tracked target, if any
+      else if (
+        d.current_target_id &&
+        targets[d.current_target_id] &&
+        ['TRACKING', 'ENGAGING'].includes(d.action) &&
+        (
+          !targets[d.current_target_id].assigned_to ||
+          String(targets[d.current_target_id].assigned_to) === String(pid)
+        )
+      ) {
+        targetId = d.current_target_id;
+        styleClass = 'border-t border-white/40 border-dashed';
+      }
       // Else check targets for assignment
       else {
-        Object.entries(data.targets).forEach(([tid, t]) => {
+        Object.entries(targets).forEach(([tid, t]) => {
           if (String(t.assigned_to) === String(pid) && !targetId) {
             targetId = tid;
           }
         });
       }
 
-      if (targetId && data.targets[targetId]) {
-        const t = data.targets[targetId];
+      if (targetId && targets[targetId]) {
+        const t = targets[targetId];
         const start = toScreen(d.lat, d.lon);
         const end = toScreen(t.lat, t.lon);
 
@@ -247,15 +312,15 @@ function drawRadar(data) {
   }
 
   // 4. Draw Targets & Covariance
-  if (data.targets) {
-    Object.entries(data.targets).forEach(([tid, t]) => {
+  if (Object.keys(targets).length > 0) {
+    Object.entries(targets).forEach(([tid, t]) => {
       if (t.track_state === 'DELETED') return;
 
       // FIX: Show CONFIRMED targets, or TENTATIVE targets ONLY IF they are actively assigned/engaged
       let isTargetEngaged = false;
       if (t.assigned_to) isTargetEngaged = true;
       else {
-        Object.values(data.drones).forEach(dIter => {
+        Object.values(drones).forEach(dIter => {
           if (String(dIter.engaged_target_id) === String(tid)) isTargetEngaged = true;
         });
       }
@@ -540,7 +605,7 @@ function showToast(text, type = "info", timeout = 3000) {
   const el = document.createElement('div');
   el.className = 'toast toast-' + type;
   el.style.position = 'relative';
-  
+
   // Icon mapping
   const icons = {
     success: 'ri-check-line',
@@ -548,19 +613,19 @@ function showToast(text, type = "info", timeout = 3000) {
     info: 'ri-information-line',
     warning: 'ri-alert-line'
   };
-  
+
   el.innerHTML = `
     <div class="toast-icon"><i class="${icons[type] || icons.info}"></i></div>
     <div class="toast-content">${text}</div>
     <button class="toast-close" onclick="this.parentElement.remove()"><i class="ri-close-line"></i></button>
     <div class="toast-progress" style="animation-duration: ${timeout}ms"></div>
   `;
-  
+
   cont.appendChild(el);
-  setTimeout(() => { 
-    el.style.opacity = 0; 
+  setTimeout(() => {
+    el.style.opacity = 0;
     el.style.transform = 'translateX(20px)';
-    setTimeout(() => el.remove(), 250); 
+    setTimeout(() => el.remove(), 250);
   }, timeout);
 }
 
@@ -737,7 +802,8 @@ async function updateDroneList() {
 
     // Update connected drone count
     const droneCount = data.connected_drones ? data.connected_drones.length : 0;
-    document.getElementById('connectedDroneCount').textContent = droneCount;
+    const countEl = byId('connectedDroneCount');
+    if (countEl) countEl.textContent = droneCount;
 
     // Store drone list
     connectedDrones = data.connected_drones || [];
@@ -755,6 +821,9 @@ async function setMissionArea(coords) {
       body: JSON.stringify({ coordinates: coords })
     });
     const data = await res.json();
+    if (data.status === 'ok') {
+      _suppressBreadcrumbs = false;
+    }
     showToast(data.message || "Area saved.", data.status === 'ok' ? 'success' : 'error');
     updateButtonStates();
   } catch (err) {
@@ -763,27 +832,39 @@ async function setMissionArea(coords) {
 }
 
 async function startMission() {
+  if (_missionCommandInFlight || byId('startMission')?.disabled) return;
   if (connectedDrones.length === 0) {
     showToast("No connected drones", "error");
     return;
   }
 
   try {
+    _missionCommandInFlight = 'start';
+    updateButtonStates();
     const res = await fetch('/start_mission', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mission_type: 'collision' }) // Hardcoded default
     });
     const data = await res.json();
+    if (data.status === 'ok') {
+      _suppressBreadcrumbs = false;
+    }
     showToast(data.message, data.status === 'ok' ? 'success' : 'error');
     updateButtonStates();
   } catch (err) {
     showToast("Start mission error: " + err, "error");
+  } finally {
+    _missionCommandInFlight = null;
+    updateButtonStates();
   }
 }
 
 async function pauseMission() {
+  if (_missionCommandInFlight || byId('pauseMission')?.disabled) return;
   try {
+    _missionCommandInFlight = 'pause';
+    updateButtonStates();
     const res = await fetch('/pause_all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -792,11 +873,19 @@ async function pauseMission() {
     showToast(data.message, data.status === 'ok' ? 'success' : 'info');
   } catch (err) {
     showToast("Pause error: " + err, "error");
+  } finally {
+    _missionCommandInFlight = null;
+    updateButtonStates();
   }
 }
 
 async function stopMission() {
+  if (_missionCommandInFlight || byId('stopMission')?.disabled) return;
   try {
+    _missionCommandInFlight = 'stop';
+    _suppressBreadcrumbs = true;
+    clearRuntimeVisualState({ preserveMap: true });
+    updateButtonStates();
     const res = await fetch('/stop_all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -806,6 +895,9 @@ async function stopMission() {
     updateButtonStates();
   } catch (err) {
     showToast("Stop error: " + err, "error");
+  } finally {
+    _missionCommandInFlight = null;
+    updateButtonStates();
   }
 }
 
@@ -830,21 +922,21 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateStatus, 1000); // 1 sec period
 
   // Camera button listener
-  document.getElementById('cameraToggle').addEventListener('click', toggleCamera);
+  byId('cameraToggle')?.addEventListener('click', toggleCamera);
 
   // Drawing
-  document.getElementById('drawRectangle').addEventListener('click', enableRectangleDrawing);
-  document.getElementById('clearDrawing').addEventListener('click', clearDrawing);
+  byId('drawRectangle')?.addEventListener('click', enableRectangleDrawing);
+  byId('clearDrawing')?.addEventListener('click', clearDrawing);
 
   // Mission
-  document.getElementById('startMission').addEventListener('click', startMission);
-  document.getElementById('pauseMission').addEventListener('click', pauseMission);
-  document.getElementById('stopMission').addEventListener('click', stopMission);
+  byId('startMission')?.addEventListener('click', startMission);
+  byId('pauseMission')?.addEventListener('click', pauseMission);
+  byId('stopMission')?.addEventListener('click', stopMission);
 
 
 
   // Connect button
-  document.getElementById('connectButton').addEventListener('click', connectToDrone);
+  byId('connectButton')?.addEventListener('click', connectToDrone);
 
   // BUG 2 FIX: Stop Propagation for Header Controls to prevent Collapse
   document.querySelectorAll('.header button, .header select, .header input').forEach(el => {
@@ -859,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isTooltipPinned) {
       isTooltipPinned = false;
       pinnedElementId = null;
-      document.getElementById('radarTooltip').classList.add('hidden');
+      byId('radarTooltip')?.classList.add('hidden');
     }
   });
   // R24: Duplicate listeners removed
@@ -886,10 +978,17 @@ async function updateStatus() {
 
     // Update connected drone count
     const droneCount = data.connected_drones ? data.connected_drones.length : 0;
-    document.getElementById('connectedDroneCount').textContent = droneCount;
+    const countEl = byId('connectedDroneCount');
+    if (countEl) countEl.textContent = droneCount;
 
     // Update drone list
     connectedDrones = data.connected_drones || [];
+    _uiMissionState.hasConnectedDrones = connectedDrones.length > 0;
+    const drones = Object.values(data.all_drones || {});
+    _uiMissionState.allAssigned = drones.length > 0 && drones.every(d => d.has_area);
+    _uiMissionState.anyRunning = drones.some(d => d.is_mission_active);
+    _uiMissionState.anyPaused = drones.some(d => d.is_paused);
+    updateButtonStates();
 
     // Map and Marker Updates
     if (data.all_drones) {
@@ -956,11 +1055,13 @@ function updateSelectedDroneUI() {
     }
   });
 
-  document.getElementById('selectedDronePort').textContent = `Port: ${currentCameraPort || '-'}`;
+  const selectedPortEl = byId('selectedDronePort');
+  if (selectedPortEl) selectedPortEl.textContent = `Port: ${currentCameraPort || '-'}`;
 }
 
 function updateDronesStatus(allDrones) {
-  const container = document.getElementById('dronesStatusContainer');
+  const container = byId('dronesStatusContainer');
+  if (!container) return;
   container.innerHTML = '';
 
   const ports = Object.keys(allDrones);
@@ -1085,7 +1186,8 @@ function updateDroneMarkersOnMap(allDrones) {
         lastPoints[lastPoints.length - 1].lat.toFixed(6) !== lat.toFixed(6) ||
         lastPoints[lastPoints.length - 1].lng.toFixed(6) !== lon.toFixed(6);
 
-      if (isNewPoint) {
+      const shouldDrawBreadcrumb = !_suppressBreadcrumbs && drone.mode !== 'RTL';
+      if (isNewPoint && shouldDrawBreadcrumb) {
         dronePaths[port].addLatLng([lat, lon]);
         // R26: Cap polyline to prevent memory leak
         const MAX_PATH_POINTS = 500;
@@ -1126,11 +1228,6 @@ async function selectDroneCamera(port) {
 
   cameraSelectionInProgress = true;
 
-  // Stop current camera update
-  if (cameraUpdateTimeout) {
-    clearTimeout(cameraUpdateTimeout);
-    cameraUpdateTimeout = null;
-  }
 
   try {
     const res = await fetch('/select_camera', {
@@ -1144,15 +1241,15 @@ async function selectDroneCamera(port) {
       // Clear previous port
       const oldPort = currentCameraPort;
       currentCameraPort = parseInt(port);
-      document.getElementById('selectedDronePort').textContent = `Port: ${port}`;
+      const selectedPortEl = byId('selectedDronePort');
+      if (selectedPortEl) selectedPortEl.textContent = `Port: ${port}`;
 
       // Reset image and update if camera is on
       if (cameraOn) {
-        const img = document.getElementById('cameraFeed');
-        // Port changed, force update src
+        const img = byId('cameraFeed');
+        if (!img) return;
+        // MJPEG stream — just set src, browser handles continuous updates
         img.src = `/camera_feed?port=${currentCameraPort}&ts=${Date.now()}`;
-        // Start new update loop
-        cameraUpdateTimeout = setTimeout(updateCameraFeed, 100);
       }
 
       showToast(`Drone ${port} camera selected`, 'success', 2000);
@@ -1174,67 +1271,63 @@ async function selectDroneCamera(port) {
     -------------------------------------------*/
 function toggleCamera() {
   cameraOn = !cameraOn;
-  const overlay = document.getElementById('cameraOverlay');
-  const circ = document.getElementById('cameraToggleCircle');
-  const btn = document.getElementById('cameraToggle');
-  const feedImg = document.getElementById('cameraFeed');
+  const circ = byId('cameraToggleCircle');
+  const btn = byId('cameraToggle');
+  const feedImg = byId('cameraFeed');
+  if (!circ || !btn || !feedImg) return;
 
   if (cameraOn) {
     circ.style.transform = 'translateX(28px)';
     btn.classList.add('bg-green-600');
-    // Camera ON, start feed
+    // Camera ON — MJPEG stream, just set src
     if (currentCameraPort) {
       feedImg.src = `/camera_feed?port=${currentCameraPort}&ts=${Date.now()}`;
-      cameraUpdateTimeout = setTimeout(updateCameraFeed, 100);
     }
   } else {
     circ.style.transform = 'translateX(4px)';
     btn.classList.remove('bg-green-600');
-    // Camera OFF, clear timeout
-    if (cameraUpdateTimeout) {
-      clearTimeout(cameraUpdateTimeout);
-      cameraUpdateTimeout = null;
-    }
+    // Camera OFF — stop stream
     feedImg.src = '/static/images/logo.png';
   }
 }
 
-function updateCameraFeed() {
-  if (!cameraOn || !currentCameraPort) {
-    if (cameraUpdateTimeout) {
-      clearTimeout(cameraUpdateTimeout);
-      cameraUpdateTimeout = null;
-    }
-    return;
-  }
 
-  const img = document.getElementById('cameraFeed');
-  const newSrc = `/camera_feed?port=${currentCameraPort}&ts=${Date.now()}`;
-
-  // Change src only if port is different
-  if (!img.src.includes(`port=${currentCameraPort}`)) {
-    img.src = newSrc;
-  }
-
-  cameraUpdateTimeout = setTimeout(updateCameraFeed, 100);  // 10 FPS
-}
 
 /* -------------------------------------------
     Button states / UI helpers
     -------------------------------------------*/
 function updateButtonStates() {
-  const hasConnectedDrones = connectedDrones.length > 0;
-  document.getElementById('startMission').disabled = !hasConnectedDrones;
-  document.getElementById('stopMission').disabled = !hasConnectedDrones;
-  document.getElementById('pauseMission').disabled = !hasConnectedDrones;
+  const startBtn = byId('startMission');
+  const stopBtn = byId('stopMission');
+  const pauseBtn = byId('pauseMission');
+  const hasConnectedDrones = _uiMissionState.hasConnectedDrones;
+  const allAssigned = _uiMissionState.allAssigned;
+  const anyRunning = _uiMissionState.anyRunning;
+  const anyPaused = _uiMissionState.anyPaused;
+  const inFlight = _missionCommandInFlight !== null;
+
+  const canStart = hasConnectedDrones && allAssigned && (!anyRunning || anyPaused) && !inFlight;
+  const canPause = hasConnectedDrones && anyRunning && !anyPaused && !inFlight;
+  const canStop = hasConnectedDrones && (anyRunning || anyPaused) && !inFlight;
+
+  if (startBtn) {
+    startBtn.disabled = !canStart;
+    startBtn.title = !allAssigned
+      ? 'Select area and assign cells before starting'
+      : (anyPaused ? 'Resume paused mission' : 'All drones start their mission');
+  }
+  if (stopBtn) stopBtn.disabled = !canStop;
+  if (pauseBtn) pauseBtn.disabled = !canPause;
 }
 
 /* -------------------------------------------
     Camera overlay drag (handle)
     -------------------------------------------*/
 function initCameraDrag() {
-  const overlay = document.getElementById('cameraOverlay');
+  const overlay = byId('cameraOverlay');
+  if (!overlay) return;
   const handle = overlay.querySelector('.draggable-handle');
+  if (!handle) return;
   let dragging = false, offsetX = 0, offsetY = 0;
 
   handle.addEventListener('mousedown', (e) => {
@@ -1284,5 +1377,3 @@ function initCameraDrag() {
   });
   document.addEventListener('touchend', () => { if (dragging) { dragging = false; overlay.style.transition = 'all .12s ease'; } });
 }
-
-

@@ -60,6 +60,7 @@ class SwarmLogger:
     _cache = {}
     _lock = threading.Lock()
     _max_file_bytes = 10 * 1024 * 1024  # 10 MB
+    _max_cache_entries = 4096
 
     # Throttle windows (seconds) — lower = more frequent
     _THROTTLE = {
@@ -67,6 +68,9 @@ class SwarmLogger:
         "GPS_CALC":  10.0,
         "IBVS_CMD":  2.0,
         "HOVER":     5.0,
+        "EKF_INPUT": 3.0,   # Her 3 saniyede bir (observation ekleme)
+        "EKF_OUTPUT": 3.0,  # Her 3 saniyede bir (EKF sonucu)
+        "FILTER": 8.0,
         "CENTER":    2.0,
         "GUARD":     5.0,
         "HEARTBEAT": 5.0,
@@ -75,6 +79,14 @@ class SwarmLogger:
         "PUBLISH":  3.0,
         "TRACK_CMD": 2.0,
         "CONTROL":  2.0,
+        "FUSION_DETAY": 15.0,
+        "PUANLAMA": 10.0,
+        "CAMERA_STATS": 8.0,
+        "RADAR_DETAY": 12.0,
+        "GRACE": 5.0,
+        "BBOX_SMOOTH": 10.0,
+        "GROUP": 8.0,
+        "RESPONSE": 8.0,
     }
 
     # Levels that bypass ALL rate-limiting
@@ -83,39 +95,54 @@ class SwarmLogger:
         "STATE", "STOP", "ATTACK", "FUSION",
         "ASSIGN", "LOCK", "COLLISION", "LIFECYCLE",
         "USER_CMD", "REASSIGN", "TIMEOUT", "TERMINAL",
-        "SUCCESS", "TARGET", "OWNERSHIP", "LIFECYCLE",
+        "SUCCESS", "TARGET", "OWNERSHIP",
         "CAPACITY", "COLLAPSE", "INFO",
+        # --- Kaldırıldı: Artık rate-limited ---
+        # "CAMERA_STATS", "FUSION_DETAY", "PUANLAMA"
     })
 
     @classmethod
     def init_log(cls):
         """Initialize log session: create file, redirect streams, write header."""
-        logging.getLogger('werkzeug').setLevel(logging.ERROR)
+        with cls._lock:
+            logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
-        log_dir = os.path.dirname(SWARM_LOG_PATH)
-        if log_dir and not os.path.exists(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
+            log_dir = os.path.dirname(SWARM_LOG_PATH)
+            if log_dir and not os.path.exists(log_dir):
+                os.makedirs(log_dir, exist_ok=True)
 
-        # Rotate if file exceeds max size
-        cls._rotate_if_needed()
+            # Restore real stdio before re-wrapping to avoid tee-chaining file handles.
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
 
-        cls._session_id = uuid.uuid4().hex[:8]
-        cls._cache.clear()
+            if cls._log_file is not None:
+                try:
+                    cls._log_file.flush()
+                    cls._log_file.close()
+                except (IOError, OSError):
+                    pass
+                cls._log_file = None
 
-        f = open(SWARM_LOG_PATH, "w", encoding="utf-8")
-        cls._log_file = f
+            # Rotate if file exceeds max size
+            cls._rotate_if_needed()
 
-        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3)))
-        f.write(f"\n{'='*100}\n")
-        f.write(f" ORCUS SWARM LOG SESSION STARTED: {now}\n")
-        f.write(f" SESSION ID: {cls._session_id}\n")
-        f.write(f"{'='*100}\n")
-        f.write(f"{'TIMESTAMP':<14} | {'LEVEL':<10} | {'MODULE':<14} | {'SOURCE':<12} | EVENT\n")
-        f.write(f"{'-'*100}\n")
-        f.flush()
+            cls._session_id = uuid.uuid4().hex[:8]
+            cls._cache.clear()
 
-        sys.stdout = StreamTee(sys.__stdout__, f)
-        sys.stderr = StreamTee(sys.__stderr__, f)
+            f = open(SWARM_LOG_PATH, "w", encoding="utf-8")
+            cls._log_file = f
+
+            now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3)))
+            f.write(f"\n{'='*100}\n")
+            f.write(f" ORCUS SWARM LOG SESSION STARTED: {now}\n")
+            f.write(f" SESSION ID: {cls._session_id}\n")
+            f.write(f"{'='*100}\n")
+            f.write(f"{'TIMESTAMP':<14} | {'LEVEL':<10} | {'MODULE':<14} | {'SOURCE':<12} | EVENT\n")
+            f.write(f"{'-'*100}\n")
+            f.flush()
+
+            sys.stdout = StreamTee(sys.__stdout__, f)
+            sys.stderr = StreamTee(sys.__stderr__, f)
 
     @classmethod
     def _rotate_if_needed(cls):
@@ -151,6 +178,7 @@ class SwarmLogger:
                 key = f"{level}:{module}"
                 now = time.time()
                 with SwarmLogger._lock:
+                    SwarmLogger._prune_cache_locked(now)
                     if key in SwarmLogger._cache:
                         last_t, count = SwarmLogger._cache[key]
                         if now - last_t < window:
@@ -189,6 +217,7 @@ class SwarmLogger:
         key = f"T:{level}:{module}:{source}"
         now = time.time()
         with SwarmLogger._lock:
+            SwarmLogger._prune_cache_locked(now)
             if key in SwarmLogger._cache:
                 last_t, _ = SwarmLogger._cache[key]
                 if now - last_t < interval_s:
@@ -198,3 +227,18 @@ class SwarmLogger:
         ts = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))).strftime("%H:%M:%S.%f")[:-3]
         line = f"[{ts}] | {level:<10} | {module:<14} | {source:<12} | {message}"
         print(line)
+
+    @classmethod
+    def _prune_cache_locked(cls, now: float):
+        """Bound throttling cache growth during long-running missions."""
+        if len(cls._cache) <= cls._max_cache_entries:
+            return
+        stale_before = now - 300.0
+        stale_keys = [key for key, (ts, _) in cls._cache.items() if ts < stale_before]
+        for key in stale_keys:
+            cls._cache.pop(key, None)
+        if len(cls._cache) <= cls._max_cache_entries:
+            return
+        # Fall back to dropping the oldest entries.
+        for key, _ in sorted(cls._cache.items(), key=lambda item: item[1][0])[: len(cls._cache) - cls._max_cache_entries]:
+            cls._cache.pop(key, None)
