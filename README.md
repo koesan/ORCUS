@@ -572,7 +572,7 @@ Bu hat aynı zamanda:
 | State yönetimi | görev geçişlerinde daha kırılgan alanlar | soft reset, pause/resume, stop interlock ve runtime cleanup zinciri |
 | UI güvenlik kilitleri | daha gevşek | Start/Pause/Stop interlock mantığı ve tekrar başlatma güvenliği |
 | Çözülen kronik sorunlar | state leak, hedef overwrite, stale attack kararsızlığı, pause sonrası radar bozulması riski | bu sınıflar v2.1'de sistematik guard ve reset mimarisiyle sertleştirildi |
-| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirilDİ |
+| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirildi |
 
 ---
 
