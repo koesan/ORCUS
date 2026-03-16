@@ -3,7 +3,7 @@
 # ORCUS
 ### Autonomous Swarm Kamikaze Drone System
 
-<img src="image/ORCUS_nbg.png" alt="ORCUS Logo" width="400"/>
+<img src="image/ORCUS_nbg.png" alt="ORCUS Logo" width="600"/>
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![ROS](https://img.shields.io/badge/ROS-Melodic/Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
@@ -13,6 +13,8 @@
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+---
 
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo.mp4)
 
