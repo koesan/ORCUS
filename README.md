@@ -13,7 +13,7 @@
 
 ---
 
-[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/koesan/ORCUS/blob/main/image/demo.mp4)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/V8X-XiSy9as)
 
 🎥 **Demo Video**  
 <p align="center">
