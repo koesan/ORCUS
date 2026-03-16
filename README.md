@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="image/logo_nbgr_.png" alt="ORCUS Logo" width="600"/>
+<img src="image/logo_nbgr_.png" alt="ORCUS Logo" width="800"/>
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![ROS](https://img.shields.io/badge/ROS-Melodic/Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
