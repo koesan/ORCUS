@@ -12,11 +12,11 @@
 
 ---
 
-[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/V8X-XiSy9as)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/B7uMCsj2Mf8)
 
 🎥 **Demo Video**  
 <p align="center">
-  <a href="https://youtu.be/V8X-XiSy9as">
+  <a href="https://youtu.be/B7uMCsj2Mf8">
     <img src="image/video.png" width="600">
   </a>
 </p>
