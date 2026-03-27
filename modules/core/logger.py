@@ -1,5 +1,8 @@
 """MIL-STD-498 Structured Logger with rate-limiting and file rotation."""
 
+from __future__ import annotations
+
+import json
 import os
 import sys
 import time
@@ -7,7 +10,134 @@ import uuid
 import datetime
 import logging
 import threading
+from dataclasses import asdict, dataclass, field, is_dataclass
+from typing import Any, Dict, Optional
 from config import SWARM_LOG_PATH
+from config import PROJECT_ROOT
+from modules.core.comm import canonical_mission_execution_state
+
+
+EVENT_LOG_PATH = os.path.join(PROJECT_ROOT, "logs", "swarm_events.jsonl")
+
+
+def _coerce_event_value(value: Any) -> Any:
+    if is_dataclass(value):
+        return asdict(value)
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, dict):
+        return {str(k): _coerce_event_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_coerce_event_value(v) for v in value]
+    return str(value)
+
+
+@dataclass
+class StructuredEvent:
+    ts: float
+    event_type: str
+    source: str
+    level: str = "INFO"
+    drone_id: Optional[Any] = None
+    target_id: Optional[str] = None
+    local_track_id: Optional[int] = None
+    state_before: Optional[str] = None
+    state_after: Optional[str] = None
+    command: Optional[str] = None
+    bbox: Optional[Any] = None
+    world_estimate: Optional[Any] = None
+    confidence: Optional[float] = None
+    quality: Optional[float] = None
+    decision_reason: Optional[str] = None
+    timeout_reason: Optional[str] = None
+    retry_reason: Optional[str] = None
+    stale_flag: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_record(self) -> Dict[str, Any]:
+        return {key: _coerce_event_value(value) for key, value in asdict(self).items()}
+
+
+class MissionPhase:
+    """Canonical mission phases for lifecycle orchestration."""
+
+    IDLE = "IDLE"
+    TAKEOFF = "TAKEOFF"
+    TRANSIT = "TRANSIT"
+    SCAN = "SCAN"
+    TRACK = "TRACK"
+    ATTACK = "ATTACK"
+    TERMINAL_HOLD = "TERMINAL_HOLD"
+    RETURN_TO_SCAN = "RETURN_TO_SCAN"
+    ATTACK_ABORT = "ATTACK_ABORT"
+    RTL = "RTL"
+    PAUSED = "PAUSED"
+    COMPLETE = "COMPLETE"
+    ERROR = "ERROR"
+
+
+@dataclass
+class MissionState:
+    """Mutable mission state snapshot with structured transition logging."""
+
+    phase: str = MissionPhase.IDLE
+    previous_phase: Optional[str] = None
+    reason: Optional[str] = None
+
+    def transition(self, phase: str, reason: Optional[str] = None):
+        before = self.canonical_phase()
+        self.previous_phase = self.phase
+        self.phase = phase
+        self.reason = reason
+        after = self.canonical_phase()
+        if before != after:
+            SwarmLogger.log_structured(
+                "mission_phase_transition",
+                "MISSION_CTRL",
+                level="STATE",
+                state_before=str(before),
+                state_after=str(after),
+                decision_reason=reason,
+                metadata={"previous_phase": self.previous_phase, "phase": self.phase},
+            )
+
+    def is_terminal(self) -> bool:
+        return self.phase in {MissionPhase.RTL, MissionPhase.COMPLETE, MissionPhase.ERROR}
+
+    def canonical_phase(self):
+        return canonical_mission_execution_state(self.phase)
+
+
+class EventLogger:
+    _path = EVENT_LOG_PATH
+    _lock = threading.Lock()
+    _initialized = False
+
+    @classmethod
+    def init_log(cls):
+        with cls._lock:
+            if cls._initialized:
+                return
+            log_dir = os.path.dirname(cls._path)
+            if log_dir and not os.path.exists(log_dir):
+                os.makedirs(log_dir, exist_ok=True)
+            with open(cls._path, "w", encoding="utf-8") as handle:
+                handle.write("")
+            cls._initialized = True
+
+    @classmethod
+    def append(cls, event: StructuredEvent):
+        cls.init_log()
+        line = json.dumps(event.to_record(), ensure_ascii=True, sort_keys=True)
+        with cls._lock:
+            with open(cls._path, "a", encoding="utf-8") as handle:
+                handle.write(line + "\n")
+
+    @classmethod
+    def emit(cls, event_type: str, source: str, **kwargs):
+        event = StructuredEvent(ts=time.time(), event_type=event_type, source=source, **kwargs)
+        cls.append(event)
+        return event
 
 
 class StreamTee:
@@ -79,14 +209,20 @@ class SwarmLogger:
         "PUBLISH":  3.0,
         "TRACK_CMD": 2.0,
         "CONTROL":  2.0,
-        "FUSION_DETAY": 15.0,
+        "FUSION_DETAIL": 15.0,
+        "OBS_QUALITY": 10.0,
         "PUANLAMA": 10.0,
         "CAMERA_STATS": 8.0,
         "RADAR_DETAY": 12.0,
         "GRACE": 5.0,
         "BBOX_SMOOTH": 10.0,
         "GROUP": 8.0,
+        "STATUS": 5.0,
+        "SECURITY": 8.0,
         "RESPONSE": 8.0,
+        "BRIDGE": 3.0,
+        "INFO": 5.0,  # Info logları artık varsayılan olarak 5 sn sınırında
+        "FRAME": 2.0, # Vision/Frame seviyesi saniyede 1-2
     }
 
     # Levels that bypass ALL rate-limiting
@@ -96,10 +232,19 @@ class SwarmLogger:
         "ASSIGN", "LOCK", "COLLISION", "LIFECYCLE",
         "USER_CMD", "REASSIGN", "TIMEOUT", "TERMINAL",
         "SUCCESS", "TARGET", "OWNERSHIP",
-        "CAPACITY", "COLLAPSE", "INFO",
-        # --- Kaldırıldı: Artık rate-limited ---
-        # "CAMERA_STATS", "FUSION_DETAY", "PUANLAMA"
+        "CAPACITY", "COLLAPSE",
+        # "INFO" removed from exemptions — it is now rate-limited to stop spam
     })
+
+    @staticmethod
+    def _timestamp() -> str:
+        return datetime.datetime.now(
+            datetime.timezone(datetime.timedelta(hours=3))
+        ).strftime("%H:%M:%S.%f")[:-3]
+
+    @staticmethod
+    def _emit_line(level: str, module: str, source: str, message: str) -> None:
+        print(f"[{SwarmLogger._timestamp()}] | {level:<10} | {module:<14} | {source:<12} | {message}")
 
     @classmethod
     def init_log(cls):
@@ -128,6 +273,7 @@ class SwarmLogger:
 
             cls._session_id = uuid.uuid4().hex[:8]
             cls._cache.clear()
+            EventLogger.init_log()
 
             f = open(SWARM_LOG_PATH, "w", encoding="utf-8")
             cls._log_file = f
@@ -175,7 +321,7 @@ class SwarmLogger:
         if level not in SwarmLogger._EXEMPT:
             window = SwarmLogger._THROTTLE.get(level, 0)
             if window > 0:
-                key = f"{level}:{module}"
+                key = f"{level}:{module}:{source}"
                 now = time.time()
                 with SwarmLogger._lock:
                     SwarmLogger._prune_cache_locked(now)
@@ -190,26 +336,129 @@ class SwarmLogger:
                     else:
                         SwarmLogger._cache[key] = (now, 0)
 
-        ts = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))).strftime("%H:%M:%S.%f")[:-3]
-        line = f"[{ts}] | {level:<10} | {module:<14} | {source:<12} | {message}"
-        print(line)
+        SwarmLogger._emit_line(level, module, source, message)
 
     @staticmethod
-    def log_event(level, module, drone_id, event, details=""):
-        """MIL-STD structured event log with explicit drone_id field.
+    def log_structured(event_type, source, level="INFO", **kwargs):
+        """Append replay-friendly JSONL event in parallel with normal logs."""
+        try:
+            EventLogger.emit(event_type=event_type, source=source, level=level, **kwargs)
+        except Exception:
+            pass
 
-        Use for critical operational events that need forensic traceability.
+    @staticmethod
+    def log_operational(
+        *,
+        key: str,
+        level: str,
+        module: str,
+        message: str,
+        source: str = "SYSTEM",
+        interval_s: float = 5.0,
+        event_type: Optional[str] = None,
+        structured_source: Optional[str] = None,
+        structured_level: Optional[str] = None,
+        **event_fields,
+    ) -> bool:
+        """Debounced human log with optional paired structured event."""
+        emitted = SwarmLogger.log_keyed_debounce(
+            key=key,
+            level=level,
+            module=module,
+            message=message,
+            source=source,
+            interval_s=interval_s,
+        )
+        if emitted and event_type:
+            SwarmLogger.log_structured(
+                event_type,
+                structured_source or source,
+                level=structured_level or level,
+                **event_fields,
+            )
+        return emitted
 
-        Args:
-            level:    Severity (CRITICAL, ERROR, WARNING, INFO)
-            module:   Component (SwarmCoord, MissionCtrl, GeoMath, etc.)
-            drone_id: Drone port or identifier (5760, 5773, "LEADER", etc.)
-            event:    Short event name (TARGET_LOCKED, FUSION_MERGE, ATTACK_START)
-            details:  Additional context string
-        """
-        ts = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))).strftime("%H:%M:%S.%f")[:-3]
-        line = f"[{ts}] | {level:<10} | {module:<14} | DRONE_{drone_id:<8} | {event}: {details}"
-        print(line)
+    @staticmethod
+    def log_phase_change(
+        *,
+        module: str,
+        entity: str,
+        old_phase: Any,
+        new_phase: Any,
+        source: str,
+        reason: Optional[str] = None,
+        level: str = "STATE",
+        event_type: Optional[str] = None,
+        structured_source: Optional[str] = None,
+        structured_level: Optional[str] = None,
+        interval_s: float = 0.0,
+        **event_fields,
+    ) -> bool:
+        old_label = old_phase if old_phase not in (None, "") else "IDLE"
+        new_label = new_phase if new_phase not in (None, "") else "IDLE"
+        message = f"{entity}: {old_label} -> {new_label}"
+        if reason:
+            message = f"{message} | {reason}"
+        if interval_s > 0.0:
+            return SwarmLogger.log_operational(
+                key=f"phase:{module}:{entity}:{old_label}:{new_label}:{reason or '-'}",
+                level=level,
+                module=module,
+                message=message,
+                source=source,
+                interval_s=interval_s,
+                event_type=event_type,
+                structured_source=structured_source,
+                structured_level=structured_level,
+                state_before=str(old_label),
+                state_after=str(new_label),
+                decision_reason=reason,
+                **event_fields,
+            )
+        SwarmLogger.log(level, module, message, source)
+        if event_type:
+            SwarmLogger.log_structured(
+                event_type,
+                structured_source or source,
+                level=structured_level or level,
+                state_before=str(old_label),
+                state_after=str(new_label),
+                decision_reason=reason,
+                **event_fields,
+            )
+        return True
+
+    @staticmethod
+    def log_link_activity(
+        *,
+        module: str,
+        direction: str,
+        action: str,
+        source: str = "SWARM_LINK",
+        detail: str = "",
+        level: str = "BRIDGE",
+        interval_s: float = 5.0,
+        key: Optional[str] = None,
+        event_type: Optional[str] = None,
+        structured_source: Optional[str] = None,
+        structured_level: Optional[str] = None,
+        **event_fields,
+    ) -> bool:
+        message = f"{direction} {action}"
+        if detail:
+            message = f"{message} | {detail}"
+        return SwarmLogger.log_operational(
+            key=key or f"link:{module}:{direction}:{action}:{detail}",
+            level=level,
+            module=module,
+            message=message,
+            source=source,
+            interval_s=interval_s,
+            event_type=event_type,
+            structured_source=structured_source,
+            structured_level=structured_level,
+            metadata=event_fields,
+        )
 
     @staticmethod
     def log_throttled(level, module, message, source="SYSTEM", interval_s=5.0):
@@ -224,9 +473,30 @@ class SwarmLogger:
                     return
             SwarmLogger._cache[key] = (now, 0)
 
-        ts = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))).strftime("%H:%M:%S.%f")[:-3]
-        line = f"[{ts}] | {level:<10} | {module:<14} | {source:<12} | {message}"
-        print(line)
+        SwarmLogger._emit_line(level, module, source, message)
+
+    @staticmethod
+    def log_keyed_debounce(key: str, level: str, module: str, message: str,
+                           source: str = "SYSTEM", interval_s: float = 15.0) -> bool:
+        """Debounced log keyed by an arbitrary string.
+
+        Unlike log_throttled (which keys on level+module+source), this uses
+        a caller-provided key so you can debounce per (drone, target), etc.
+
+        Returns True if the log was emitted, False if suppressed.
+        """
+        now = time.time()
+        cache_key = f"D:{key}"
+        with SwarmLogger._lock:
+            SwarmLogger._prune_cache_locked(now)
+            if cache_key in SwarmLogger._cache:
+                last_t, _ = SwarmLogger._cache[cache_key]
+                if now - last_t < interval_s:
+                    return False
+            SwarmLogger._cache[cache_key] = (now, 0)
+
+        SwarmLogger._emit_line(level, module, source, message)
+        return True
 
     @classmethod
     def _prune_cache_locked(cls, now: float):

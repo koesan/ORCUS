@@ -1,4 +1,4 @@
-"""Human Tracking Module - YOLOv12 + BoT-SORT for detection and tracking."""
+"""YOLO and BoT-SORT based visual tracking."""
 
 import sys
 import os
@@ -7,7 +7,7 @@ import math
 import time
 import torch
 import numpy as np
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict
 import threading
 from collections import deque
 from contextlib import contextmanager
@@ -23,7 +23,7 @@ from config import (
     TRACKING_YAW_PID_INT_MAX, TRACKING_YAW_PID_INT_MIN, TRACKING_YAW_PID_OUT_MAX, TRACKING_YAW_PID_OUT_MIN,
     TRACKING_PITCH_PID_TAU, TRACKING_PITCH_PID_KP, TRACKING_PITCH_PID_KI, TRACKING_PITCH_PID_KD,
     TRACKING_PITCH_PID_INT_MAX, TRACKING_PITCH_PID_INT_MIN, TRACKING_PITCH_PID_OUT_MAX, TRACKING_PITCH_PID_OUT_MIN,
-    CAMERA_FX, CAMERA_WIDTH, CAMERA_RESOLUTION_WIDTH,
+    CAMERA_FX,
     TRACKING_TARGET_OFFSET_Y_RATIO, TRACKING_SCREEN_OFFSET_Y_RATIO,
     TRACKING_LATERAL_CORRECTION_GAIN, TRACKING_VERTICAL_FALLBACK_GAIN,
     APPROACH_MIN_SCREEN_COVERAGE, APPROACH_BOOST_SPEED,
@@ -37,16 +37,16 @@ from modules.core.geo_math import GeoMath
 from modules.vision.group_tracker import GroupClusterEngine, GroupResult
 
 @contextmanager
-def _legacy_torch_load_scope():
-    """Limit legacy torch.load behavior to model initialization only."""
+def _torch_model_load_scope():
+    """Limit torch.load behavior overrides to model initialization only."""
     original_torch_load = torch.load
 
-    def _safe_legacy_load(*args, **kwargs):
+    def _safe_model_load(*args, **kwargs):
         if "weights_only" not in kwargs:
             kwargs["weights_only"] = False
         return original_torch_load(*args, **kwargs)
 
-    torch.load = _safe_legacy_load
+    torch.load = _safe_model_load
     try:
         yield
     finally:
@@ -73,15 +73,6 @@ except ImportError as e:
     YOLO = None
 
 try:
-    import termcolor
-except ImportError:
-    from types import ModuleType
-    m = ModuleType("termcolor")
-    m.cprint = lambda *args, **kwargs: None
-    m.colored = lambda text, *args, **kwargs: text
-    sys.modules["termcolor"] = m
-
-try:
     from modules.vision.tracker.mc_bot_sort import BoTSORT
 except ImportError as e:
     SwarmLogger.log("ERROR", "HumanTracker", f"CRITICAL TRACKER IMPORT ERROR (BoTSORT): {e}", "IMPORT")
@@ -89,7 +80,7 @@ except ImportError as e:
 
 
 class MockBox:
-    """Adapter class to mimic Ultralytics Box format."""
+    """Minimal adapter for tracker outputs."""
     def __init__(self, tlwh, conf, cls, t_id, xyxy):
         self.conf = [torch.tensor(conf)]
         self.id = [torch.tensor(t_id)] if t_id is not None else None
@@ -103,7 +94,7 @@ class MockBox:
 
 
 class MockResult:
-    """Adapter class to mimic Ultralytics Results format."""
+    """Minimal adapter for tracker outputs."""
     def __init__(self, boxes, frame):
         self.boxes = boxes
         self.orig_img = frame
@@ -113,8 +104,8 @@ class MockResult:
 
 
 class HumanTracker:
-    """Main tracking class using YOLOv12 and BoT-SORT."""
-    def __init__(self, enable_tracking: bool = True):
+    """Run visual tracking and framing."""
+    def __init__(self):
         self.opt = BoTSORTConfig()
 
         requested_device = str(self.opt.device).lower()
@@ -130,7 +121,7 @@ class HumanTracker:
 
         try:
             if YOLO is not None:
-                with _legacy_torch_load_scope():
+                with _torch_model_load_scope():
                     self.model = YOLO(self.opt.weights)
             else:
                 self.model = None
@@ -145,6 +136,8 @@ class HumanTracker:
             self.tracker = None
             
         self.primary_track_id = None
+        self.primary_group_id = None
+        self.strict_primary_lock = False
         
         self.yaw_pid = FilteredPID(
             TRACKING_YAW_PID_TAU, TRACKING_YAW_PID_KP, TRACKING_YAW_PID_KI, TRACKING_YAW_PID_KD,
@@ -158,8 +151,6 @@ class HumanTracker:
         )
 
         self.focal_length_px = CAMERA_FX
-        self.resolution_width = CAMERA_RESOLUTION_WIDTH
-        self.pitch = 0.0
         self.roll = 0.0
 
         self.last_detection_time = 0
@@ -167,37 +158,28 @@ class HumanTracker:
         self.human_lost_timeout = HUMAN_LOST_TIMEOUT
         self.collision_threshold = COLLISION_SCREEN_THRESHOLD
         self.forward_speed = COLLISION_FORWARD_SPEED
-
-        self.track_history: Dict[int, float] = {} 
         
-        # FPS calibration state
         self._last_frame_time: float = 0.0
         self._fps_samples: deque = deque(maxlen=120)
         self._fps_calibrated: bool = False
-        
-        # Lock hysteresis state
+
         self._lock_challenger_id: int = None
         self._lock_challenger_streak: int = 0
         self._LOCK_HYSTERESIS_FRAMES: int = 5
-        
-        # IoU ID stabilization
+
         self._last_primary_bbox = None
         self._primary_lost_frames = 0
         self._IOU_GRACE_FRAMES = 5
         self._IOU_THRESHOLD = IOU_THRESHOLD
 
-        # Group clustering
         self.group_engine = GroupClusterEngine()
         self._drone_pose = None
-
-    def set_attitude(self, pitch: float, roll: float):
-        self.pitch = pitch
-        self.roll = roll
 
     def set_drone_pose(self, lat: float, lon: float, alt: float,
                        roll: float, pitch: float, yaw: float):
         """Set drone telemetry for group clustering."""
         self._drone_pose = (lat, lon, alt, roll, pitch, yaw)
+        self.roll = roll
 
     def calculate_screen_coverage(self, box: Tuple[float, float, float, float], 
                                   img_width: int, img_height: int) -> float:
@@ -206,6 +188,57 @@ class HumanTracker:
         screen_area = img_width * img_height
         return box_area / screen_area if screen_area > 0 else 0.0
 
+    @staticmethod
+    def _bbox_area_xyxy(box_xyxy) -> float:
+        x1, y1, x2, y2 = [float(v) for v in box_xyxy]
+        return max(1.0, (x2 - x1) * (y2 - y1))
+
+    @staticmethod
+    def _bbox_center_xyxy(box_xyxy) -> Tuple[float, float]:
+        x1, y1, x2, y2 = [float(v) for v in box_xyxy]
+        return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+
+    def _pick_strict_reacquire_candidate(self, current_visible_tracks):
+        """Reacquire only when the candidate looks like the same target."""
+        if not current_visible_tracks or self._last_primary_bbox is None:
+            return None
+
+        prev_bbox = self._last_primary_bbox
+        prev_area = self._bbox_area_xyxy(prev_bbox)
+        prev_cx, prev_cy = self._bbox_center_xyxy(prev_bbox)
+        best_tid = None
+        best_score = float("-inf")
+        second_score = float("-inf")
+
+        for tid, box in current_visible_tracks.items():
+            cand_bbox = box.xyxy[0].cpu().numpy()
+            iou = self._calculate_iou(prev_bbox, cand_bbox)
+            cx, cy = self._bbox_center_xyxy(cand_bbox)
+            center_dist = math.hypot(cx - prev_cx, cy - prev_cy)
+            cand_area = self._bbox_area_xyxy(cand_bbox)
+            area_ratio = min(prev_area, cand_area) / max(prev_area, cand_area)
+
+            if iou < max(0.72, self._IOU_THRESHOLD + 0.12):
+                continue
+            if center_dist > 55.0:
+                continue
+            if area_ratio < 0.55:
+                continue
+
+            score = iou * 100.0 - center_dist * 0.6 + area_ratio * 20.0
+            if score > best_score:
+                second_score = best_score
+                best_score = score
+                best_tid = tid
+            elif score > second_score:
+                second_score = score
+
+        if best_tid is None:
+            return None
+        if second_score > float("-inf") and (best_score - second_score) < 8.0:
+            return None
+        return best_tid
+
     def detect_and_track(self, frame: np.ndarray, debug: bool = True, attack_mode: bool = False) -> Dict:
         with self._inference_lock:
             return self._detect_and_track_impl(frame, debug, attack_mode)
@@ -213,13 +246,11 @@ class HumanTracker:
     def _detect_and_track_impl(self, frame: np.ndarray, debug: bool, attack_mode: bool) -> Dict:
         timestamp = time.time()
         
-        # FPS calibration
         if self._last_frame_time > 0:
             dt = timestamp - self._last_frame_time
             if dt > 0:
                 self._fps_samples.append(1.0 / dt)
                 if len(self._fps_samples) >= 30 and (not self._fps_calibrated or len(self._fps_samples) % 100 == 0):
-                    # deque doesn't support slicing — use list conversion
                     recent = list(self._fps_samples)[-30:]
                     actual_fps = sum(recent) / len(recent)
                     if self.tracker and abs(actual_fps - TRACKER_FRAME_RATE) > 2.0:
@@ -235,10 +266,14 @@ class HumanTracker:
         if self.model is None or self.tracker is None:
             return self._create_empty_result(frame)
 
-        # Inference
+        predict_imgsz = self.opt.img_size
+        if not debug and str(self.device).lower() == "cpu":
+            cpu_limit = 512 if attack_mode else 480
+            predict_imgsz = min(int(self.opt.img_size), cpu_limit)
+
         results = self.model.predict(
             source=frame,
-            imgsz=self.opt.img_size,
+            imgsz=predict_imgsz,
             conf=self.opt.conf_thres,
             iou=self.opt.iou_thres,
             classes=self.opt.classes,
@@ -254,13 +289,11 @@ class HumanTracker:
             
         detections = np.array(detections) if len(detections) > 0 else np.empty((0, 6))
 
-        # Tracking update
-        # mc_bot_sort.update() returns (tracked_stracks, lost_stracks)
         online_targets, _lost_targets = self.tracker.update(detections, frame)
         
         mock_boxes = []
         current_visible_tracks = {}
-        annotated_frame = frame.copy()
+        annotated_frame = frame.copy() if debug else frame
         
         for t in online_targets:
             tlwh = t.tlwh
@@ -274,24 +307,18 @@ class HumanTracker:
             mock_boxes.append(mb)
             
             current_visible_tracks[tid] = mb
-            self.track_history[tid] = timestamp
             
-            color = COLOR_PRIMARY if tid == self.primary_track_id else COLOR_SECONDARY
-            cv2.rectangle(annotated_frame, (int(x1), int(y1)), (int(x2), int(y2)), color, DEBUG_FONT_THICKNESS)
-            cv2.putText(annotated_frame, f"ID:{tid}", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, DEBUG_FONT_SCALE, color, DEBUG_FONT_THICKNESS)
+            if debug:
+                color = COLOR_PRIMARY if tid == self.primary_track_id else COLOR_SECONDARY
+                cv2.rectangle(annotated_frame, (int(x1), int(y1)), (int(x2), int(y2)), color, DEBUG_FONT_THICKNESS)
+                cv2.putText(annotated_frame, f"ID:{tid}", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, DEBUG_FONT_SCALE, color, DEBUG_FONT_THICKNESS)
 
         mock_result = MockResult(mock_boxes, annotated_frame)
-        all_detections = [mock_result] 
+        results = [mock_result]
 
-        # Selection logic
         selected_box = None
         current_track_id = None
-        
-        def calculate_iou(boxA, boxB):
-            return self._calculate_iou(boxA, boxB)
 
-
-        # Primary lock & IoU fallback
         if self.primary_track_id is not None:
             if self.primary_track_id in current_visible_tracks:
                 selected_box = current_visible_tracks[self.primary_track_id]
@@ -300,18 +327,51 @@ class HumanTracker:
                 self._primary_lost_frames = 0
             else:
                 self._primary_lost_frames += 1
-                if self._primary_lost_frames <= self._IOU_GRACE_FRAMES and self._last_primary_bbox is not None:
+                if self.strict_primary_lock:
+                    best_candidate_id = None
+                    if self._primary_lost_frames <= self._IOU_GRACE_FRAMES:
+                        best_candidate_id = self._pick_strict_reacquire_candidate(current_visible_tracks)
+                    if best_candidate_id is not None:
+                        if best_candidate_id == self._lock_challenger_id:
+                            self._lock_challenger_streak += 1
+                        else:
+                            self._lock_challenger_id = best_candidate_id
+                            self._lock_challenger_streak = 1
+                        if self._lock_challenger_streak >= self._LOCK_HYSTERESIS_FRAMES:
+                            previous_id = self.primary_track_id
+                            selected_box = current_visible_tracks[best_candidate_id]
+                            current_track_id = best_candidate_id
+                            self.primary_track_id = best_candidate_id
+                            self._lock_challenger_id = None
+                            self._lock_challenger_streak = 0
+                            self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
+                            self._primary_lost_frames = 0
+                            SwarmLogger.log(
+                                "INFO",
+                                "TRACK",
+                                f"Strict reacquire: {previous_id} -> {best_candidate_id}",
+                                "TRACKER",
+                            )
+                    elif self._primary_lost_frames == self._IOU_GRACE_FRAMES + 1:
+                        SwarmLogger.log("WARNING", "TRACK",
+                            f"Strict primary ID {self.primary_track_id} lost after {self._IOU_GRACE_FRAMES} frames",
+                            "TRACKER")
+                        self._last_primary_bbox = None
+                        self._lock_challenger_id = None
+                        self._lock_challenger_streak = 0
+                elif self._primary_lost_frames <= self._IOU_GRACE_FRAMES and self._last_primary_bbox is not None:
                     best_iou = 0.0
                     best_candidate_id = None
                     for tid, box in current_visible_tracks.items():
-                        iou = calculate_iou(self._last_primary_bbox, box.xyxy[0].cpu().numpy())
+                        iou = self._calculate_iou(self._last_primary_bbox, box.xyxy[0].cpu().numpy())
                         if iou > best_iou:
                             best_iou = iou
                             best_candidate_id = tid
                             
                     if best_iou >= self._IOU_THRESHOLD and best_candidate_id is not None:
+                        previous_id = self.primary_track_id
                         SwarmLogger.log("INFO", "TRACK", 
-                            f"IoU Fallback: {self.primary_track_id} -> {best_candidate_id} (IoU: {best_iou:.2f})",
+                            f"IoU Fallback: {previous_id} -> {best_candidate_id} (IoU: {best_iou:.2f})",
                             "TRACKER")
                         self.primary_track_id = best_candidate_id
                         selected_box = current_visible_tracks[best_candidate_id]
@@ -324,13 +384,13 @@ class HumanTracker:
                             f"Primary ID {self.primary_track_id} lost after {self._IOU_GRACE_FRAMES} frames",
                             "TRACKER")
                         self._last_primary_bbox = None
-                        # V11: Reset challenger state when primary is fully lost
                         self._lock_challenger_id = None
                         self._lock_challenger_streak = 0
                         
-        elif attack_mode and len(online_targets) > 0:
+        elif attack_mode and len(online_targets) > 0 and not self.strict_primary_lock:
             if len(current_visible_tracks) == 1:
                 new_tid = list(current_visible_tracks.keys())[0]
+                previous_id = self.primary_track_id
                 selected_box = current_visible_tracks[new_tid]
                 current_track_id = new_tid
                 self.primary_track_id = new_tid
@@ -339,10 +399,9 @@ class HumanTracker:
                 self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                 self._primary_lost_frames = 0
                 SwarmLogger.log("INFO", "TRACK",
-                    f"Primary ID re-mapped: {self.primary_track_id} -> {new_tid}",
+                    f"Primary ID re-mapped: {previous_id} -> {new_tid}",
                     "TRACKER")
             elif len(current_visible_tracks) > 1:
-                # Lock hysteresis
                 best_conf = 0.0
                 best_tid = None
                 for tid, box in current_visible_tracks.items():
@@ -370,9 +429,10 @@ class HumanTracker:
                             f"Lock switched to {best_tid} after {self._LOCK_HYSTERESIS_FRAMES} frames",
                             "TRACKER")
             
-        # Group clustering
         detected_candidates = self._get_track_candidates(mock_boxes, timestamp)
         group_result = GroupResult(groups=[], singles=detected_candidates)
+        if detected_candidates:
+            self.last_detection_time = timestamp
 
         if self._drone_pose and len(detected_candidates) >= 2:
             try:
@@ -380,20 +440,37 @@ class HumanTracker:
                 group_result = self.group_engine.update(
                     detected_candidates, lat, lon, alt, d_roll, d_pitch, d_yaw
                 )
+                if group_result.groups or len(detected_candidates) >= 3:
+                    group_preview = " | ".join(
+                        f"{g.group_id}:x{g.member_count} ids={','.join(str(int(mid)) for mid in g.member_ids[:4])}"
+                        + (",..." if len(g.member_ids) > 4 else "")
+                        for g in group_result.groups[:3]
+                    )
+                    if not group_preview:
+                        group_preview = "-"
+                    SwarmLogger.log_throttled(
+                        "GROUP_FLOW",
+                        "GROUP",
+                        f"cluster candidates={len(detected_candidates)} groups={len(group_result.groups)} "
+                        f"singles={len(group_result.singles)} :: {group_preview}",
+                        "TRACKER",
+                        interval_s=5.0,
+                    )
 
-                for g in group_result.groups:
-                    gx1, gy1, gx2, gy2 = g.bounding_rect_px
-                    pad = 8
-                    gx1, gy1 = max(0, gx1 - pad), max(0, gy1 - pad)
-                    gx2 = min(frame.shape[1], gx2 + pad)
-                    gy2 = min(frame.shape[0], gy2 + pad)
-                    cv2.rectangle(annotated_frame, (gx1, gy1), (gx2, gy2),
-                                  GROUP_VISUAL_COLOR_BGR, 2)
-                    label = f"x{g.member_count}"
-                    cv2.putText(annotated_frame, label,
-                                (gx1 + 4, gy1 - 6),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                                GROUP_VISUAL_COLOR_BGR, 2)
+                if debug:
+                    for g in group_result.groups:
+                        gx1, gy1, gx2, gy2 = g.bounding_rect_px
+                        pad = 8
+                        gx1, gy1 = max(0, gx1 - pad), max(0, gy1 - pad)
+                        gx2 = min(frame.shape[1], gx2 + pad)
+                        gy2 = min(frame.shape[0], gy2 + pad)
+                        cv2.rectangle(annotated_frame, (gx1, gy1), (gx2, gy2),
+                                      GROUP_VISUAL_COLOR_BGR, 2)
+                        label = f"x{g.member_count}"
+                        cv2.putText(annotated_frame, label,
+                                    (gx1 + 4, gy1 - 6),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                                    GROUP_VISUAL_COLOR_BGR, 2)
             except Exception as e:
                 SwarmLogger.log("WARNING", "GROUP",
                     f"Clustering error: {e}", "TRACKER")
@@ -402,7 +479,6 @@ class HumanTracker:
             selected_box, current_track_id, group_result, detected_candidates, frame.shape, attack_mode
         )
 
-        # Control loop
         velocity_cmd = {'vx': 0, 'vy': 0, 'vz': 0, 'yaw_rate': 0}
         collision_imminent = False
         screen_coverage = 0.0
@@ -455,7 +531,6 @@ class HumanTracker:
             length_x *= gain_x
             length_y *= gain_y
 
-            # Roll adjustment
             length_x_adjusted = length_x * math.cos(self.roll) + length_y * math.sin(self.roll)
             length_y_adjusted = -length_x * math.sin(self.roll) + length_y * math.cos(self.roll)
 
@@ -469,7 +544,6 @@ class HumanTracker:
 
             lateral_correction = -theta_x * TRACKING_LATERAL_CORRECTION_GAIN
 
-            # Dynamic speed
             if screen_coverage < APPROACH_MIN_SCREEN_COVERAGE:
                 forward_speed_dynamic = APPROACH_BOOST_SPEED
             else:
@@ -490,12 +564,12 @@ class HumanTracker:
                     'yaw_rate': float(yaw_control)
                 }
 
-            SwarmLogger.log("DEBUG", "CONTROL", 
-                f"CMD: vx={velocity_cmd['vx']:.2f}, yaw={yaw_control:.2f}, cov={screen_coverage:.2f}",
-                f"TRACKER_{framing_track_id}")
+            if debug:
+                SwarmLogger.log("DEBUG", "CONTROL",
+                    f"CMD: vx={velocity_cmd['vx']:.2f}, yaw={yaw_control:.2f}, cov={screen_coverage:.2f}",
+                    f"TRACKER_{framing_track_id}")
             
             self.last_velocity_command = velocity_cmd
-            self.last_detection_time = timestamp
         
         if framing_xyxy is None and timestamp - self.last_detection_time > self.human_lost_timeout:
              self.yaw_pid.reset()
@@ -513,11 +587,9 @@ class HumanTracker:
             'annotated_frame': annotated_frame,
             'track_id': framing_track_id,
             'bbox': bbox,
-            'results': all_detections,
-            'all_detections': all_detections,
+            'results': results,
             'detected_candidates': detected_candidates,
             'group_info': group_result,
-            'is_ghost': False
         }
 
     def _select_framing_box(self, selected_box, current_track_id, group_result,
@@ -538,11 +610,18 @@ class HumanTracker:
 
         if group_result and getattr(group_result, "groups", None):
             target_group = None
-            if current_track_id is not None:
+            preferred_group_id = getattr(self, "primary_group_id", None)
+            if preferred_group_id is not None:
                 for group in group_result.groups:
-                    if int(current_track_id) in set(int(mid) for mid in group.member_ids):
+                    if str(group.group_id) == str(preferred_group_id):
                         target_group = group
                         break
+            if current_track_id is not None:
+                if target_group is None:
+                    for group in group_result.groups:
+                        if int(current_track_id) in set(int(mid) for mid in group.member_ids):
+                            target_group = group
+                            break
 
             if target_group is None and selected_box is None and group_result.groups:
                 frame_h, frame_w = frame_shape[:2]
@@ -563,7 +642,9 @@ class HumanTracker:
                 y1 = max(0.0, float(y1 - GROUP_FRAME_MARGIN_PX))
                 x2 = min(float(frame_w), float(x2 + GROUP_FRAME_MARGIN_PX))
                 y2 = min(float(frame_h), float(y2 + GROUP_FRAME_MARGIN_PX))
-                framing_id = current_track_id
+                framing_id = None
+                if current_track_id is not None and int(current_track_id) in set(int(mid) for mid in target_group.member_ids):
+                    framing_id = current_track_id
                 if framing_id is None and target_group.member_ids:
                     framing_id = int(target_group.member_ids[0])
                 return (x1, y1, x2, y2), framing_id
@@ -666,16 +747,35 @@ class HumanTracker:
             })
         return candidates
 
-    def set_primary_target(self, track_id):
+    def set_primary_target(self, track_id, strict: bool = False):
         if track_id is not None and track_id != self.primary_track_id:
-            SwarmLogger.log("INFO", "HumanTracker", f"LOCKED: Track ID {track_id}", "TRACKING")
+            SwarmLogger.log("INFO", "HumanTracker", f"PRIMARY TARGET: Track ID {track_id}", "TRACKING")
         self.primary_track_id = track_id
+        self.strict_primary_lock = bool(track_id is not None and strict)
+        if track_id is None:
+            self._lock_challenger_id = None
+            self._lock_challenger_streak = 0
+            self._last_primary_bbox = None
+            self._primary_lost_frames = 0
+
+    def set_primary_group(self, group_id):
+        """Prefer one group bbox for attack framing."""
+        self.primary_group_id = group_id
+        if group_id is not None:
+            self.primary_track_id = None
+            self.strict_primary_lock = False
+            self._lock_challenger_id = None
+            self._lock_challenger_streak = 0
+            self._last_primary_bbox = None
+            self._primary_lost_frames = 0
 
     def reset(self):
         self.yaw_pid.reset()
         self.pitch_pid.reset()
         self.last_detection_time = 0
         self.primary_track_id = None
+        self.primary_group_id = None
+        self.strict_primary_lock = False
         self._last_primary_bbox = None
         self._primary_lost_frames = 0
         if self.tracker:
@@ -684,10 +784,7 @@ class HumanTracker:
             self.tracker.removed_stracks = []
             self.tracker.frame_id = 0
         
-        # V10: Reset group engine state
         self.group_engine = GroupClusterEngine()
-        
-        # V11: Reset challenger state
         self._lock_challenger_id = None
         self._lock_challenger_streak = 0
             
@@ -703,8 +800,6 @@ class HumanTracker:
             'track_id': None,
             'bbox': None,
             'results': [],
-            'all_detections': [],
             'detected_candidates': [],
             'group_info': GroupResult(groups=[], singles=[]),
-            'is_ghost': False
         }

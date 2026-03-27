@@ -101,7 +101,7 @@ class KalmanFilter(object):
             The 8x8 covariance matrix of the object state.
         dt : float
             Time delta since last prediction (seconds). Default 1.0 for
-            backward compatibility, but should be set to actual frame interval.
+            defaulted from tracker frame interval and should be set to actual frame interval.
 
         Returns
         -------

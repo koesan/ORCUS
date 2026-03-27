@@ -1,4 +1,6 @@
 import cv2
+import warnings
+from modules.core.logger import SwarmLogger
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
@@ -106,7 +108,7 @@ class GMC:
         try:
             (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except:
-            print('Warning: find transform failed. Set warp as identity')
+            SwarmLogger.log('WARNING', 'GMC', 'find transform failed. Set warp as identity', 'TRACKER')
 
         return H
 
@@ -227,7 +229,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            SwarmLogger.log('WARNING', 'GMC', 'not enough matching points', 'TRACKER')
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -288,7 +290,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            SwarmLogger.log('WARNING', 'GMC', 'not enough matching points (SparseOptFlow)', 'TRACKER')
 
         # Store to next iteration
         self.prevFrame = frame.copy()

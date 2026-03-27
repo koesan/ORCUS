@@ -1,14 +1,20 @@
 /* -------------------------------------------
     Globals & state - Swarm Kamikaze System
     -------------------------------------------*/
-let map, gridLayer, pathLayer, drawnItems, drawControl;
+let map, gridLayer, pathLayer, routePreviewLayer, drawnItems, drawControl;
 let isDrawing = false, cameraOn = false;
 let initialCenterSet = false, gridCells = [];
 let droneMarkers = {};  // port -> marker mapping
 let dronePaths = {};    // port -> polyline mapping
+let droneRouteTransitLayers = {}; // port -> planned transit overlay
+let droneRouteScanLayers = {};    // port -> planned scan overlay
+let plannedTerminalMarkers = {};  // port -> planned terminal point
+let terminalEventMarkers = {};    // port -> actual terminal event point
 let connectedDrones = [];
 let currentCameraPort = null;
 let cameraSelectionInProgress = false; // Camera selection lock
+let focusedRoutePort = null;
+let _seenTerminalEventIds = new Set();
 
 // --- RADAR GLOBALS ---
 let followTarget = 'LEADER'; // 'LEADER' or Drone Port
@@ -28,11 +34,13 @@ let _suppressBreadcrumbs = false;
 function clearRuntimeVisualState({ preserveMap = true } = {}) {
   drawnItems?.clearLayers();
   gridLayer?.clearLayers();
+  routePreviewLayer?.clearLayers();
   pathLayer?.clearLayers();
   isDrawing = false;
   gridCells = [];
   followTarget = 'LEADER';
   cameraSelectionInProgress = false;
+  focusedRoutePort = null;
   _uiMissionState.anyRunning = false;
   _uiMissionState.anyPaused = false;
   isTooltipPinned = false;
@@ -46,6 +54,35 @@ function clearRuntimeVisualState({ preserveMap = true } = {}) {
     } catch (_err) {
     }
   });
+  Object.values(droneRouteTransitLayers).forEach(layer => {
+    try {
+      pathLayer?.removeLayer(layer);
+    } catch (_err) {
+    }
+  });
+  Object.values(droneRouteScanLayers).forEach(layer => {
+    try {
+      pathLayer?.removeLayer(layer);
+    } catch (_err) {
+    }
+  });
+  Object.values(plannedTerminalMarkers).forEach(layer => {
+    try {
+      pathLayer?.removeLayer(layer);
+    } catch (_err) {
+    }
+  });
+  Object.values(terminalEventMarkers).forEach(layer => {
+    try {
+      pathLayer?.removeLayer(layer);
+    } catch (_err) {
+    }
+  });
+  droneRouteTransitLayers = {};
+  droneRouteScanLayers = {};
+  plannedTerminalMarkers = {};
+  terminalEventMarkers = {};
+  _seenTerminalEventIds = new Set();
   if (!preserveMap && map && connectedDrones.length === 0) {
     map.setView([39.925533, 32.864353], 15);
   }
@@ -200,6 +237,8 @@ function drawRadar(data) {
   if (!radarLayer) return;
   const drones = data?.drones || {};
   const targets = data?.targets || {};
+  const targetPresentation = (target) => String(target?.presentation_state || target?.status || '').toLowerCase();
+  const droneExecution = (drone) => String(drone?.execution_state || drone?.action || '').toLowerCase();
 
   // 1. Determine Center
   let centerLat = 0, centerLon = 0;
@@ -257,21 +296,21 @@ function drawRadar(data) {
       // If actively engaging
       if (d.engaged_target_id && targets[d.engaged_target_id]) {
         targetId = d.engaged_target_id;
-        const tgtStatus = targets[targetId].status;
+        const tgtState = targetPresentation(targets[targetId]);
 
-        if (['ECHO_WAIT', 'CENTERING'].includes(tgtStatus)) {
+        if (['assigned', 'verifying'].includes(tgtState)) {
           styleClass = 'border-t-2 border-yellow-400 border-dashed shadow-[0_0_5px_yellow]'; // Preparing/Centering
-        } else if (['ENGAGED', 'ATTACKING', 'CONFIRMED_ATTACK'].includes(tgtStatus)) {
+        } else if (['confirmed_for_attack', 'engaged_monitor'].includes(tgtState)) {
           styleClass = 'border-t-2 border-red-500 shadow-[0_0_5px_red]'; // Solid Thick Red (Attacking)
         } else {
-          styleClass = 'border-t-2 border-orange-500 border-dashed'; // LOCKED or transitioning
+          styleClass = 'border-t-2 border-orange-500 border-dashed'; // Transitional session state
         }
       }
       // Else prefer the controller's current tracked target, if any
       else if (
         d.current_target_id &&
         targets[d.current_target_id] &&
-        ['TRACKING', 'ENGAGING'].includes(d.action) &&
+        ['TRACKING', 'EXECUTING'].includes(d.action) &&
         (
           !targets[d.current_target_id].assigned_to ||
           String(targets[d.current_target_id].assigned_to) === String(pid)
@@ -331,10 +370,11 @@ function drawRadar(data) {
       if (pos.x < -20 || pos.x > w + 20 || pos.y < -20 || pos.y > h + 20) return;
 
       // BUG 6 FIX: UI State Drift for Active Protocol Targets
-      const activeStates = ['LOCKED', 'ENGAGED', 'ACTIVE', 'CONFIRMED_ATTACK', 'CENTERING', 'ATTACKING'];
+      const targetState = targetPresentation(t);
+      const activeStates = ['assigned', 'verifying', 'confirmed_for_attack', 'engaged_monitor'];
 
       // Draw Ellipse (if locked or engaged or in protocol)
-      if (activeStates.includes(t.status)) {
+      if (activeStates.includes(targetState)) {
         drawErrorEllipse(fragment, pos.x, pos.y, pxPerMeter, t.covariance);
       }
 
@@ -353,17 +393,17 @@ function drawRadar(data) {
       // Group targets: larger marker with green halo
       if (t.is_group) {
         size = 'w-4 h-4';
-        if (activeStates.includes(t.status)) {
+        if (activeStates.includes(targetState)) {
           bg = 'bg-[#EF4444]'; // Red for engaged group
           extra = 'ring-2 ring-red-400 shadow-[0_0_12px_red] animate-pulse';
         } else {
           bg = 'bg-[#22C55E]'; // Green for normal group
           extra = 'ring-2 ring-green-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]';
         }
-      } else if (activeStates.includes(t.status)) {
+      } else if (activeStates.includes(targetState)) {
         bg = 'bg-[#EF4444]'; // Solid Red
         size = 'w-3 h-3';
-        if (['ECHO_WAIT', 'CENTERING'].includes(t.status)) {
+        if (['assigned', 'verifying'].includes(targetState)) {
           extra = 'ring-2 ring-yellow-400 shadow-[0_0_10px_yellow] animate-pulse'; // Yellow pulse for centering
         } else {
           extra = 'ring-2 ring-red-400 shadow-[0_0_10px_red] animate-pulse'; // Red pulse for attack
@@ -393,6 +433,7 @@ function drawRadar(data) {
         tt.classList.remove('hidden');
 
         // Render content first so we can measure
+        const shownState = t.presentation_state || t.status || 'UNK';
         const groupLine = t.is_group
           ? `<div class="flex items-center gap-1.5 mb-1.5 pb-1 border-b border-green-500/30">
                <span class="bg-green-500/20 text-green-400 font-bold text-[11px] px-2 py-0.5 rounded-full">\ud83d\udc65 x${t.group_member_count}</span>
@@ -403,7 +444,7 @@ function drawRadar(data) {
              ${groupLine}
              <div class="flex justify-between items-center border-b border-white/10 pb-1.5 mb-1.5">
                <span class="font-bold text-white tracking-tight text-[13px]">TGT ${tid}</span>
-               <span class="${t.status === 'LOCKED' || activeStates.includes(t.status) ? 'text-red-400 font-bold animate-pulse' : 'text-gray-400'} text-[10px] uppercase tracking-wider">${t.status || 'UNK'}</span>
+               <span class="${activeStates.includes(targetState) ? 'text-red-400 font-bold animate-pulse' : 'text-gray-400'} text-[10px] uppercase tracking-wider">${shownState}</span>
              </div>
              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
                <span class="text-gray-500">State</span> <span class="text-gray-300 text-right">${t.track_state || '-'}</span>
@@ -485,13 +526,14 @@ function drawRadar(data) {
       let color = '#3B82F6'; // Follower Blue
       let zIndex = "4";
       let scale = "scale(1)";
+      const execState = droneExecution(d);
 
       if (d.role === 'LEADER') {
         color = '#2563EB'; // Leader Dark Blue
         zIndex = "5";
         scale = "scale(1.3)";
       }
-      if (d.status === 'ATTACK' || d.action === 'ENGAGING') {
+      if (execState === 'autonomous_engage' || d.action === 'EXECUTING') {
         color = '#EF4444'; // Red
       }
 
@@ -514,9 +556,10 @@ function drawRadar(data) {
         tt.classList.remove('hidden');
         tt.style.justifyContent = 'start';
 
-        const statusColor = (d.status === 'ATTACK' || d.action === 'ENGAGING')
+        const statusColor = (execState === 'autonomous_engage' || d.action === 'EXECUTING')
           ? 'text-red-400 font-bold animate-pulse'
           : d.role === 'LEADER' ? 'text-blue-400 font-bold' : 'text-blue-200';
+        const shownExecState = d.execution_state || d.action || 'IDLE';
 
         tt.innerHTML = `
              <div class="flex justify-between items-center border-b border-white/10 pb-1.5 mb-1.5">
@@ -524,9 +567,11 @@ function drawRadar(data) {
                <span class="${statusColor} text-[10px] uppercase tracking-wider">${d.role || 'UNK'}</span>
              </div>
              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-               <span class="text-gray-500">Action</span> <span class="text-gray-300 text-right font-medium">${d.action || 'IDLE'}</span>
+               <span class="text-gray-500">Action</span> <span class="text-gray-300 text-right font-medium">${shownExecState}</span>
+               <span class="text-gray-500">Link</span> <span class="text-gray-300 text-right">${d.session_phase || (d.link_online ? 'online' : 'offline')}</span>
                <span class="text-gray-500">Lock</span> <span class="text-gray-300 text-right">${d.lock_status || '-'}</span>
                <span class="text-gray-500">Target</span> <span class="text-red-400 text-right font-bold">${d.engaged_target_id || '-'}</span>
+               <span class="text-gray-500">Session</span> <span class="text-gray-300 text-right">${d.session_target_id || '-'}</span>
                <span class="text-gray-500">Alt</span> <span class="text-gray-300 text-right">${(d.alt || 0).toFixed(1)}m</span>
                <span class="text-gray-500">Heading</span> <span class="text-gray-300 text-right">${(d.heading || 0).toFixed(0)}°</span>
              </div>
@@ -640,6 +685,7 @@ function initMap(lat = 39.925533, lon = 32.864353, zoom = 15) {
 
   // layers
   gridLayer = L.layerGroup().addTo(map);
+  routePreviewLayer = L.layerGroup().addTo(map);
   pathLayer = L.layerGroup().addTo(map);
 
   // drawn items
@@ -742,18 +788,22 @@ function createGrid(bounds, minCellSizeMeters = 30) {
   // Send cell centers to backend (for all drones)
   setMissionArea(cellCenters);
 
-  // Route Visualization
-  pathLayer.clearLayers();
+  // Temporary route preview for newly drawn area only.
+  routePreviewLayer.clearLayers();
   if (cellCenters.length > 1) {
     const tempPath = L.polyline(cellCenters, {
-      color: '#FF0000',
-      weight: 2,
-      dashArray: '5, 10'
-    }).addTo(pathLayer);
+      color: '#d94a38',
+      weight: 1.6,
+      opacity: 0.65,
+      dashArray: '6, 10',
+      lineCap: 'round',
+      lineJoin: 'round',
+      smoothFactor: 1.4
+    }).addTo(routePreviewLayer);
 
     setTimeout(() => {
-      pathLayer.removeLayer(tempPath);
-    }, 1000);
+      routePreviewLayer.removeLayer(tempPath);
+    }, 1800);
   }
 
   showToast(`Grid of ${cellsX}x${cellsY} created for all drones.`, "success");
@@ -772,10 +822,7 @@ function enableRectangleDrawing() {
 }
 
 function clearDrawing() {
-  drawnItems.clearLayers();
-  gridLayer.clearLayers();
-  pathLayer.clearLayers();
-  gridCells = [];
+  clearRuntimeVisualState({ preserveMap: true });
   updateButtonStates();
   showToast("Drawings cleared.", "info");
 }
@@ -998,6 +1045,9 @@ async function updateStatus() {
 
     // Radar Drawing
     drawRadar(swarmData);
+    
+    // Permanent Mission Success Markers
+    drawCompletedMissions(swarmData);
 
     // Selected Drone Highlight (UI)
     updateSelectedDroneUI();
@@ -1026,7 +1076,7 @@ async function updateStatus() {
     const statusBox = document.getElementById('missionStatusText');
     if (statusBox) statusBox.innerText = msg;
 
-    // Initial focus
+    // Initial focus (auto-zoom to the first connected drone / leader)
     if (!initialCenterSet && data.all_drones) {
       const firstDrone = Object.values(data.all_drones)[0];
       if (firstDrone && firstDrone.location && firstDrone.location.lat) {
@@ -1057,6 +1107,12 @@ function updateSelectedDroneUI() {
 
   const selectedPortEl = byId('selectedDronePort');
   if (selectedPortEl) selectedPortEl.textContent = `Port: ${currentCameraPort || '-'}`;
+}
+
+function setFocusedRoutePort(port) {
+  const normalized = port == null ? null : String(port);
+  if (focusedRoutePort === normalized) return;
+  focusedRoutePort = normalized;
 }
 
 function updateDronesStatus(allDrones) {
@@ -1135,13 +1191,23 @@ function updateDronesStatus(allDrones) {
     droneCard.addEventListener('click', () => {
       selectDroneCamera(parseInt(port));
     });
+    droneCard.addEventListener('mouseenter', () => {
+      setFocusedRoutePort(port);
+      updateDroneRouteOverlays(window._lastAllDronesState || {});
+    });
+    droneCard.addEventListener('mouseleave', () => {
+      setFocusedRoutePort(null);
+      updateDroneRouteOverlays(window._lastAllDronesState || {});
+    });
 
     container.appendChild(droneCard);
   });
 }
 
 function updateDroneMarkersOnMap(allDrones) {
+  window._lastAllDronesState = allDrones;
   const ports = Object.keys(allDrones);
+  updateDroneRouteOverlays(allDrones);
 
   ports.forEach(port => {
     const drone = allDrones[port];
@@ -1161,6 +1227,14 @@ function updateDroneMarkersOnMap(allDrones) {
         });
         droneMarkers[port] = L.marker([lat, lon], { icon: droneIcon }).addTo(map);
         droneMarkers[port].bindTooltip(`Drone ${port}`, { permanent: false, direction: 'top' });
+        droneMarkers[port].on('mouseover', () => {
+          setFocusedRoutePort(port);
+          updateDroneRouteOverlays(window._lastAllDronesState || {});
+        });
+        droneMarkers[port].on('mouseout', () => {
+          setFocusedRoutePort(null);
+          updateDroneRouteOverlays(window._lastAllDronesState || {});
+        });
       } else {
         droneMarkers[port].setLatLng([lat, lon]);
 
@@ -1186,7 +1260,11 @@ function updateDroneMarkersOnMap(allDrones) {
         lastPoints[lastPoints.length - 1].lat.toFixed(6) !== lat.toFixed(6) ||
         lastPoints[lastPoints.length - 1].lng.toFixed(6) !== lon.toFixed(6);
 
-      const shouldDrawBreadcrumb = !_suppressBreadcrumbs && drone.mode !== 'RTL';
+      const hasPlannedRoute =
+        !!(drone.route_visual &&
+          ((drone.route_visual.scan_path && drone.route_visual.scan_path.length > 1) ||
+            (drone.route_visual.transit_path && drone.route_visual.transit_path.length > 1)));
+      const shouldDrawBreadcrumb = !_suppressBreadcrumbs && drone.mode !== 'RTL' && !hasPlannedRoute;
       if (isNewPoint && shouldDrawBreadcrumb) {
         dronePaths[port].addLatLng([lat, lon]);
         // R26: Cap polyline to prevent memory leak
@@ -1208,6 +1286,229 @@ function updateDroneMarkersOnMap(allDrones) {
         map.removeLayer(dronePaths[port]);
         delete dronePaths[port];
       }
+      if (droneRouteTransitLayers[port]) {
+        pathLayer.removeLayer(droneRouteTransitLayers[port]);
+        delete droneRouteTransitLayers[port];
+      }
+      if (droneRouteScanLayers[port]) {
+        pathLayer.removeLayer(droneRouteScanLayers[port]);
+        delete droneRouteScanLayers[port];
+      }
+    }
+  });
+}
+
+function routeLatLngs(points) {
+  return (points || [])
+    .filter(p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon)))
+    .map(p => [Number(p.lat), Number(p.lon)]);
+}
+
+function syncRouteLayer(store, port, latlngs, style) {
+  const existing = store[port];
+  if (!latlngs || latlngs.length < 2) {
+    if (existing) {
+      pathLayer.removeLayer(existing);
+      delete store[port];
+    }
+    return;
+  }
+
+  if (!existing) {
+    store[port] = L.polyline(latlngs, style).addTo(pathLayer);
+    return;
+  }
+
+  if (!existing._map) {
+    existing.addTo(pathLayer);
+  }
+  existing.setLatLngs(latlngs);
+  existing.setStyle(style);
+}
+
+function syncPointMarker(store, port, point, style, tooltipText) {
+  const existing = store[port];
+  if (!point || !Number.isFinite(Number(point.lat)) || !Number.isFinite(Number(point.lon))) {
+    if (existing) {
+      pathLayer.removeLayer(existing);
+      delete store[port];
+    }
+    return;
+  }
+
+  if (!existing) {
+    const marker = L.circleMarker([Number(point.lat), Number(point.lon)], style).addTo(pathLayer);
+    if (tooltipText) marker.bindTooltip(tooltipText, { permanent: false, direction: 'top' });
+    store[port] = marker;
+    return;
+  }
+
+  if (!existing._map) {
+    existing.addTo(pathLayer);
+  }
+  existing.setLatLng([Number(point.lat), Number(point.lon)]);
+  existing.setStyle(style);
+  if (tooltipText) existing.bindTooltip(tooltipText, { permanent: false, direction: 'top' });
+}
+
+function updateDroneRouteOverlays(allDrones) {
+  const ports = Object.keys(allDrones);
+  const hoveredPort = focusedRoutePort ? String(focusedRoutePort) : null;
+  const singleDrone = ports.length === 1;
+  const routePalette = ['#ff5e57', '#ff7a59', '#ff8c42', '#ff6f61', '#ff9466', '#ffb087'];
+
+  ports.forEach(port => {
+    const drone = allDrones[port] || {};
+    const routeVisual = drone.route_visual || {};
+    const normalizedPort = String(port);
+    const isPrimary = hoveredPort ? hoveredPort === normalizedPort : singleDrone;
+    const hasFocus = !!hoveredPort;
+    const color = routePalette[Math.abs(parseInt(port, 10) || 0) % routePalette.length];
+    const scanOpacity = hasFocus ? (isPrimary ? 0.84 : 0.22) : 0.46;
+    const transitOpacity = hasFocus ? (isPrimary ? 0.92 : 0.24) : 0.34;
+    const scanWeight = isPrimary ? 2.1 : 1.25;
+    const transitWeight = isPrimary ? 2.4 : 1.35;
+
+    syncRouteLayer(
+      droneRouteScanLayers,
+      port,
+      routeLatLngs(routeVisual.scan_path),
+      {
+        color,
+        weight: scanWeight,
+        opacity: scanOpacity,
+        dashArray: isPrimary ? '8,9' : '5,10',
+        lineCap: 'round',
+        lineJoin: 'round',
+        smoothFactor: 1.35,
+        interactive: false,
+      }
+    );
+
+    syncRouteLayer(
+      droneRouteTransitLayers,
+      port,
+      routeLatLngs(routeVisual.transit_path),
+      {
+        color,
+        weight: transitWeight,
+        opacity: transitOpacity,
+        dashArray: isPrimary ? '10,8' : '6,10',
+        lineCap: 'round',
+        lineJoin: 'round',
+        smoothFactor: 1.35,
+        interactive: false,
+      }
+    );
+  });
+
+  Object.keys(droneRouteTransitLayers).forEach(port => {
+    if (!ports.includes(port)) {
+      pathLayer.removeLayer(droneRouteTransitLayers[port]);
+      delete droneRouteTransitLayers[port];
+    }
+  });
+  Object.keys(droneRouteScanLayers).forEach(port => {
+    if (!ports.includes(port)) {
+      pathLayer.removeLayer(droneRouteScanLayers[port]);
+      delete droneRouteScanLayers[port];
+    }
+  });
+
+  ports.forEach(port => {
+    const drone = allDrones[port] || {};
+    const planned = drone.planned_terminal_point;
+    const actual = drone.terminal_event;
+
+    syncPointMarker(
+      plannedTerminalMarkers,
+      port,
+      planned,
+      {
+        radius: 6,
+        color: '#ffb347',
+        weight: 2,
+        opacity: 0.9,
+        fillColor: '#ff9f1c',
+        fillOpacity: 0.20,
+      },
+      'Planned terminal point'
+    );
+
+    syncPointMarker(
+      terminalEventMarkers,
+      port,
+      actual,
+      {
+        radius: 9,
+        color: '#ff2d55',
+        weight: 2.2,
+        opacity: 0.98,
+        fillColor: '#ff453a',
+        fillOpacity: 0.42,
+      },
+      actual ? `Terminal event: ${actual.kind || 'event'}` : null
+    );
+
+    if (actual && actual.id && !_seenTerminalEventIds.has(actual.id)) {
+      _seenTerminalEventIds.add(actual.id);
+      showToast(`Drone ${port}: terminal event confirmed`, 'success', 4000);
+    }
+  });
+
+  Object.keys(plannedTerminalMarkers).forEach(port => {
+    if (!ports.includes(port)) {
+      pathLayer.removeLayer(plannedTerminalMarkers[port]);
+      delete plannedTerminalMarkers[port];
+    }
+  });
+  Object.keys(terminalEventMarkers).forEach(port => {
+    if (!ports.includes(port)) {
+      pathLayer.removeLayer(terminalEventMarkers[port]);
+      delete terminalEventMarkers[port];
+    }
+  });
+}
+
+function drawCompletedMissions(swarmData) {
+  if (!swarmData || !swarmData.completed_missions) return;
+  
+  // Make sure completedMissionMarkers exists globally
+  if (typeof window.completedMissionMarkers === 'undefined') {
+    window.completedMissionMarkers = {};
+  }
+
+  const missionReasonLabel = (reason) => {
+    switch (String(reason || '')) {
+      case 'visual_coverage_reached':
+        return 'Condition A: Visual coverage threshold reached';
+      case 'terminal_airpoint_reached':
+        return 'Condition B: Terminal airpoint reached';
+      case 'probable_impact_on_visual_loss':
+        return 'Condition C: Probable impact after visual loss near terminal point';
+      default:
+        return 'Condition: Unspecified terminal confirmation';
+    }
+  };
+  
+  swarmData.completed_missions.forEach(mission => {
+    let id = mission.target_id || (mission.lat + ',' + mission.lon);
+    if (!window.completedMissionMarkers[id] && mission.lat && mission.lon) {
+      const hitIcon = L.divIcon({
+        className: 'hit-marker',
+        html: `<div style="background:#ff2d55;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow: 0 0 10px #ff2d55, inset 0 0 4px rgba(0,0,0,0.5);"></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      });
+      let marker = L.marker([mission.lat, mission.lon], { icon: hitIcon }).addTo(map);
+      marker.bindTooltip(
+        `<b>Target Neutralized:</b> ${mission.target_id}` +
+        `<br><b>Drone:</b> ${mission.drone_port}` +
+        `<br><b>Confirmation:</b> ${missionReasonLabel(mission.reason)}` +
+        `<br><b>Visual Coverage:</b> %${(mission.coverage || 0).toFixed(1)}`,
+        { permanent: false, direction: 'top' }
+      );
+      window.completedMissionMarkers[id] = marker;
     }
   });
 }

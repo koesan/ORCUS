@@ -1,465 +1,753 @@
 
 ====================================================================================================
- ORCUS SWARM LOG SESSION STARTED: 2026-03-16 02:26:16.979397+03:00
- SESSION ID: ab86e243
+ ORCUS SWARM LOG SESSION STARTED: 2026-03-27 21:24:13.032600+03:00
+ SESSION ID: 6d650029
 ====================================================================================================
 TIMESTAMP      | LEVEL      | MODULE         | SOURCE       | EVENT
 ----------------------------------------------------------------------------------------------------
-[02:26:16.979] | INFO       | LEADER         | INIT         | Battlespace Manager v4 (Modular Refactor) Started.
-[02:26:16.979] | INFO       | LEADER         | OPT_LOOP     | Proactive Assignment Loop Started.
+[21:24:13.032] | INFO       | LEADER         | INIT         | Battlespace Manager v4 (Modular Refactor) Started.
+[21:24:13.033] | INFO       | LEADER         | OPT_LOOP     | Proactive Assignment Loop Started.
  * Serving Flask app 'app'
  * Debug mode: off
-[02:26:22.899] | INFO       | DroneManager   | CONNECTION   | Connection failed. Retrying... (Attempt 1/3)
-[02:26:23.202] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5763 connected.
-[02:26:23.204] | INFO       | Camera         | ROS          | Subscribed: /webcam/image_raw (port: 5763)
-[02:26:25.643] | INFO       | DroneManager   | CONNECTION   | Connection failed. Retrying... (Attempt 1/3)
-[02:26:25.947] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5773 connected.
-[02:26:25.951] | INFO       | Camera         | ROS          | Subscribed: /webcam_2/image_raw_2 (port: 5773)
-[02:26:28.999] | FUSION_DETAY | TargetFusion   | FUSION       | Sabit global referans aktif: (-35.362775, 149.165878) | Dinamik leader updates ignored
-[02:26:35.330] | INFO       | DroneManager   | PARTITION    | Drone 5763: Assigned 1 cells (Rows 0-1)
-[02:26:35.330] | INFO       | DroneManager   | PARTITION    | Drone 5773: Assigned 1 cells (Rows 1-2)
-[02:26:39.253] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5763
-[02:26:39.253] | INFO       | Navigation     | GRID         | Grid created: 1x1
-[02:26:39.352] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5773
-[02:26:39.353] | INFO       | Navigation     | GRID         | Grid created: 1x1
-[02:27:52.618] | INFO       | DRONE_5763     | TAKEOFF      | Arming motors...[02:27:52.618] | INFO       | DRONE_5773     | TAKEOFF      | Arming motors...
+[21:24:13.353] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=0/0 mission_active=0 tracking_or_attack=0 active_camera=None phases=- status="Waiting for connection..."[21:24:13.354] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=0 raw_buffers=0 target_preview=- drone_preview=- raw_preview=-
 
-[02:27:52.620] | DEBUG      | DRONE_5773     | TAKEOFF      | Arming...
-[02:27:52.620] | DEBUG      | DRONE_5763     | TAKEOFF      | Arming...
-[02:27:53.121] | INFO       | DRONE_5773     | TAKEOFF      | Taking off. Target Altitude: 5 m.
-[02:27:53.121] | INFO       | DRONE_5763     | TAKEOFF      | Taking off. Target Altitude: 5 m.
-[02:28:10.643] | INFO       | DRONE_5773     | TAKEOFF      | Takeoff complete. Altitude: 5 m.[02:28:10.643] | INFO       | DRONE_5763     | TAKEOFF      | Takeoff complete. Altitude: 5 m.
+[21:24:19.012] | INFO       | DroneManager   | CONNECTION   | Connection failed. Retrying... (Attempt 1/3)
+[21:24:19.019] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=0/1 mission_active=0 tracking_or_attack=0 active_camera=None phases=5763:- status="Connection failed. Retrying... (Attempt 1/3)"
+[21:24:19.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=0 raw_buffers=0 target_preview=- drone_preview=- raw_preview=-
+[21:24:19.316] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5763 connected.
+[21:24:19.320] | INFO       | Camera         | ROS          | Subscribed: /webcam/image_raw (port: 5763)
+[21:24:23.549] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=1/2 mission_active=0 tracking_or_attack=0 active_camera=5763 phases=5763:-,5773:- status="Connection failed. Retrying... (Attempt 1/3)"
+[21:24:23.844] | SUCCESS    | DroneManager   | CONNECTION   | Drone 5773 connected.
+[21:24:24.408] | INFO       | WEB_UI         | UI           | Camera selected | port=5763
+[21:24:25.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:24:33.356] | INFO       | DroneManager   | PARTITION    | Drone 5773: Assigned 1 cells (rows 0-0)
+[21:24:34.231] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:24:35.756] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5773
+[21:24:35.757] | INFO       | Navigation     | GRID         | Grid created: 1x1
+[21:24:35.758] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=6
+[21:24:35.758] | INFO       | DRONE_5773     | ROUTE        | Area assigned | scan_points=1 entry=(0,0) exit=(0,0)[21:24:35.760] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363262,149.165292,-0.0m) status="Observation area set successfully. (1x1 grid)"
 
-[02:28:10.644] | INFO       | DRONE_5763     | TAKEOFF      | Altitude reached, proceeding to observation area.
-[02:28:10.644] | INFO       | DRONE_5773     | TAKEOFF      | Altitude reached, proceeding to observation area.
-[02:28:11.645] | INFO       | DRONE_5763     | MISSION      | Altitude reached, proceeding to observation area.
-[02:28:11.645] | INFO       | DRONE_5773     | MISSION      | Altitude reached, proceeding to observation area.
-[02:28:37.900] | INFO       | DRONE_5773     | SCANNER      | Single Cell Scan: Performing 360° rotation.
-[02:28:38.781] | INFO       | DRONE_5763     | SCANNER      | Single Cell Scan: Performing 360° rotation.
-[02:28:40.470] | DEBUG      | CONTROL        | TRACKER_1    | CMD: vx=0.00, yaw=-0.54, cov=0.03
-[02:28:40.470] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 1: İlk detection, smoothing başlatıldı
-[02:28:40.472] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362933, 149.165428, alt=5.0m) | Target(-35.362709, 149.165417) | HorizDist=25.0m SlantRange=25.5m | σ_r=9.1m σ_t=2.6m | sin_eps=0.198 edge=0.41 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:28:40.473] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 0 grup (0 üye) | IDs: [1, 2, 3] | avg_σ=9.5m max_σ=9.7m
-[02:28:40.474] | PUANLAMA   | Target         | QUALITY      | T1: D5773[OWNER] quality=10.60 | obs=1 consec=1
-[02:28:40.474] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T1 (TID:1) @ (-35.362709, 149.165417) | Owner: Drone_5773
-[02:28:40.476] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS eklendi | drone=5773 | gps=(-35.362709,149.165417) | ned=(7.4,-41.8)m | σ_in=9.4m | conf=0.79
-[02:28:40.477] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 1→2
-[02:28:40.662] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 1: Smoothed (299.0,375.4) → (297.3,405.2) | delta=(1.7,-29.8) | conf=0.72
-[02:28:40.667] | GROUP      | LEADER         | CLUSTER      | T2: Became GROUP x3 (GID:G1)
-[02:28:40.667] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T2 (TID:1) @ (-35.362652, 149.165418) | Owner: Drone_5773
-[02:28:40.858] | LIFECYCLE  | LEADER         | TRACK        | T1: TENTATIVE → CONFIRMED (t=0.38s, obs=3)
-[02:28:41.042] | GRACE      | LEADER         | GRACE        | T1: GRACE PERIOD STARTED - Coasting (NoObs=0.6s)
-[02:28:41.042] | LIFECYCLE  | LEADER         | TRACK        | T2: TENTATIVE → CONFIRMED (t=0.38s, obs=2)
-[02:28:41.043] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5773: TRACK | target=T2 | lat=-35.362654 lon=149.165412 | σ=11.1m
-[02:28:41.080] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 2 bbox | 0 grup (0 üye) | IDs: [4, 5] | avg_σ=19.7m max_σ=19.7m
-[02:28:41.081] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T3 (TID:4) @ (-35.362540, 149.165078) | Owner: Drone_5763
-[02:28:41.081] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5763 LocalID 4→5
-[02:28:41.149] | FUSION_DETAY | TargetFusion   | FUSION       | T1: Yeni EKF filtresi oluşturuldu
-[02:28:41.151] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF GÜNCELLENDİ | gps=(-35.362705,149.165393) | ned=(7.9,-44.0)m | σ_out=8.4m | Δ=0.0m | vel=0.0m/s
-[02:28:41.152] | FUSION_DETAY | FusionEngine   | FUSION       | MERGE_REDD: T1+T3 | dist=31.5m mahal=999.0σ | eşik=20.0m
-[02:28:41.275] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T4 (TID:6) @ (-35.362540, 149.165089) | Owner: Drone_5763
-[02:28:41.711] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5773 LocalID 1→3
-[02:28:41.877] | LIFECYCLE  | LEADER         | TRACK        | T1: CONFIRMED → LOST (NoObs=1.4s)
-[02:28:42.130] | LIFECYCLE  | LEADER         | TRACK        | T4: TENTATIVE → CONFIRMED (t=0.86s, obs=2)
-[02:28:42.130] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5763 LocalID 6→9
-[02:28:42.313] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T5 (TID:11) @ (-35.362544, 149.165090) | Owner: Drone_5763
-[02:28:42.997] | LIFECYCLE  | LEADER         | LIFECYCLE    | TENTATIVE DELETED: T3 | NoObs=1.56s
-[02:28:42.998] | LIFECYCLE  | LEADER         | TRACK        | T1: LOST → CONFIRMED (re-acquired) | drops=1 lost_for=2.5s
-[02:28:42.998] | SUCCESS    | DRONE_5773     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
-[02:28:42.998] | STATE      | DRONE_5773     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | Attack=False | Target=None
-[02:28:43.071] | FILTER     | Coordinator    | FILTER       | T1: HAM→FİLTRE Δ=7.9m | ham=(-35.362659,149.165460) | filtreli=(-35.362705,149.165393) | σ=8.4m
-[02:28:43.154] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(4): T1[CONFIRMED/PENDING/OWNED] @-35.362705,149.165393 | Local:[5773:2] | D5773 | obs=6 consec=3 sw=0 | σ=12.0m | T2[CONFIRMED/PENDING/FREE] @-35.362653,149.165413 | Local:[5773:13] | FREE | obs=14 consec=14 sw=0 GRP[G1]x2 | σ=12.2m | T4[CONFIRMED/PENDING/FREE] @-35.362543,149.165058 | Local:[5763:15] | FREE | obs=3 consec=3 sw=0 GRP[G1]x2 | σ=19.5m | T5[TENTATIVE/PENDING/FREE] @-35.362544,149.165090 | Local:[5763:11] | FREE | obs=1 consec=1 sw=0 GRP[G1]x2 | σ=19.5m
-[02:28:43.154] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=4 | Confirmed=3 Pending=1 | Groups=3 (toplam üye=6) | MultiDroneSeen=0
-[02:28:43.154] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[MISSION] alt=5.0m tgt=- | D5773[TRACKING] alt=5.1m tgt=T1
-[02:28:43.158] | GUARD      | LEADER         | ASSIGN       | CAPACITY_GUARD: Drone_5773 already active on 5773
-[02:28:43.161] | OWNERSHIP  | LEADER         | OWNERSHIP    | T4: FREE → OWNED (assigned to Drone_5763) | quality=9.20 obs=3
-[02:28:43.161] | ASSIGN     | LEADER         | ASSIGN       | HUNGARIAN: T4 -> DRONE_5763 (Dist: 42.6m | Score: 373.0)
-[02:28:43.162] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5773: 'T1', 5763: 'T4'}
-[02:28:43.164] | FUSION     | OPT_LOOP       | FUSION       | 1 targets merged via fusion.
-[02:28:43.264] | SUCCESS    | DRONE_5763     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
-[02:28:43.265] | STATE      | DRONE_5763     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | Attack=False | Target=None
-[02:28:43.472] | DEBUG      | CONTROL        | TRACKER_17   | CMD: vx=0.00, yaw=0.36, cov=0.01 [+29 suppressed in 3.0s]
-[02:28:43.483] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T6 (TID:17) @ (-35.362543, 149.165083) | Owner: Drone_5763
-[02:28:43.485] | EKF_INPUT  | TargetFusion   | FILTER       | T6: OBS eklendi | drone=5763 | gps=(-35.362543,149.165083) | ned=(25.9,-72.1)m | σ_in=19.6m | conf=0.42 [+30 suppressed in 3.0s]
-[02:28:43.486] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T6 → CONFIRMED T4 (dist=2.3m)
-[02:28:43.785] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T7 (TID:19) @ (-35.362542, 149.165090) | Owner: Drone_5763
-[02:28:44.039] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T8 (TID:20) @ (-35.362544, 149.165091) | Owner: Drone_5763
-[02:28:44.042] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T8 → CONFIRMED T4 (dist=0.7m)
-[02:28:44.159] | INFO       | TRACKER        | FPS          | FPS calibrated to 9.4fps | buffer=28
-[02:28:44.185] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T9 (TID:25) @ (-35.362543, 149.165081) | Owner: Drone_5763
-[02:28:44.185] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T9 → CONFIRMED T4 (dist=0.9m)
-[02:28:44.277] | INFO       | TRACKER        | FPS          | FPS calibrated to 8.8fps | buffer=26
-[02:28:44.343] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 24→27
-[02:28:44.567] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T10 (TID:30) @ (-35.362607, 149.165289) | Owner: Drone_5763
-[02:28:44.881] | LIFECYCLE  | LEADER         | TRACK        | T10: TENTATIVE → CONFIRMED (t=0.31s, obs=5)
-[02:28:45.169] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF GÜNCELLENDİ | gps=(-35.362533,149.165447) | ned=(27.0,-39.1)m | σ_out=8.0m | Δ=16.2m | vel=5.1m/s [+6 suppressed in 3.0s]
-[02:28:45.342] | LIFECYCLE  | LEADER         | LIFECYCLE    | TENTATIVE DELETED: T7 | NoObs=1.56s
-[02:28:45.432] | ASSIGN     | LEADER         | ASSIGN       | Released T1 from Drone_5773 (one-drone-one-target)
-[02:28:45.433] | OWNERSHIP  | LEADER         | OWNERSHIP    | T2: FREE → OWNED (assigned to Drone_5773) | quality=10.69 obs=32
-[02:28:45.495] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362932, 149.165428, alt=5.1m) | Target(-35.362656, 149.165452) | HorizDist=30.9m SlantRange=31.3m | σ_r=11.8m σ_t=3.0m | sin_eps=0.162 edge=0.12 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:28:45.581] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T11 (TID:38) @ (-35.362537, 149.165060) | Owner: Drone_5763
-[02:28:45.581] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T11 → CONFIRMED T4 (dist=0.3m)
-[02:28:45.721] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 30: Smoothed (966.7,331.7) → (1003.7,333.2) | delta=(-37.0,-1.5) | conf=0.79
-[02:28:45.799] | LIFECYCLE  | LEADER         | TRACK        | T1: CONFIRMED → LOST (NoObs=1.3s)
-[02:28:45.833] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T12 (TID:41) @ (-35.362569, 149.165223) | Owner: Drone_5773
-[02:28:46.029] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T13 (TID:42) @ (-35.362537, 149.165075) | Owner: Drone_5763
-[02:28:46.029] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T13 → CONFIRMED T4 (dist=0.6m)
-[02:28:46.103] | ID_UPDATE  | LEADER         | ID           | T10: Drone_5763 LocalID 30→31
-[02:28:46.154] | LIFECYCLE  | LEADER         | TRACK        | T12: TENTATIVE → CONFIRMED (t=0.32s, obs=2)
-[02:28:46.314] | GRACE      | LEADER         | GRACE        | T4: GRACE PERIOD STARTED - Coasting (NoObs=0.3s) [+12 suppressed in 5.0s]
-[02:28:46.315] | ID_UPDATE  | LEADER         | ID           | T10: Drone_5773 LocalID 41→45
-[02:28:46.467] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T14 (TID:47) @ (-35.362541, 149.165087) | Owner: Drone_5763
-[02:28:46.467] | REDIRECT   | LEADER         | LIFECYCLE    | TENTATIVE T14 → CONFIRMED T4 (dist=1.1m)
-[02:28:46.490] | DEBUG      | CONTROL        | TRACKER_2    | CMD: vx=0.00, yaw=-0.42, cov=0.09 [+69 suppressed in 3.0s]
-[02:28:46.501] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS eklendi | drone=5773 | gps=(-35.362652,149.165445) | ned=(13.7,-39.3)m | σ_in=12.3m | conf=0.76 [+101 suppressed in 3.0s]
-[02:28:47.173] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T2[CONFIRMED/PENDING/OWNED] @-35.362655,149.165432 | Local:[5773:1] | D5773 | obs=53 consec=53 sw=0 GRP[G1]x3 | σ=12.3m Δ=1.7m | T4[CONFIRMED/PENDING/OWNED] @-35.362549,149.165075 | Local:[5763:46] | D5763 | obs=33 consec=33 sw=0 GRP[G1]x2 | σ=19.8m Δ=1.7m | T12[CONFIRMED/PENDING/FREE] @-35.362545,149.165108 | Local:[5773:41,5763:44] | FREE | obs=8 consec=8 sw=0 | σ=19.7m
-[02:28:47.174] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=5.1m tgt=T4 | D5773[TRACKING] alt=5.1m tgt=T2
-[02:28:47.274] | ID_UPDATE  | LEADER         | ID           | T12: Drone_5773 LocalID 41→52
-[02:28:47.587] | ID_UPDATE  | LEADER         | ID           | T4: Drone_5773 LocalID 52→56
-[02:28:48.501] | LIFECYCLE  | LEADER         | TRACK        | T1: LOST → DELETED (NoObs=4.0s)
-[02:28:48.544] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 3 grup (7 üye) | IDs: [1, 41, 59] | avg_σ=24.2m max_σ=40.0m [+81 suppressed in 8.0s]
-[02:28:49.074] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5763: TRACK | target=T10 | lat=-35.362653 lon=149.165246 | σ=8.1m [+255 suppressed in 8.0s]
-[02:28:49.178] | EKF_OUTPUT | FusionEngine   | FILTER       | T4: EKF GÜNCELLENDİ | gps=(-35.362605,149.165090) | ned=(18.9,-71.5)m | σ_out=11.5m | Δ=6.7m | vel=1.2m/s [+8 suppressed in 3.0s]
-[02:28:49.533] | DEBUG      | CONTROL        | TRACKER_44   | CMD: vx=0.00, yaw=0.01, cov=0.05 [+71 suppressed in 3.0s]
-[02:28:49.541] | EKF_INPUT  | TargetFusion   | FILTER       | T10: OBS eklendi | drone=5763 | gps=(-35.362606,149.165303) | ned=(18.9,-52.1)m | σ_in=19.8m | conf=0.60 [+168 suppressed in 3.0s]
-[02:28:50.086] | LIFECYCLE  | LEADER         | TRACK        | T12: CONFIRMED → LOST (NoObs=1.3s)
-[02:28:50.524] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362932, 149.165035, alt=5.1m) | Target(-35.362602, 149.165295) | HorizDist=43.7m SlantRange=44.0m | σ_r=19.1m σ_t=4.1m | sin_eps=0.115 edge=0.24 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:28:50.541] | PUANLAMA   | Target         | QUALITY      | T10: D5763[OWNER] quality=10.17 | obs=123 consec=123 [+358 suppressed in 10.0s]
-[02:28:50.694] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 2 bbox | 2 grup (4 üye) | IDs: [46, 57] | avg_σ=19.7m max_σ=19.8m [+94 suppressed in 8.0s]
-[02:28:51.115] | FILTER     | Coordinator    | FILTER       | T4: HAM→FİLTRE Δ=7.2m | ham=(-35.362541,149.165096) | filtreli=(-35.362605,149.165090) | σ=11.5m [+156 suppressed in 8.0s]
-[02:28:51.120] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 45: Smoothed (416.1,328.7) → (413.8,329.0) | delta=(2.4,-0.3) | conf=0.50
-[02:28:51.182] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T4[CONFIRMED/PENDING/OWNED] @-35.362589,149.165090 | Local:[5763:46,5773:56] | D5763 | obs=121 consec=121 sw=0 GRP[G1]x2 | σ=39.0m Δ=4.7m | T2[CONFIRMED/PENDING/OWNED] @-35.362657,149.165425 | Local:[5773:1] | D5773 | obs=98 consec=98 sw=0 GRP[G1]x3 | σ=12.3m Δ=0.8m | T10[CONFIRMED/PENDING/FREE] @-35.362658,149.165246 | Local:[5763:30,5773:41] | FREE | obs=137 consec=137 sw=0 GRP[G2]x2 | σ=20.0m
-[02:28:51.182] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=5.1m tgt=T4 | D5773[TRACKING] alt=5.1m tgt=T2
-[02:28:51.744] | GROUP      | LEADER         | CLUSTER      | T4: Group size changed x2→x3 [+18 suppressed in 8.0s]
-[02:28:52.221] | USER_CMD   | LEADER         | USER         | ATTACK MODE ACTIVATED
-[02:28:52.226] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T10 → ECHO_WAIT
-[02:28:52.226] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T4 → ECHO_WAIT
-[02:28:52.227] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T2 → ECHO_WAIT
-[02:28:52.243] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | → CENTERING | Target=T4
-[02:28:52.243] | DEBUG      | DRONE_5763     | FILTER       | Filtered position from leader: lat=-35.362615 lon=149.165089
-[02:28:52.244] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | → CENTERING | Target=T2
-[02:28:52.245] | DEBUG      | DRONE_5773     | FILTER       | Filtered position from leader: lat=-35.362657 lon=149.165420
-[02:28:52.586] | DEBUG      | CONTROL        | TRACKER_44   | CMD: vx=2.00, yaw=-0.33, cov=0.01 [+68 suppressed in 3.0s]
-[02:28:52.673] | INFO       | TRACK          | TRACKER      | Lock switched to 30 after 5 frames
-[02:28:52.689] | INFO       | TRACK          | TRACKER      | Lock switched to 2 after 5 frames
-[02:28:52.699] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 65: İlk detection, smoothing başlatıldı [+28 suppressed in 10.0s]
-[02:28:53.187] | LIFECYCLE  | LEADER         | TRACK        | T12: LOST → DELETED (NoObs=4.4s)
-[02:28:53.188] | EKF_OUTPUT | FusionEngine   | FILTER       | T10: EKF GÜNCELLENDİ | gps=(-35.362671,149.165242) | ned=(11.6,-57.7)m | σ_out=6.2m | Δ=10.2m | vel=0.6m/s [+6 suppressed in 3.0s]
-[02:28:55.190] | STALE      | LEADER         | STALE        | T10: STALE TARGET - Forcing LOST (NoObs=2.9s)
-[02:28:55.190] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362615,149.165087 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m Δ=2.9m | T2[CONFIRMED/ENGAGED/OWNED] @-35.362658,149.165420 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:28:55.191] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
-[02:28:55.192] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.1m tgt=T4 | D5773[ENGAGING] alt=5.1m tgt=T2
-[02:28:55.241] | INFO       | TRACK          | TRACKER      | IoU Fallback: 30 -> 90 (IoU: 0.71)
-[02:28:55.541] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362932, 149.165035, alt=5.1m) | Target(-35.362657, 149.165507) | HorizDist=52.7m SlantRange=52.9m | σ_r=25.6m σ_t=4.8m | sin_eps=0.096 edge=0.64 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:28:55.638] | DEBUG      | CONTROL        | TRACKER_2    | CMD: vx=2.00, yaw=0.19, cov=0.02 [+63 suppressed in 3.0s]
-[02:28:55.819] | WARNING    | TRACK          | TRACKER      | Primary ID 90 lost after 5 frames
-[02:28:56.169] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 89: Smoothed (1219.8,318.2) → (1233.7,319.1) | delta=(-13.9,-1.0) | conf=0.66
-[02:28:57.194] | LIFECYCLE  | LEADER         | TRACK        | T10: LOST → DELETED (NoObs=4.9s)
-[02:28:58.636] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | Step 7: TARGET CENTERED → DIVING! (settled 3 frames)
-[02:28:58.636] | ATTACK_FINAL | DRONE_5773     | LEADER       | T2 | DIVING — autonomous kamikaze
-[02:28:58.636] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | → DIVING | Target=T2
-[02:28:58.710] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.65, cov=0.01 [+67 suppressed in 3.0s]
-[02:28:58.816] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 3 grup (8 üye) | IDs: [30, 46, 101] | avg_σ=23.2m max_σ=29.5m [+95 suppressed in 8.0s]
-[02:28:59.198] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362619,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:28:59.200] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.1m tgt=T4 | D5773[ENGAGING] alt=5.1m tgt=T2
-[02:28:59.969] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.83 vz=0.25 yaw=0.11 pitch=-1.7° | alt=5.0m cov=2.3%
-[02:29:00.135] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 1 grup (3 üye) | IDs: [1, 41, 45] | avg_σ=23.6m max_σ=28.5m [+65 suppressed in 8.0s]
-[02:29:00.214] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.039). Clamping to 0.050.
-[02:29:00.569] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362932, 149.165035, alt=5.1m) | Target(-35.362654, 149.165504) | HorizDist=52.6m SlantRange=52.9m | σ_r=25.5m σ_t=4.8m | sin_eps=0.096 edge=0.30 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:29:00.595] | DEBUG      | GROUP          | CLUSTER      | Group G3 expired
-[02:29:00.840] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (2.11, 0.26) -> (2.12, 0.16)
-[02:29:01.203] | GUARD      | LEADER         | GUARD        | PRUNE GUARD: T2 is ATTACKING — kept (NoObs=9.0s)
-[02:29:01.237] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 81: Smoothed (876.2,314.9) → (893.6,314.8) | delta=(-17.4,0.1) | conf=0.54
-[02:29:01.752] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.37, cov=0.01 [+68 suppressed in 3.0s]
-[02:29:02.317] | TIMEOUT    | DRONE_5763     | ATTACK_FLOW  | CENTERING timeout — forcing dive
-[02:29:02.318] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | → DIVING | Target=T4
-[02:29:02.639] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.53 vz=-0.06 yaw=-0.07 pitch=-5.4° | alt=4.9m cov=2.6% [+2 suppressed in 2.0s]
-[02:29:03.045] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.49 vz=0.22 yaw=0.25 pitch=-0.1° | alt=5.1m cov=0.8%
-[02:29:03.206] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362620,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:29:03.207] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.0m tgt=T4 | D5773[ENGAGING] alt=4.9m tgt=T2
-[02:29:03.437] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.047). Clamping to 0.050. [+19 suppressed in 3.0s]
-[02:29:04.770] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.01, cov=0.01 [+65 suppressed in 3.0s]
-[02:29:04.781] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (1.63, -0.12) -> (0.96, 1.32)
-[02:29:05.200] | DEBUG      | GROUP          | CLUSTER      | Group G1 expired
-[02:29:05.384] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=5.28 vz=-0.40 yaw=0.01 pitch=-14.1° | alt=4.9m cov=3.4% [+2 suppressed in 2.0s]
-[02:29:05.385] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (5.28, 0.02) -> (5.27, -0.22)
-[02:29:05.616] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362929, 149.165042, alt=5.0m) | Target(-35.362771, 149.165328) | HorizDist=31.4m SlantRange=31.8m | σ_r=12.2m σ_t=3.1m | sin_eps=0.156 edge=0.18 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:29:05.621] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 120: İlk detection, smoothing başlatıldı [+9 suppressed in 10.0s]
-[02:29:05.717] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.47 vz=-0.18 yaw=-0.04 pitch=-3.7° | alt=5.0m cov=0.8% [+2 suppressed in 2.0s]
-[02:29:06.255] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 28: Smoothed (534.4,148.2) → (538.0,148.0) | delta=(-3.6,0.2) | conf=0.66
-[02:29:06.908] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.050). Clamping to 0.050. [+42 suppressed in 3.0s]
-[02:29:06.917] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 1 grup (4 üye) | IDs: [30, 88, 89] | avg_σ=41.5m max_σ=72.0m [+164 suppressed in 8.0s]
-[02:29:07.211] | GUARD      | LEADER         | GUARD        | PRUNE GUARD: T2 is ATTACKING — kept (NoObs=15.0s) [+5 suppressed in 5.0s]
-[02:29:07.211] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362620,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:29:07.216] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
-[02:29:07.217] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.0m tgt=T4 | D5773[ENGAGING] alt=4.9m tgt=T2
-[02:29:07.820] | DEBUG      | CONTROL        | TRACKER_2    | CMD: vx=2.00, yaw=-0.00, cov=0.05 [+64 suppressed in 3.0s]
-[02:29:08.261] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=6.92 vz=-0.01 yaw=-0.01 pitch=-10.6° | alt=4.9m cov=5.7% [+2 suppressed in 2.0s]
-[02:29:08.398] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=5.14 vz=-0.46 yaw=-0.00 pitch=-14.5° | alt=5.0m cov=1.0% [+2 suppressed in 2.0s]
-[02:29:08.499] | DEBUG      | GROUP          | CLUSTER      | Group G2 expired [+1 suppressed in 3.0s]
-[02:29:09.224] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (5.36, 0.00) -> (2.93, 4.49)
-[02:29:09.964] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (7.90, -0.06) -> (7.89, -0.44)
-[02:29:10.640] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362789, 149.165421, alt=4.8m) | Target(-35.362713, 149.165443) | HorizDist=8.7m SlantRange=9.9m | σ_r=3.8m σ_t=1.5m | sin_eps=0.481 edge=0.56 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:29:10.790] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=6.94 vz=0.77 yaw=-0.02 pitch=-7.6° | alt=4.8m cov=20.9% [+2 suppressed in 2.0s]
-[02:29:10.847] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.01, cov=0.01 [+72 suppressed in 3.0s]
-[02:29:10.854] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=6.16 vz=-0.35 yaw=-0.00 pitch=-8.2° | alt=5.0m cov=1.2% [+2 suppressed in 2.0s]
-[02:29:11.223] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362620,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:29:11.223] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.0m tgt=T4 | D5773[ENGAGING] alt=4.7m tgt=T2
-[02:29:11.263] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 81: Smoothed (606.1,232.4) → (606.5,213.3) | delta=(-0.5,19.1) | conf=0.65
-[02:29:11.716] | WARNING    | TRACK          | TRACKER      | Primary ID 2 lost after 5 frames
-[02:29:11.734] | DEBUG      | GROUP          | CLUSTER      | Group G3 expired [+5 suppressed in 3.0s]
-[02:29:13.227] | GUARD      | LEADER         | GUARD        | TERMINAL ATTACK BYPASS: T2 | NoObs=21.0s | Status=ATTACKING | Drone=5773 [+5 suppressed in 5.0s]
-[02:29:13.285] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=7.05 vz=0.07 yaw=-0.01 pitch=-4.8° | alt=5.0m cov=1.5% [+2 suppressed in 2.0s]
-[02:29:13.286] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (7.05, -0.02) -> (3.90, 5.87)
-[02:29:13.918] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.01, cov=0.02 [+42 suppressed in 3.0s]
-[02:29:15.230] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362620,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=110 consec=110 sw=0 GRP[G1]x3 | σ=12.2m
-[02:29:15.231] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=4.9m tgt=T4 | D5773[ENGAGING] alt=3.7m tgt=T2
-[02:29:15.677] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362836, 149.165216, alt=4.9m) | Target(-35.362709, 149.165422) | HorizDist=23.5m SlantRange=24.0m | σ_r=8.6m σ_t=2.4m | sin_eps=0.206 edge=0.06 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:29:15.965] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=7.56 vz=0.30 yaw=-0.01 pitch=-3.4° | alt=4.9m cov=2.4% [+2 suppressed in 2.0s]
-[02:29:16.319] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 81: Smoothed (579.8,342.9) → (582.3,337.4) | delta=(-2.5,5.6) | conf=0.72
-[02:29:16.585] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 81: Size instability detected (ratio=0.34), reset smoothing [+4 suppressed in 10.0s]
-[02:29:16.749] | DEBUG      | GROUP          | CLUSTER      | Group G6 expired [+3 suppressed in 3.0s]
-[02:29:16.954] | DEBUG      | CONTROL        | TRACKER_81   | CMD: vx=2.00, yaw=0.01, cov=0.03 [+33 suppressed in 3.0s]
-[02:29:17.773] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (7.91, -0.06) -> (4.53, 6.48)
-[02:29:18.545] | STOP       | DRONE_5763     | MISSION_CTRL | Zero velocity sent before RTL
-[02:29:18.546] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:18.568] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 1 bbox | 1 grup (3 üye) | IDs: [139] | avg_σ=6.9m max_σ=6.9m [+44 suppressed in 8.0s]
-[02:29:18.573] | GUARD      | LEADER         | GUARD        | TERMINAL ATTACK BYPASS: T2 | NoObs=26.3s | Status=ATTACKING | Drone=5773 [+5 suppressed in 5.0s]
-[02:29:18.574] | PUANLAMA   | Target         | QUALITY      | T2: D5763[SECONDARY] quality=12.51 | obs=110 consec=110 [+98 suppressed in 10.0s]
-[02:29:18.577] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS eklendi | drone=5763 | gps=(-35.362709,149.165442) | ned=(7.4,-39.6)m | σ_in=6.9m | conf=0.76 [+155 suppressed in 3.0s]
-[02:29:18.578] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5763: TRACK | target=T2 | lat=-35.362658 lon=149.165419 | σ=9.3m [+180 suppressed in 8.0s]
-[02:29:18.578] | ABORT      | DRONE_5763     | ATTACK_FLOW  | Attack aborted: STOP received
-[02:29:18.589] | STATE      | DRONE_5763     | SYSTEM       | TRACKING ENDED | Frames=409 | Attack=False
-[02:29:18.589] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:19.237] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T4[CONFIRMED/ENGAGED/OWNED] @-35.362620,149.165086 | Local:[-] | D5763 | obs=146 consec=146 sw=0 GRP[G1]x2 | σ=37.8m | T2[CONFIRMED/ATTACKING/OWNED] @-35.362658,149.165419 | Local:[-] | D5773 | obs=111 consec=111 sw=0 GRP[G1]x3 | σ=6.9m
-[02:29:19.238] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
-[02:29:19.238] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[IDLE] alt=4.4m tgt=- | D5773[ENGAGING] alt=3.7m tgt=T2
-[02:29:19.238] | FUSION_DETAY | TargetFusion   | FUSION       | TOPLAM: 1 hedef işlendi, 1 sonuç [+30 suppressed in 15.0s]
-[02:29:19.238] | EKF_OUTPUT | FusionEngine   | FILTER       | T2: EKF GÜNCELLENDİ | gps=(-35.362709,149.165440) | ned=(7.3,-39.8)m | σ_out=7.8m | Δ=0.2m | vel=0.3m/s [+2 suppressed in 3.0s]
-[02:29:19.591] | STOP       | DRONE_5763     | MISSION_CTRL | Engagement state cleared
-[02:29:19.591] | LIFECYCLE  | LEADER         | TRACK        | Drone_5763 RELEASED: targets=['T4']
-[02:29:19.591] | STOP       | DRONE_5763     | MISSION_CTRL | Swarm assignment released
-[02:29:19.592] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:19.592] | STOP       | DRONE_5773     | MISSION_CTRL | Zero velocity sent before RTL
-[02:29:19.592] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:19.613] | STALE      | LEADER         | STALE        | T4: STALE TARGET - Forcing LOST (NoObs=27.4s)
-[02:29:19.613] | ABORT      | DRONE_5773     | ATTACK_FLOW  | Attack aborted: STOP received
-[02:29:19.625] | STATE      | DRONE_5773     | SYSTEM       | TRACKING ENDED | Frames=416 | Attack=False
-[02:29:19.626] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:20.627] | STOP       | DRONE_5773     | MISSION_CTRL | Engagement state cleared
-[02:29:20.627] | LIFECYCLE  | LEADER         | TRACK        | Drone_5773 RELEASED: targets=['T2']
-[02:29:20.627] | STOP       | DRONE_5773     | MISSION_CTRL | Swarm assignment released
-[02:29:20.628] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:29:20.628] | RESET      | LEADER         | SYSTEM       | Soft reset completed: radar, targets, fusion and ownership cleared.
-[02:31:52.042] | INFO       | DroneManager   | PARTITION    | Drone 5763: Assigned 1 cells (Rows 0-1)
-[02:31:52.043] | INFO       | DroneManager   | PARTITION    | Drone 5773: Assigned 1 cells (Rows 1-2)
-[02:31:52.043] | INFO       | Navigation     | GRID         | Grid created: 1x1
-[02:31:52.043] | INFO       | Navigation     | GRID         | Grid created: 1x1
-[02:31:55.615] | INFO       | DRONE_5763     | TAKEOFF      | Arming motors...
-[02:31:55.615] | INFO       | DRONE_5773     | TAKEOFF      | Arming motors...
-[02:31:55.619] | DEBUG      | DRONE_5773     | TAKEOFF      | Arming...[02:31:55.621] | DEBUG      | DRONE_5763     | TAKEOFF      | Arming...
+[21:24:35.761] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=0 tracking_or_attack=0 active_camera=5763 phases=5763:-,5773:IDLE status="Observation area set successfully. (1x1 grid)"
+[21:24:35.842] | SUCCESS    | DroneManager   | CONTROLLER   | Controller created for Port 5763
+[21:24:35.843] | INFO       | DRONE_5763     | ROUTE        | Area assigned | scan_points=1 entry=(0,0) exit=(0,0)
+[21:24:36.230] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=6
+[21:24:36.232] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363262,149.165237,-0.0m) status="Observation area set successfully. (1x1 grid)"
+[21:24:36.810] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: IDLE -> TRANSIT | mission start requested
+[21:24:36.810] | INFO       | DRONE_5763     | MISSION_START | Mission start requested | type=collision resume_point=None
+[21:24:36.811] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: TRANSIT -> TAKEOFF | arm and takeoff[21:24:36.811] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: IDLE -> TRANSIT | mission start requested
 
-[02:31:57.624] | INFO       | DRONE_5763     | TAKEOFF      | Taking off. Target Altitude: 5 m.
-[02:31:58.125] | INFO       | DRONE_5773     | TAKEOFF      | Taking off. Target Altitude: 5 m.
-[02:32:13.643] | INFO       | DRONE_5763     | TAKEOFF      | Takeoff complete. Altitude: 5 m.
-[02:32:13.643] | INFO       | DRONE_5763     | TAKEOFF      | Altitude reached, proceeding to observation area.
-[02:32:13.644] | INFO       | DRONE_5773     | TAKEOFF      | Takeoff complete. Altitude: 5 m.
-[02:32:13.644] | INFO       | DRONE_5773     | TAKEOFF      | Altitude reached, proceeding to observation area.
-[02:32:14.645] | INFO       | DRONE_5763     | MISSION      | Altitude reached, proceeding to observation area.[02:32:14.646] | INFO       | DRONE_5773     | MISSION      | Altitude reached, proceeding to observation area.
+[21:24:36.811] | INFO       | DRONE_5773     | MISSION_START | Mission start requested | type=collision resume_point=None
+[21:24:36.812] | INFO       | DRONE_5763     | TAKEOFF      | Arming motors...
+[21:24:36.813] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: TRANSIT -> TAKEOFF | arm and takeoff
+[21:24:36.813] | DEBUG      | DRONE_5763     | TAKEOFF      | Arming...
+[21:24:36.814] | INFO       | DRONE_5773     | TAKEOFF      | Arming motors...
+[21:24:36.815] | DEBUG      | DRONE_5773     | TAKEOFF      | Arming...
+[21:24:37.229] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=TAKEOFF transit=entry scan_points=6
+[21:24:40.810] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-[21:24:40.811] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TAKEOFF mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363262,149.165237,0.0m) status="Taking off. Target Altitude: 5 m."
 
-[02:32:40.153] | INFO       | DRONE_5773     | SCANNER      | Single Cell Scan: Performing 360° rotation.
-[02:32:40.298] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362662, 149.165412, alt=3.7m) | Target(-35.362490, 149.165298) | HorizDist=21.8m SlantRange=22.1m | σ_r=10.3m σ_t=2.3m | sin_eps=0.168 edge=0.50 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:32:40.320] | DEBUG      | CONTROL        | TRACKER_142  | CMD: vx=0.00, yaw=-0.64, cov=0.03 [+18 suppressed in 3.0s]
-[02:32:40.320] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 142: İlk detection, smoothing başlatıldı [+9 suppressed in 10.0s]
-[02:32:40.321] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 1 bbox | 1 grup (3 üye) | IDs: [142] | avg_σ=12.6m max_σ=12.6m [+45 suppressed in 8.0s]
-[02:32:40.322] | PUANLAMA   | Target         | QUALITY      | T1: D5773[OWNER] quality=9.40 | obs=1 consec=1
-[02:32:40.322] | GROUP      | LEADER         | CLUSTER      | T1: Became GROUP x3 (GID:G1) [+1 suppressed in 8.0s]
-[02:32:40.322] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T1 (TID:142) @ (-35.362489, 149.165298) | Owner: Drone_5773
-[02:32:40.322] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS eklendi | drone=5773 | gps=(-35.362489,149.165298) | ned=(31.8,-52.6)m | σ_in=12.6m | conf=0.74
-[02:32:40.383] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 142: Smoothed (224.2,444.8) → (225.4,438.6) | delta=(-1.1,6.2) | conf=0.74
-[02:32:40.759] | LIFECYCLE  | LEADER         | TRACK        | T1: TENTATIVE → CONFIRMED (t=0.44s, obs=3)
-[02:32:40.759] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5773: HOVER | target=T1 | lat=-35.362654 lon=149.165406 | σ=11.5m
-[02:32:40.759] | SUCCESS    | DRONE_5773     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
-[02:32:40.759] | STATE      | DRONE_5773     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.00m | Attack=False | Target=None
-[02:32:40.831] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362662 lon=149.165411
-[02:32:40.901] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362654 lon=149.165407
-[02:32:40.922] | INFO       | DRONE_5763     | SCANNER      | Single Cell Scan: Performing 360° rotation.
-[02:32:40.991] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362647 lon=149.165404
-[02:32:41.042] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 1 bbox | 0 grup (0 üye) | IDs: [145] | avg_σ=21.6m max_σ=21.6m [+2 suppressed in 8.0s]
-[02:32:41.043] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T2 (TID:145) @ (-35.362509, 149.165070) | Owner: Drone_5763
-[02:32:41.091] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362640 lon=149.165401
-[02:32:41.183] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362630 lon=149.165400
-[02:32:41.299] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362620 lon=149.165398
-[02:32:41.376] | FILTER_FALLBACK | Coordinator    | FILTER       | T1: EKF yok, ham veri kullanılıyor | lat=-35.362611 lon=149.165401
-[02:32:41.457] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/PENDING/OWNED] @-35.362639,149.165404 | Local:[5773:142] | D5773 | obs=11 consec=11 sw=0 GRP[G1]x3 | σ=10.6m | T2[TENTATIVE/PENDING/OWNED] @-35.362546,149.165069 | Local:[5763:145] | D5763 | obs=0 consec=0 sw=0 | σ=18.8m
-[02:32:41.457] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=1 Pending=1 | Groups=1 (toplam üye=3) | MultiDroneSeen=0
-[02:32:41.457] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[MISSION] alt=5.0m tgt=- | D5773[TRACKING] alt=5.0m tgt=T1
-[02:32:41.457] | FUSION_DETAY | TargetFusion   | FUSION       | T1: Yeni EKF filtresi oluşturuldu [+1 suppressed in 15.0s]
-[02:32:41.458] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF GÜNCELLENDİ | gps=(-35.362611,149.165401) | ned=(18.3,-43.3)m | σ_out=8.8m | Δ=0.0m | vel=0.0m/s
-[02:32:41.467] | FILTER     | Coordinator    | FILTER       | T1: HAM→FİLTRE Δ=6.0m | ham=(-35.362665,149.165405) | filtreli=(-35.362611,149.165401) | σ=8.8m [+14 suppressed in 8.0s]
-[02:32:41.865] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T3 (TID:145) @ (-35.362466, 149.165067) | Owner: Drone_5763
-[02:32:42.008] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 142→143
-[02:32:42.177] | LIFECYCLE  | LEADER         | TRACK        | T3: TENTATIVE → CONFIRMED (t=0.31s, obs=2)
-[02:32:42.409] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5763 LocalID 145→147
-[02:32:42.696] | GRACE      | LEADER         | GRACE        | T3: GRACE PERIOD STARTED - Coasting (NoObs=0.3s) [+8 suppressed in 5.0s]
-[02:32:42.997] | LIFECYCLE  | LEADER         | TRACK        | T2: TENTATIVE → CONFIRMED (t=1.95s, obs=2)
-[02:32:42.998] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5773 LocalID 148→149
-[02:32:43.323] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS eklendi | drone=5773 | gps=(-35.362659,149.165414) | ned=(13.0,-42.1)m | σ_in=12.1m | conf=0.66 [+50 suppressed in 3.0s]
-[02:32:43.338] | DEBUG      | CONTROL        | TRACKER_145  | CMD: vx=0.00, yaw=0.39, cov=0.00 [+49 suppressed in 3.0s]
-[02:32:43.514] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 150→154
-[02:32:44.229] | SUCCESS    | DRONE_5763     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
-[02:32:44.229] | STATE      | DRONE_5763     | SYSTEM       | TRACKING MODE STARTED | Mode=GUIDED | Alt=5.05m | Attack=False | Target=None
-[02:32:44.432] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T4 (TID:157) @ (-35.362604, 149.165261) | Owner: Drone_5763
-[02:32:44.611] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T5 (TID:159) @ (-35.362518, 149.164959) | Owner: Drone_5773
-[02:32:44.732] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T6 (TID:157) @ (-35.362606, 149.165287) | Owner: Drone_5763
-[02:32:44.764] | ID_UPDATE  | LEADER         | ID           | T5: Drone_5773 LocalID 159→156
-[02:32:45.010] | LIFECYCLE  | LEADER         | TRACK        | T5: TENTATIVE → CONFIRMED (t=0.40s, obs=2)
-[02:32:45.053] | LIFECYCLE  | LEADER         | TRACK        | T6: TENTATIVE → CONFIRMED (t=0.32s, obs=4)
-[02:32:45.346] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362926, 149.165052, alt=5.1m) | Target(-35.362542, 149.165060) | HorizDist=42.7m SlantRange=43.0m | σ_r=18.5m σ_t=4.0m | sin_eps=0.117 edge=0.07 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:32:45.428] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 145: Smoothed (561.7,332.1) → (607.2,332.1) | delta=(-45.5,-0.0) | conf=0.69
-[02:32:45.467] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(5): T1[CONFIRMED/PENDING/OWNED] @-35.362639,149.165414 | Local:[5773:142] | D5773 | obs=70 consec=70 sw=0 GRP[G1]x3 | σ=12.0m Δ=0.9m | T2[CONFIRMED/PENDING/OWNED] @-35.362503,149.165083 | Local:[5773:156,5763:155] | D5763 | obs=11 consec=11 sw=0 | σ=38.1m Δ=5.0m | T3[CONFIRMED/PENDING/FREE] @-35.362498,149.165069 | Local:[5763:145,5773:150] | FREE | obs=53 consec=53 sw=0 GRP[G2]x2 | σ=20.3m | T5[CONFIRMED/PENDING/FREE] @-35.362522,149.164965 | Local:[5773:159] | FREE | obs=8 consec=8 sw=0 GRP[G3]x2 | σ=39.3m | T4[TENTATIVE/PENDING/FREE] @-35.362609,149.165289 | Local:[5763:157] | FREE | obs=1 consec=1 sw=0 | σ=18.0m
-[02:32:45.469] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=5.1m tgt=T2 | D5773[TRACKING] alt=5.0m tgt=T1
-[02:32:45.470] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF GÜNCELLENDİ | gps=(-35.362664,149.165411) | ned=(12.4,-42.3)m | σ_out=12.6m | Δ=0.7m | vel=1.3m/s [+4 suppressed in 3.0s]
-[02:32:45.471] | FUSION_DETAY | FusionEngine   | FUSION       | MERGE_REDD: T2+T4 | dist=21.3m mahal=999.0σ | eşik=20.0m [+5 suppressed in 15.0s]
-[02:32:45.801] | ASSIGN     | LEADER         | ASSIGN       | Released T2 from Drone_5763 (one-drone-one-target)
-[02:32:45.802] | OWNERSHIP  | LEADER         | OWNERSHIP    | T6: FREE → OWNED (assigned to Drone_5763) | quality=9.71 obs=15
-[02:32:45.878] | LIFECYCLE  | LEADER         | TRACK        | T2: CONFIRMED → LOST (NoObs=1.3s)
-[02:32:46.195] | LIFECYCLE  | LEADER         | LIFECYCLE    | TENTATIVE DELETED: T4 | NoObs=1.54s
-[02:32:46.342] | DEBUG      | CONTROL        | TRACKER_157  | CMD: vx=0.00, yaw=0.05, cov=0.05 [+70 suppressed in 3.0s]
-[02:32:46.346] | EKF_INPUT  | TargetFusion   | FILTER       | T6: OBS eklendi | drone=5763 | gps=(-35.362607,149.165301) | ned=(18.8,-52.4)m | σ_in=18.5m | conf=0.65 [+165 suppressed in 3.0s]
-[02:32:47.438] | DEBUG      | GROUP          | CLUSTER      | Group G1 expired
-[02:32:48.384] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 3 grup (7 üye) | IDs: [142, 156, 184] | avg_σ=23.8m max_σ=39.7m [+107 suppressed in 8.0s]
-[02:32:48.562] | LIFECYCLE  | LEADER         | TRACK        | T2: LOST → DELETED (NoObs=4.0s)
-[02:32:48.761] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5763: HOVER | target=T6 | lat=-35.362606 lon=149.165299 | σ=17.4m [+361 suppressed in 8.0s]
-[02:32:49.374] | DEBUG      | CONTROL        | TRACKER_157  | CMD: vx=0.00, yaw=0.01, cov=0.05 [+81 suppressed in 3.0s]
-[02:32:49.383] | EKF_INPUT  | TargetFusion   | FILTER       | T6: OBS eklendi | drone=5763 | gps=(-35.362604,149.165300) | ned=(19.1,-52.4)m | σ_in=18.6m | conf=0.68 [+203 suppressed in 3.0s]
-[02:32:49.470] | FILTER     | Coordinator    | FILTER       | T1: HAM→FİLTRE Δ=1.0m | ham=(-35.362661,149.165410) | filtreli=(-35.362670,149.165412) | σ=11.6m [+130 suppressed in 8.0s]
-[02:32:49.476] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362665,149.165412 | Local:[5773:142] | D5773 | obs=123 consec=123 sw=0 GRP[G1]x3 | σ=11.7m Δ=2.9m | T6[CONFIRMED/PENDING/OWNED] @-35.362605,149.165295 | Local:[5763:157] | D5763 | obs=65 consec=65 sw=0 GRP[G3]x2 | σ=18.6m | T5[CONFIRMED/PENDING/FREE] @-35.362525,149.164959 | Local:[5773:156] | FREE | obs=61 consec=61 sw=0 GRP[G3]x2 | σ=37.6m Δ=0.6m
-[02:32:49.477] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=5.1m tgt=T6 | D5773[TRACKING] alt=5.0m tgt=T1
-[02:32:49.478] | EKF_OUTPUT | FusionEngine   | FILTER       | T6: EKF GÜNCELLENDİ | gps=(-35.362605,149.165303) | ned=(19.0,-52.2)m | σ_out=19.3m | Δ=0.3m | vel=0.4m/s [+9 suppressed in 3.0s]
-[02:32:50.077] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 2 bbox | 1 grup (2 üye) | IDs: [145, 162] | avg_σ=18.9m max_σ=19.2m [+27 suppressed in 8.0s]
-[02:32:50.080] | ID_UPDATE  | LEADER         | ID           | T6: Drone_5763 LocalID 157→162
-[02:32:50.364] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362926, 149.165438, alt=5.0m) | Target(-35.362661, 149.165409) | HorizDist=29.6m SlantRange=30.0m | σ_r=11.2m σ_t=2.9m | sin_eps=0.167 edge=0.30 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:32:50.377] | PUANLAMA   | Target         | QUALITY      | T1: D5773[OWNER] quality=11.16 | obs=133 consec=133 [+477 suppressed in 10.0s]
-[02:32:50.623] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 156: Smoothed (234.6,308.6) → (226.2,313.3) | delta=(8.4,-4.7) | conf=0.50
-[02:32:52.395] | DEBUG      | CONTROL        | TRACKER_145  | CMD: vx=0.00, yaw=0.01, cov=0.05 [+74 suppressed in 3.0s]
-[02:32:52.399] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS eklendi | drone=5763 | gps=(-35.362537,149.165079) | ned=(26.5,-72.5)m | σ_in=19.4m | conf=0.58 [+186 suppressed in 3.0s]
-[02:32:53.263] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 200: İlk detection, smoothing başlatıldı [+15 suppressed in 10.0s]
-[02:32:53.483] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362673,149.165412 | Local:[5773:142] | D5773 | obs=172 consec=172 sw=0 GRP[G1]x3 | σ=11.8m Δ=0.8m | T3[CONFIRMED/PENDING/FREE] @-35.362508,149.165094 | Local:[5763:145,5773:150] | FREE | obs=260 consec=260 sw=0 GRP[G2]x2 | σ=19.6m Δ=2.5m | T5[CONFIRMED/PENDING/FREE] @-35.362527,149.164953 | Local:[5773:159] | FREE | obs=110 consec=110 sw=0 GRP[G3]x2 | σ=38.9m Δ=0.6m
-[02:32:53.484] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=3 | Confirmed=3 Pending=0 | Groups=3 (toplam üye=7) | MultiDroneSeen=1 [+2 suppressed in 12.0s]
-[02:32:53.484] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=5.1m tgt=T6 | D5773[TRACKING] alt=5.0m tgt=T1
-[02:32:53.485] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF GÜNCELLENDİ | gps=(-35.362675,149.165412) | ned=(11.2,-42.2)m | σ_out=9.6m | Δ=1.5m | vel=0.5m/s [+7 suppressed in 3.0s]
-[02:32:54.958] | USER_CMD   | LEADER         | USER         | ATTACK MODE ACTIVATED
-[02:32:54.959] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T3 → ECHO_WAIT
-[02:32:54.961] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T1 → ECHO_WAIT
-[02:32:54.966] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T6 → ECHO_WAIT
-[02:32:54.970] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T5 → ECHO_WAIT
-[02:32:55.021] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | → CENTERING | Target=T6
-[02:32:55.022] | DEBUG      | DRONE_5763     | FILTER       | Filtered position from leader: lat=-35.362604 lon=149.165306 [+3 suppressed in 3.0s]
-[02:32:55.028] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | → CENTERING | Target=T1
-[02:32:55.029] | DEBUG      | DRONE_5773     | FILTER       | Filtered position from leader: lat=-35.362675 lon=149.165412 [+4 suppressed in 3.0s]
-[02:32:55.419] | INFO       | TRACK          | TRACKER      | Lock switched to 162 after 5 frames
-[02:32:55.420] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362925, 149.165052, alt=5.1m) | Target(-35.362535, 149.165070) | HorizDist=43.5m SlantRange=43.8m | σ_r=19.0m σ_t=4.0m | sin_eps=0.115 edge=0.24 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:32:55.424] | DEBUG      | CONTROL        | TRACKER_162  | CMD: vx=2.00, yaw=0.18, cov=0.01 [+72 suppressed in 3.0s]
-[02:32:55.426] | INFO       | TRACK          | TRACKER      | Lock switched to 142 after 5 frames
-[02:32:55.488] | GRACE      | LEADER         | GRACE        | T3: GRACE PERIOD STARTED - Coasting (NoObs=0.5s) [+5 suppressed in 5.0s]
-[02:32:55.671] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 145: Smoothed (434.0,330.9) → (428.3,330.8) | delta=(5.7,0.1) | conf=0.64
-[02:32:56.474] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 2 grup (5 üye) | IDs: [142, 150, 159] | avg_σ=23.6m max_σ=39.3m [+77 suppressed in 8.0s]
-[02:32:57.493] | LIFECYCLE  | LEADER         | TRACK        | T3: CONFIRMED → LOST (NoObs=2.5s)
-[02:32:57.494] | LIFECYCLE  | LEADER         | TRACK        | T5: CONFIRMED → LOST (NoObs=2.5s)
-[02:32:57.496] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ENGAGED/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ENGAGED/OWNED] @-35.362604,149.165306 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m Δ=1.0m
-[02:32:57.497] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.1m tgt=T6 | D5773[ENGAGING] alt=5.0m tgt=T1
-[02:32:58.082] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 2 grup (4 üye) | IDs: [145, 157, 214] | avg_σ=21.3m max_σ=25.4m [+50 suppressed in 8.0s]
-[02:32:58.432] | DEBUG      | CONTROL        | TRACKER_162  | CMD: vx=2.00, yaw=0.29, cov=0.01 [+68 suppressed in 3.0s]
-[02:32:59.499] | LIFECYCLE  | LEADER         | TRACK        | T3: LOST → DELETED (NoObs=4.5s)
-[02:32:59.499] | LIFECYCLE  | LEADER         | TRACK        | T5: LOST → DELETED (NoObs=4.5s)
-[02:33:00.473] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362926, 149.165438, alt=5.0m) | Target(-35.362662, 149.165410) | HorizDist=29.4m SlantRange=29.9m | σ_r=11.1m σ_t=2.9m | sin_eps=0.168 edge=0.09 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:33:00.708] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 143: Smoothed (775.6,368.8) → (777.6,368.8) | delta=(-2.1,0.0) | conf=0.80
-[02:33:01.050] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | Step 7: TARGET CENTERED → DIVING! (settled 3 frames)
-[02:33:01.051] | ATTACK_FINAL | DRONE_5773     | LEADER       | T1 | DIVING — autonomous kamikaze
-[02:33:01.052] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | → DIVING | Target=T1
-[02:33:01.503] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ENGAGED/OWNED] @-35.362604,149.165307 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m
-[02:33:01.503] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.1m tgt=T6 | D5773[ENGAGING] alt=5.0m tgt=T1
-[02:33:01.506] | DEBUG      | CONTROL        | TRACKER_142  | CMD: vx=2.00, yaw=-0.00, cov=0.03 [+73 suppressed in 3.0s]
-[02:33:02.173] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.88 vz=0.25 yaw=0.13 pitch=-3.1° | alt=5.0m cov=2.5%
-[02:33:02.510] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | Step 7: TARGET CENTERED → DIVING! (settled 3 frames)
-[02:33:02.510] | ATTACK_FINAL | DRONE_5763     | LEADER       | T6 | DIVING — autonomous kamikaze
-[02:33:02.510] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | → DIVING | Target=T6
-[02:33:02.733] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.042). Clamping to 0.050. [+4 suppressed in 3.0s]
-[02:33:03.321] | DEBUG      | GROUP          | CLUSTER      | Group G3 expired
-[02:33:03.397] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.82 vz=0.25 yaw=0.15 pitch=0.1° | alt=5.1m cov=0.9% [+2 suppressed in 2.0s]
-[02:33:03.486] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (2.82, 0.30) -> (2.33, 1.62)
-[02:33:03.491] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (1.89, -0.05) -> (1.88, -0.19)
-[02:33:03.508] | GUARD      | LEADER         | GUARD        | PRUNE GUARD: T1 is ATTACKING — kept (NoObs=8.5s) [+2 suppressed in 5.0s]
-[02:33:03.574] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 228: İlk detection, smoothing başlatıldı [+4 suppressed in 10.0s]
-[02:33:04.548] | DEBUG      | CONTROL        | TRACKER_142  | CMD: vx=2.00, yaw=-0.00, cov=0.03 [+73 suppressed in 3.0s]
-[02:33:04.633] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=2.31 vz=-0.24 yaw=-0.02 pitch=-11.2° | alt=4.9m cov=2.7% [+2 suppressed in 2.0s]
-[02:33:05.054] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 2 bbox | 2 grup (5 üye) | IDs: [142, 153] | avg_σ=18.4m max_σ=23.8m [+38 suppressed in 8.0s]
-[02:33:05.510] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ATTACKING/OWNED] @-35.362604,149.165307 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m
-[02:33:05.511] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
-[02:33:05.512] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.0m tgt=T6 | D5773[ENGAGING] alt=4.9m tgt=T1
-[02:33:05.522] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362924, 149.165053, alt=5.0m) | Target(-35.362657, 149.165059) | HorizDist=29.6m SlantRange=30.0m | σ_r=11.3m σ_t=2.9m | sin_eps=0.165 edge=0.77 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:33:05.769] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 145: Smoothed (55.0,182.6) → (52.9,139.2) | delta=(2.2,43.3) | conf=0.76
-[02:33:05.770] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.050). Clamping to 0.050. [+66 suppressed in 3.0s]
-[02:33:05.960] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=2.07 vz=-0.39 yaw=-0.04 pitch=-9.3° | alt=4.9m cov=0.9% [+2 suppressed in 2.0s]
-[02:33:06.136] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 3 grup (7 üye) | IDs: [145, 157, 215] | avg_σ=15.3m max_σ=18.2m [+47 suppressed in 8.0s]
-[02:33:07.131] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=4.81 vz=-0.31 yaw=0.00 pitch=-13.3° | alt=4.9m cov=3.4% [+2 suppressed in 2.0s]
-[02:33:07.607] | DEBUG      | CONTROL        | TRACKER_142  | CMD: vx=2.00, yaw=-0.01, cov=0.04 [+72 suppressed in 3.0s]
-[02:33:07.615] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (5.29, 0.00) -> (5.27, -0.47)
-[02:33:07.702] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (3.80, 0.00) -> (3.22, 2.02)
-[02:33:08.280] | DEBUG      | GROUP          | CLUSTER      | Group G4 expired
-[02:33:08.500] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=4.60 vz=-0.47 yaw=0.00 pitch=-12.3° | alt=4.9m cov=1.1% [+2 suppressed in 2.0s]
-[02:33:09.517] | GUARD      | LEADER         | GUARD        | PRUNE GUARD: T1 is ATTACKING — kept (NoObs=14.5s) [+5 suppressed in 5.0s]
-[02:33:09.518] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ATTACKING/OWNED] @-35.362604,149.165307 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m
-[02:33:09.519] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=4.9m tgt=T6 | D5773[ENGAGING] alt=4.9m tgt=T1
-[02:33:09.660] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=6.80 vz=-0.10 yaw=-0.00 pitch=-9.6° | alt=4.9m cov=5.1% [+2 suppressed in 2.0s]
-[02:33:10.524] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362873, 149.165092, alt=4.9m) | Target(-35.362514, 149.165347) | HorizDist=46.2m SlantRange=46.4m | σ_r=21.3m σ_t=4.3m | sin_eps=0.106 edge=0.33 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:33:10.632] | DEBUG      | CONTROL        | TRACKER_142  | CMD: vx=2.00, yaw=-0.00, cov=0.07 [+70 suppressed in 3.0s]
-[02:33:10.819] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 142: Smoothed (636.9,324.8) → (638.5,303.4) | delta=(-1.6,21.4) | conf=0.77
-[02:33:11.033] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=6.34 vz=-0.30 yaw=-0.00 pitch=-8.7° | alt=4.9m cov=1.4% [+2 suppressed in 2.0s]
-[02:33:11.852] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (7.92, -0.02) -> (7.88, -0.73)
-[02:33:11.887] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (6.54, -0.01) -> (5.56, 3.45)
-[02:33:12.179] | IBVS_CMD   | DRONE_5773     | ATTACK_FLOW  | vx=7.80 vz=0.53 yaw=-0.00 pitch=-9.6° | alt=4.8m cov=14.1% [+2 suppressed in 2.0s]
-[02:33:12.397] | DEBUG      | GROUP          | CLUSTER      | Group G10 expired [+7 suppressed in 3.0s]
-[02:33:13.259] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=7.12 vz=0.09 yaw=-0.01 pitch=-6.7° | alt=5.0m cov=2.0% [+2 suppressed in 2.0s]
-[02:33:13.524] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ATTACKING/OWNED] @-35.362604,149.165307 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m
-[02:33:13.525] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=5.0m tgt=T6 | D5773[ENGAGING] alt=4.6m tgt=T1
-[02:33:13.528] | WARNING    | TRACK          | TRACKER      | Primary ID 142 lost after 5 frames
-[02:33:13.669] | DEBUG      | CONTROL        | TRACKER_162  | CMD: vx=2.00, yaw=0.01, cov=0.02 [+72 suppressed in 3.0s]
-[02:33:15.529] | GUARD      | LEADER         | GUARD        | TERMINAL ATTACK BYPASS: T1 | NoObs=20.5s | Status=ATTACKING | Drone=5773 [+5 suppressed in 5.0s]
-[02:33:15.573] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362776, 149.165166, alt=4.8m) | Target(-35.362650, 149.165245) | HorizDist=15.7m SlantRange=16.4m | σ_r=5.8m σ_t=1.9m | sin_eps=0.295 edge=0.17 corr=0.000 GPS_err=2.5m Alt_err=1.5m
-[02:33:15.581] | IBVS_CMD   | DRONE_5763     | ATTACK_FLOW  | vx=7.93 vz=0.47 yaw=-0.01 pitch=-5.0° | alt=4.8m cov=3.8% [+2 suppressed in 2.0s]
-[02:33:15.665] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (7.94, -0.03) -> (6.78, 4.12)
-[02:33:15.844] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 157: Smoothed (568.4,392.2) → (572.5,383.5) | delta=(-4.1,8.7) | conf=0.79
-[02:33:16.678] | DEBUG      | CONTROL        | TRACKER_162  | CMD: vx=2.00, yaw=0.01, cov=0.07 [+37 suppressed in 3.0s]
-[02:33:17.531] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m | T6[CONFIRMED/ATTACKING/OWNED] @-35.362604,149.165307 | Local:[-] | D5763 | obs=134 consec=134 sw=0 GRP[G3]x2 | σ=18.8m
-[02:33:17.531] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
-[02:33:17.532] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[ENGAGING] alt=4.5m tgt=T6 | D5773[ENGAGING] alt=3.8m tgt=T1
-[02:33:17.546] | BBOX_SMOOTH | BboxSmoother   | VISION       | Track 245: İlk detection, smoothing başlatıldı [+8 suppressed in 10.0s]
-[02:33:17.546] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 1 bbox | 1 grup (2 üye) | IDs: [162] | avg_σ=5.2m max_σ=5.2m [+83 suppressed in 8.0s]
-[02:33:18.080] | WARNING    | TRACK          | TRACKER      | Primary ID 162 lost after 5 frames
-[02:33:19.767] | STOP       | DRONE_5763     | MISSION_CTRL | Zero velocity sent before RTL
-[02:33:19.769] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:19.809] | ABORT      | DRONE_5763     | ATTACK_FLOW  | Attack aborted: STOP received
-[02:33:19.819] | STATE      | DRONE_5763     | SYSTEM       | TRACKING ENDED | Frames=444 | Attack=False
-[02:33:19.819] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:20.820] | STOP       | DRONE_5763     | MISSION_CTRL | Engagement state cleared
-[02:33:20.820] | LIFECYCLE  | LEADER         | TRACK        | Drone_5763 RELEASED: targets=['T6']
-[02:33:20.821] | STOP       | DRONE_5763     | MISSION_CTRL | Swarm assignment released
-[02:33:20.821] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:20.821] | STOP       | DRONE_5773     | MISSION_CTRL | Zero velocity sent before RTL
-[02:33:20.822] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:20.877] | GUARD      | LEADER         | GUARD        | TERMINAL ATTACK BYPASS: T1 | NoObs=25.8s | Status=ATTACKING | Drone=5773 [+7 suppressed in 5.0s]
-[02:33:20.877] | STALE      | LEADER         | STALE        | T6: STALE TARGET - Forcing LOST (NoObs=25.9s)
-[02:33:20.877] | ABORT      | DRONE_5773     | ATTACK_FLOW  | Attack aborted: STOP received
-[02:33:20.887] | STATE      | DRONE_5773     | SYSTEM       | TRACKING ENDED | Frames=507 | Attack=False
-[02:33:20.888] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:21.537] | LIFECYCLE  | LEADER         | TRACK        | T6: LOST → DELETED (NoObs=26.5s)
-[02:33:21.541] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(1): T1[CONFIRMED/ATTACKING/OWNED] @-35.362674,149.165412 | Local:[-] | D5773 | obs=190 consec=190 sw=0 GRP[G1]x3 | σ=11.7m
-[02:33:21.541] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[IDLE] alt=3.5m tgt=- | D5773[IDLE] alt=3.8m tgt=-
-[02:33:21.889] | STOP       | DRONE_5773     | MISSION_CTRL | Engagement state cleared
-[02:33:21.889] | LIFECYCLE  | LEADER         | TRACK        | Drone_5773 RELEASED: targets=['T1']
-[02:33:21.889] | STOP       | DRONE_5773     | MISSION_CTRL | Swarm assignment released
-[02:33:21.889] | INFO       | HumanTracker   | TRACKING     | Tracker reset
-[02:33:21.892] | RESET      | LEADER         | SYSTEM       | Soft reset completed: radar, targets, fusion and ownership cleared.
-[02:33:23.543] | FUSION_DETAY | TargetFusion   | FUSION       | Sabit global referans aktif: (-35.362775, 149.165878) | Dinamik leader updates ignored [+22 suppressed in 15.0s]
+[21:24:46.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+[21:24:51.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+[21:24:52.832] | INFO       | DRONE_5763     | TAKEOFF      | Takeoff complete. Altitude: 5 m. [+1 suppressed in 5.0s]
+[21:24:53.229] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TAKEOFF mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363262,149.165237,4.9m) status="Altitude reached, proceeding to observation area."
+[21:24:53.233] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TAKEOFF,5773:TAKEOFF status="Altitude reached, proceeding to observation area."
+[21:24:53.333] | INFO       | DRONE_5773     | TAKEOFF      | Takeoff complete. Altitude: 5 m. [+1 suppressed in 5.0s]
+[21:24:53.834] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: TAKEOFF -> TRANSIT | takeoff complete
+[21:24:53.834] | STATE      | DRONE_5763     | MOTION       | Motion intent -> TRANSIT (post takeoff mission transit)
+[21:24:53.834] | INFO       | DRONE_5763     | MISSION      | Altitude reached, proceeding to observation area.
+[21:24:53.835] | INFO       | DRONE_5763     | MISSION_SINGLE_TRANSIT | Single-cell approach | lat=-35.362929 lon=149.165390
+[21:24:53.835] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=39.6m speed=0.01m/s target=(-35.362929,149.165390)
+[21:24:54.229] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=TRANSIT transit=mission scan_points=6
+[21:24:54.230] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TAKEOFF mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363262,149.165292,5.0m) status="Altitude reached, proceeding to observation area."
+[21:24:54.334] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: TAKEOFF -> TRANSIT | takeoff complete
+[21:24:54.335] | STATE      | DRONE_5773     | MOTION       | Motion intent -> TRANSIT (post takeoff mission transit)
+[21:24:54.335] | INFO       | DRONE_5773     | MISSION      | Altitude reached, proceeding to observation area.
+[21:24:54.335] | INFO       | DRONE_5773     | MISSION_SINGLE_TRANSIT | Single-cell approach | lat=-35.362929 lon=149.164950
+[21:24:54.335] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=48.4m speed=0.01m/s target=(-35.362929,149.164950)
+[21:24:55.228] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=TRANSIT transit=mission scan_points=6
+[21:24:55.341] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=39.6m speed=0.88m/s target=(-35.362929,149.165390)
+[21:24:55.846] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=48.4m speed=0.51m/s target=(-35.362929,149.164950)
+[21:24:56.848] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=38.6m speed=3.08m/s target=(-35.362929,149.165390)
+[21:24:57.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-[21:24:57.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363249,149.165247,5.6m) status="Approaching Cell (0,0). Dist: 38.6 m, Speed: 3.1 m/s."
+
+[21:24:57.354] | COLLISION  | DRONE_5773     | NAVIGATION   | Transit deconfliction critical: yielding to Drone_5763 | sep=1.4m laneΔ=8.0m altΔ=2.0m pred=1.4m closing=0.0m/s
+[21:24:57.354] | STATE      | DRONE_5773     | MOTION       | Motion intent -> FAILSAFE_HOLD (transit deconflict yield to 5763)
+[21:24:58.228] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 37.2 m, Speed: 3.9 m/s."
+[21:24:58.357] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=36.3m speed=3.96m/s target=(-35.362929,149.165390)
+[21:24:58.408] | COLLISION  | DRONE_5773     | NAVIGATION   | Transit deconfliction critical: yielding to Drone_5763 | sep=0.4m laneΔ=8.0m altΔ=2.0m pred=0.4m closing=0.0m/s
+[21:24:59.463] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=44.6m speed=3.33m/s target=(-35.362929,149.164950)
+[21:24:59.463] | STATE      | DRONE_5773     | MOTION       | Motion intent -> TRANSIT (cell 0,0)
+[21:24:59.864] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=33.4m speed=3.87m/s target=(-35.362929,149.165390)
+[21:25:00.230] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363220,149.165250,5.1m) status="Approaching Cell (0,0). Dist: 43.0 m, Speed: 1.8 m/s."
+[21:25:00.969] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=42.4m speed=1.36m/s target=(-35.362929,149.164950)
+[21:25:01.375] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=30.6m speed=3.84m/s target=(-35.362929,149.165390)
+[21:25:02.227] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363176,149.165303,6.7m) status="Approaching Cell (0,0). Dist: 29.6 m, Speed: 3.9 m/s."
+[21:25:02.228] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 41.3 m, Speed: 2.8 m/s."
+[21:25:02.478] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=41.3m speed=2.81m/s target=(-35.362929,149.164950)
+[21:25:02.883] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=27.7m speed=3.92m/s target=(-35.362929,149.165390)
+[21:25:03.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+[21:25:03.986] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=39.0m speed=4.16m/s target=(-35.362929,149.164950)
+[21:25:04.390] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=24.9m speed=3.97m/s target=(-35.362929,149.165390)
+[21:25:05.228] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363169,149.165196,5.1m) status="Approaching Cell (0,0). Dist: 35.9 m, Speed: 4.1 m/s."
+[21:25:05.492] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=35.9m speed=4.15m/s target=(-35.362929,149.164950)
+[21:25:05.896] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=22.1m speed=4.02m/s target=(-35.362929,149.165390)
+[21:25:06.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363115,149.165348,6.8m) status="Approaching Cell (0,0). Dist: 22.1 m, Speed: 4.0 m/s."
+[21:25:06.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 22.1 m, Speed: 4.0 m/s."
+[21:25:06.999] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=32.8m speed=3.98m/s target=(-35.362929,149.164950)
+[21:25:07.406] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=19.3m speed=4.00m/s target=(-35.362929,149.165390)
+[21:25:08.506] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=29.9m speed=3.93m/s target=(-35.362929,149.164950)
+[21:25:08.920] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=16.5m speed=3.98m/s target=(-35.362929,149.165390)
+[21:25:09.230] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363121,149.165147,5.1m) status="Approaching Cell (0,0). Dist: 28.9 m, Speed: 3.9 m/s."[21:25:09.231] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+
+[21:25:10.013] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=26.9m speed=3.97m/s target=(-35.362929,149.164950)
+[21:25:10.428] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=14.7m speed=3.96m/s target=(-35.362929,149.165390)
+[21:25:11.232] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363037,149.165403,6.8m) status="Approaching Cell (0,0). Dist: 13.0 m, Speed: 4.0 m/s."
+[21:25:11.234] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 24.9 m, Speed: 4.0 m/s."
+[21:25:11.519] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=23.9m speed=4.01m/s target=(-35.362929,149.164950)
+[21:25:11.936] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=12.1m speed=3.96m/s target=(-35.362929,149.165390)
+[21:25:13.025] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=20.9m speed=4.01m/s target=(-35.362929,149.164950)
+[21:25:13.443] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=9.5m speed=3.96m/s target=(-35.362929,149.165390)
+[21:25:14.227] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.363052,149.165076,5.1m) status="Approaching Cell (0,0). Dist: 18.9 m, Speed: 4.0 m/s."
+[21:25:14.531] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=17.9m speed=3.99m/s target=(-35.362929,149.164950)
+[21:25:14.950] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=7.0m speed=3.95m/s target=(-35.362929,149.165390)
+[21:25:15.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+[21:25:16.038] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=14.9m speed=3.98m/s target=(-35.362929,149.164950)
+[21:25:16.229] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362951,149.165425,6.8m) status="Approaching Cell (0,0). Dist: 4.7 m, Speed: 3.9 m/s."
+[21:25:16.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 14.9 m, Speed: 4.0 m/s."
+[21:25:16.458] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=4.7m speed=3.57m/s target=(-35.362929,149.165390)
+[21:25:17.543] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=11.9m speed=3.98m/s target=(-35.362929,149.164950)
+[21:25:17.965] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=3.2m speed=1.62m/s target=(-35.362929,149.165390)
+[21:25:18.228] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362997,149.165019,5.1m) status="Approaching Cell (0,0). Dist: 10.9 m, Speed: 4.0 m/s."
+[21:25:19.049] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=8.9m speed=3.98m/s target=(-35.362929,149.164950)
+[21:25:19.472] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=2.5m speed=0.89m/s target=(-35.362929,149.165390)
+[21:25:20.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362926,149.165413,6.8m) status="Approaching Cell (0,0). Dist: 2.3 m, Speed: 0.8 m/s."[21:25:20.231] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+
+[21:25:20.232] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 2.3 m, Speed: 0.8 m/s."
+[21:25:20.557] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=5.9m speed=3.98m/s target=(-35.362929,149.164950)
+[21:25:20.980] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=2.0m speed=0.79m/s target=(-35.362929,149.165390)
+[21:25:22.064] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=3.9m speed=2.91m/s target=(-35.362929,149.164950)
+[21:25:22.229] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362945,149.164967,5.1m) status="Approaching Cell (0,0). Dist: 3.1 m, Speed: 2.2 m/s."
+[21:25:22.486] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=1.5m speed=0.65m/s target=(-35.362929,149.165390)
+[21:25:23.569] | STATE      | DRONE_5773     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=1.9m speed=1.12m/s target=(-35.362929,149.164950)
+[21:25:23.994] | STATE      | DRONE_5763     | NAV_PROGRESS | Transit progress | cell=(0,0) attempt=1/3 dist=1.1m speed=0.47m/s target=(-35.362929,149.165390)
+[21:25:23.995] | STATE      | DRONE_5763     | MOTION       | Motion intent -> HOLD (cell reached hold)
+[21:25:24.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRANSIT mission=True tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362923,149.165399,6.8m) status="Approaching Cell (0,0). Dist: 1.1 m, Speed: 0.5 m/s."
+[21:25:24.232] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TRANSIT,5773:TRANSIT status="Approaching Cell (0,0). Dist: 1.6 m, Speed: 0.8 m/s."
+[21:25:24.499] | SUCCESS    | DRONE_5763     | NAVIGATION   | Transit complete | cell=(0,0) dist=1.1m attempt=1
+[21:25:24.500] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: TRANSIT -> SCAN | single-cell sweep
+[21:25:24.501] | INFO       | DRONE_5763     | SCANNER      | Single Cell Scan: Performing 360° rotation.
+[21:25:24.797] | STATE      | DRONE_5773     | MOTION       | Motion intent -> HOLD (cell reached hold)
+[21:25:25.229] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=SCAN transit=none scan_points=6
+[21:25:25.232] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:scan tgt=- link=- | D5773:scan tgt=- link=- raw_preview=-
+[21:25:25.304] | SUCCESS    | DRONE_5773     | NAVIGATION   | Transit complete | cell=(0,0) dist=1.1m attempt=1
+[21:25:25.310] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: TRANSIT -> SCAN | single-cell sweep
+[21:25:25.311] | INFO       | DRONE_5773     | SCANNER      | Single Cell Scan: Performing 360° rotation.
+[21:25:26.239] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=SCAN transit=none scan_points=6
+[21:25:26.241] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=SCAN mission=True tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362933,149.164955,5.0m) status="Single Cell Scan: Performing 360° rotation."
+[21:25:26.850] | STATE      | DRONE_5773     | MOTION       | Motion intent -> SCAN_SWEEP (360 scan step)
+[21:25:26.851] | STATE      | DRONE_5763     | MOTION       | Motion intent -> SCAN_SWEEP (360 scan step)
+[21:25:30.300] | DEBUG      | CONTROL        | TRACKER_1    | CMD: vx=0.00, yaw=0.84, cov=0.01
+[21:25:30.301] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362923, 149.165395, alt=6.8m) | Target(-35.362563, 149.165029) | HorizDist=52.1m SlantRange=52.6m | σ_r=18.8m σ_t=4.8m | sin_eps=0.130 edge=0.66 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:30.302] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 1 bbox | 1 group (1 members) | IDs: [1] | avg_σ=19.4m max_σ=19.4m
+[21:25:30.302] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=1 groups=1 stable_ids=[1] :: id=1 box=(1236,365)/19x40 gps=(-35.362563,149.165029) q=4.1 edge=1 GG1x1
+[21:25:30.306] | OBS_QUALITY | Target         | QUALITY      | T1: D5763[OWNER] quality=4.10 | obs=1 consec=1
+[21:25:30.307] | GROUP      | LEADER         | CLUSTER      | T1: Became GROUP x1 (GID:G1)
+[21:25:30.307] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T1 (TID:1) @ (-35.362563, 149.165029) | Owner: Drone_5763
+[21:25:30.308] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS | drone=5763 | gps=(-35.362563,149.165029) | ned=(23.7,-77.1)m | sigma=19.4m | conf=0.67
+[21:25:30.308] | SUCCESS    | DRONE_5763     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
+[21:25:30.308] | STATE      | DRONE_5763     | MOTION       | Motion intent -> HOLD (scan complete)
+[21:25:30.309] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: SCAN -> TRACK | tracking entered
+[21:25:30.772] | DEBUG      | CONTROL        | TRACKER_3    | CMD: vx=0.00, yaw=0.84, cov=0.00
+[21:25:30.776] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 1 bbox | 1 group (1 members) | IDs: [1] | avg_σ=19.9m max_σ=19.9m
+[21:25:30.776] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=1 groups=1 stable_ids=[1] :: id=1 box=(1219,342)/21x54 gps=(-35.362558,149.165114) q=3.8 edge=1 GG1x1
+[21:25:30.784] | SUCCESS    | DRONE_5773     | SCANNER      | Human detected! Engaged Tracking & Collision Mode.
+[21:25:30.789] | STATE      | DRONE_5773     | MOTION       | Motion intent -> HOLD (scan complete)
+[21:25:30.791] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: SCAN -> TRACK | tracking entered
+[21:25:30.856] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=2 groups=1 singles=0 :: G1:x2 ids=1,2
+[21:25:30.868] | STATE      | DRONE_5763     | MOTION       | Motion intent -> TRACK_SOFT (observer framing)
+[21:25:30.869] | GUARD      | DRONE_5763     | MOTION       | BODY filtered by TRACK_SOFT: (0.00,0.00,0.00,0.84) -> (0.00,0.00,0.00,0.50)
+[21:25:30.917] | DEBUG      | CONTROL        | TRACKER_4    | CMD: vx=0.00, yaw=0.81, cov=0.01
+[21:25:30.931] | STATE      | DRONE_5773     | MOTION       | Motion intent -> TRACK_SOFT (observer framing)
+[21:25:30.931] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by TRACK_SOFT: (0.00,0.00,0.00,0.81) -> (0.00,0.00,0.00,0.50)
+[21:25:30.990] | DEBUG      | CONTROL        | TRACKER_6    | CMD: vx=0.00, yaw=0.77, cov=0.01
+[21:25:31.023] | DEBUG      | CONTROL        | TRACKER_5    | CMD: vx=0.00, yaw=0.78, cov=0.01
+[21:25:31.077] | LIFECYCLE  | LEADER         | TRACK        | T1: TENTATIVE → CONFIRMED (t=0.77s, obs=2)
+[21:25:31.078] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5763: HOVER | target=T1 | local_id=1 | lat=-35.362571 lon=149.165022 | σ=19.2m
+[21:25:31.124] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(1): T1[CONFIRMED/PENDING/OWNED] @-35.362544,149.165099 | Local:[5763:1,5773:1] | D5763 | obs=4 consec=4 sw=0 GRP[G1]x2 | σ=20.6m
+[21:25:31.124] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=1 | Confirmed=1 Pending=0 | Groups=1 (toplam üye=2) | MultiDroneSeen=1
+[21:25:31.124] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.1m tgt=-
+[21:25:31.125] | FUSION_DETAIL | TargetFusion   | FUSION       | T1: 2 obs -> FUSED | drones: [5763, 5773] | sigma=7.0m | coast=False
+[21:25:31.128] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF UPDATED | gps=(-35.362606,149.165070) | sigma=7.3m | delta=7.3m | vel=0.0m/s
+[21:25:31.229] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=TRACK transit=none scan_points=6[21:25:31.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=1 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/candidate grp=1 drone_preview=D5763:track tgt=- link=- | D5773:track tgt=- link=- raw_preview=-
+
+[21:25:31.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRACK mission=True tracking=True collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362923,149.165395,6.8m) status="Human detected! Engaged Tracking & Collision Mode."
+[21:25:31.231] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=TRACK transit=none scan_points=6
+[21:25:31.231] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRACK mission=True tracking=True collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362932,149.164953,5.1m) status="Human detected! Engaged Tracking & Collision Mode."
+[21:25:31.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=2 active_camera=5763 phases=5763:TRACK,5773:TRACK status="Human detected! Engaged Tracking & Collision Mode."
+[21:25:31.266] | DEBUG      | CONTROL        | TRACKER_9    | CMD: vx=0.00, yaw=0.76, cov=0.00
+[21:25:31.487] | INFO       | TRACKER        | FPS          | FPS calibrated to 7.2fps | buffer=21
+[21:25:31.579] | DEBUG      | CONTROL        | TRACKER_12   | CMD: vx=0.00, yaw=0.71, cov=0.00
+[21:25:31.584] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5763 LocalID 1→2
+[21:25:31.626] | DEBUG      | CONTROL        | TRACKER_13   | CMD: vx=0.00, yaw=0.66, cov=0.01
+[21:25:31.671] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.65, cov=0.00
+[21:25:31.856] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T2 (TID:4) @ (-35.362635, 149.165175) | Owner: Drone_5763
+[21:25:31.856] | REJECT     | LEADER         | LIFECYCLE    | TENTATIVE redirect rejected: T2 !-> T1 (distinct same-drone group family, dist=16.5m)
+[21:25:31.888] | DEBUG      | CONTROL        | TRACKER_19   | CMD: vx=0.00, yaw=0.57, cov=0.01
+[21:25:32.112] | GUARD      | DRONE_5763     | MOTION       | BODY filtered by TRACK_SOFT: (0.00,0.00,0.00,0.63) -> (0.00,0.00,0.00,0.50)
+[21:25:32.151] | DEBUG      | CONTROL        | TRACKER_27   | CMD: vx=0.00, yaw=0.47, cov=0.01
+[21:25:32.157] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 1→2
+[21:25:32.294] | LIFECYCLE  | LEADER         | TRACK        | T2: TENTATIVE → CONFIRMED (t=0.44s, obs=2)
+[21:25:32.415] | DEBUG      | CONTROL        | TRACKER_28   | CMD: vx=0.00, yaw=0.36, cov=0.00
+[21:25:32.457] | DEBUG      | CONTROL        | TRACKER_29   | CMD: vx=0.00, yaw=0.68, cov=0.01
+[21:25:32.570] | DEBUG      | CONTROL        | TRACKER_34   | CMD: vx=0.00, yaw=0.36, cov=0.00
+[21:25:32.657] | DEBUG      | CONTROL        | TRACKER_36   | CMD: vx=0.00, yaw=0.70, cov=0.00
+[21:25:32.661] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by TRACK_SOFT: (0.00,0.00,0.00,0.70) -> (0.00,0.00,0.00,0.50)
+[21:25:32.915] | DEBUG      | CONTROL        | TRACKER_38   | CMD: vx=0.00, yaw=0.55, cov=0.05
+[21:25:32.950] | DEBUG      | CONTROL        | TRACKER_42   | CMD: vx=0.00, yaw=0.51, cov=0.05
+[21:25:33.132] | GUARD      | LEADER         | ASSIGN       | CAPACITY_GUARD: Drone_5763 already active on 5763
+[21:25:33.133] | ASSIGN     | OPT_LOOP       | ASSIGN       | Optimal Assignment: {5763: 'T1'}
+[21:25:33.224] | DEBUG      | CONTROL        | TRACKER_45   | CMD: vx=0.00, yaw=0.33, cov=0.05
+[21:25:33.332] | DEBUG      | CONTROL        | TRACKER_47   | CMD: vx=0.00, yaw=0.30, cov=0.05
+[21:25:33.337] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5763 | gps=(-35.362633,149.165221) | ned=(15.8,-59.6)m | sigma=11.5m | conf=0.74 [+74 suppressed in 3.0s]
+[21:25:33.567] | DEBUG      | CONTROL        | TRACKER_49   | CMD: vx=0.00, yaw=0.51, cov=0.04
+[21:25:33.607] | DEBUG      | CONTROL        | TRACKER_51   | CMD: vx=0.00, yaw=0.23, cov=0.05
+[21:25:33.749] | DEBUG      | CONTROL        | TRACKER_52   | CMD: vx=0.00, yaw=0.47, cov=0.05
+[21:25:34.204] | DEBUG      | CONTROL        | TRACKER_20   | CMD: vx=0.00, yaw=0.08, cov=0.04
+[21:25:34.210] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T3 (TID:7) @ (-35.362654, 149.165525) | Owner: Drone_5773
+[21:25:34.211] | REJECT     | LEADER         | LIFECYCLE    | TENTATIVE redirect rejected: T3 !-> T2 (distinct same-drone group family, dist=18.7m)
+[21:25:34.296] | ID_UPDATE  | LEADER         | ID           | T2: Drone_5773 LocalID 4→5
+[21:25:34.673] | LIFECYCLE  | LEADER         | TRACK        | T3: TENTATIVE → CONFIRMED (t=0.46s, obs=2)
+[21:25:34.711] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.14, cov=0.04 [+20 suppressed in 3.0s]
+[21:25:35.105] | DEBUG      | CONTROL        | TRACKER_58   | CMD: vx=0.00, yaw=0.34, cov=0.09
+[21:25:35.137] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362596,149.165088 | Local:[5763:2,5773:1] | D5763 | obs=91 consec=91 sw=0 GRP[G6]x2 | σ=20.7m Δ=5.8m | T3[CONFIRMED/PENDING/OWNED] @-35.362662,149.165532 | Local:[5773:7] | D5773 | obs=7 consec=7 sw=0 GRP[G49]x3 | σ=36.0m | T2[CONFIRMED/PENDING/FREE] @-35.362627,149.165158 | Local:[5763:4,5773:5] | FREE | obs=55 consec=55 sw=0 GRP[G1]x2 | σ=23.8m
+[21:25:35.137] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.1m tgt=-
+[21:25:35.138] | EKF_OUTPUT | FusionEngine   | FILTER       | T2: EKF UPDATED | gps=(-35.362669,149.165240) | sigma=7.1m | delta=10.7m | vel=4.6m/s [+2 suppressed in 3.0s]
+[21:25:35.262] | TARGET     | LEADER         | TARGET       | NEW TARGET (TENTATIVE): T4 (TID:6) @ (-35.362683, 149.165390) | Owner: Drone_5763
+[21:25:35.353] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362924, 149.165395, alt=6.8m) | Target(-35.362631, 149.165195) | HorizDist=37.3m SlantRange=37.9m | σ_r=11.4m σ_t=3.5m | sin_eps=0.180 edge=0.15 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:35.358] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[2, 4] :: id=4 box=(779,388)/73x56 gps=(-35.362632,149.165213) q=6.1 edge=0 GG1x2 m=[4, 5] | id=2 box=(541,343)/46x37 gps=(-35.362568,149.165009) q=4.0 edge=0 GG6x2 m=[2, 3]
+[21:25:35.532] | DEBUG      | CONTROL        | TRACKER_29   | CMD: vx=0.00, yaw=0.25, cov=0.01 [+5 suppressed in 3.0s]
+[21:25:35.905] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=4 groups=1 singles=0 :: G1:x2 ids=29,35
+[21:25:36.027] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=3 groups=3 stable_ids=[1, 5, 8] :: id=1 box=(352,325)/72x53 gps=(-35.362549,149.165107) q=5.0 edge=0 GG19x2 m=[1, 2] | id=5 box=(758,314)/56x45 gps=(-35.362607,149.165320) q=4.2 edge=0 GG1x2 m=[4, 5] | id=8 box=(1091,304)/38x35 gps=(-35.362657,149.165565) q=5.2 edge=0 GG49x2 m=[8, 9]
+[21:25:36.032] | ID_UPDATE  | LEADER         | ID           | T3: Drone_5773 LocalID 7→8
+[21:25:36.119] | DEBUG      | CONTROL        | TRACKER_62   | CMD: vx=0.00, yaw=0.01, cov=0.09
+[21:25:36.232] | UI_STATE   | LEADER         | UI           | /swarm_data targets=4 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/candidate grp=1 | T3:CONFIRMED/candidate grp=1 | T2:CONFIRMED/candidate grp=1 | T4:TENTATIVE/candidate grp=1 drone_preview=D5763:track tgt=- link=- | D5773:track tgt=- link=- raw_preview=-
+[21:25:36.275] | LIFECYCLE  | LEADER         | TRACK        | T4: TENTATIVE → CONFIRMED (t=1.01s, obs=2)
+[21:25:36.362] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5763 | gps=(-35.362633,149.165214) | ned=(15.9,-60.3)m | sigma=11.6m | conf=0.75 [+160 suppressed in 3.0s]
+[21:25:36.489] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.01, cov=0.09
+[21:25:37.021] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=0.00, yaw=0.01, cov=0.09
+[21:25:37.719] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+29 suppressed in 3.0s]
+[21:25:39.104] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5773: TRACK | target=T2 | local_id=5 | lat=-35.362673 lon=149.165257 | σ=6.8m [+397 suppressed in 8.0s]
+[21:25:39.147] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(4): T1[CONFIRMED/PENDING/OWNED] @-35.362616,149.165082 | Local:[5763:2,5773:1] | D5763 | obs=179 consec=179 sw=0 GRP[G6]x2 | σ=20.5m Δ=2.3m | T2[CONFIRMED/PENDING/FREE] @-35.362667,149.165243 | Local:[5763:4,5773:5] | FREE | obs=143 consec=143 sw=0 GRP[G1]x2 | σ=24.0m Δ=8.9m | T3[CONFIRMED/PENDING/OWNED] @-35.362672,149.165542 | Local:[5773:9] | D5773 | obs=51 consec=51 sw=0 GRP[G49]x2 | σ=40.4m Δ=1.4m | T4[CONFIRMED/PENDING/FREE] @-35.362683,149.165396 | Local:[5763:6] | FREE | obs=33 consec=33 sw=0 GRP[G83]x1 | σ=8.0m
+[21:25:39.147] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.1m tgt=-
+[21:25:39.151] | EKF_OUTPUT | FusionEngine   | FILTER       | T2: EKF UPDATED | gps=(-35.362671,149.165258) | sigma=6.4m | delta=9.9m | vel=1.1m/s [+6 suppressed in 3.0s]
+[21:25:39.152] | MERGE      | LEADER         | FUSION       | MERGE: T3 <- T4 | Dist=14.6m | KeepObs=51 DropObs=33
+[21:25:39.370] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5763 | gps=(-35.362630,149.165213) | ned=(16.1,-60.3)m | sigma=11.7m | conf=0.70 [+197 suppressed in 3.0s]
+[21:25:39.575] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+21 suppressed in 3.0s]
+[21:25:39.672] | GROUP      | LEADER         | CLUSTER      | T3: Group size changed x2→x3 [+16 suppressed in 8.0s]
+[21:25:40.028] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+10 suppressed in 3.0s]
+[21:25:40.348] | OBS_QUALITY | Target         | QUALITY      | T3: D5773[OWNER] quality=4.60 | obs=77 consec=77 [+496 suppressed in 10.0s]
+[21:25:40.384] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362924, 149.165395, alt=6.8m) | Target(-35.362624, 149.165196) | HorizDist=37.9m SlantRange=38.5m | σ_r=11.7m σ_t=3.6m | sin_eps=0.177 edge=0.13 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:40.748] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+32 suppressed in 3.0s]
+[21:25:40.919] | INFO       | WEB_UI         | UI           | Camera selected | port=5773
+[21:25:40.931] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=5 groups=2 singles=0 :: G1:x2 ids=29,35 | G6:x2 ids=15,51
+[21:25:41.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=2 active_camera=5773 phases=5763:TRACK,5773:TRACK status="Human detected! Engaged Tracking & Collision Mode."
+[21:25:41.236] | UI_STATE   | LEADER         | UI           | /swarm_data targets=3 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/candidate grp=1 | T3:CONFIRMED/candidate grp=1 | T2:CONFIRMED/candidate grp=1 drone_preview=D5763:track tgt=- link=- | D5773:track tgt=- link=- raw_preview=-
+[21:25:42.396] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362660,149.165568) | ned=(12.9,-28.1)m | sigma=39.7m | conf=0.49 [+194 suppressed in 3.0s]
+[21:25:43.119] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+32 suppressed in 3.0s]
+[21:25:43.160] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165076 | Local:[5763:2,5773:1] | D5763 | obs=265 consec=265 sw=0 GRP[G6]x2 | σ=20.9m Δ=0.6m | T3[CONFIRMED/PENDING/OWNED] @-35.362701,149.165441 | Local:[5773:9,5763:6] | D5773 | obs=137 consec=137 sw=0 GRP[G49]x3 | σ=38.8m Δ=9.7m | T2[CONFIRMED/PENDING/FREE] @-35.362669,149.165255 | Local:[5763:4,5773:5] | FREE | obs=229 consec=229 sw=0 GRP[G1]x2 | σ=24.4m Δ=1.1m
+[21:25:43.161] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=3 | Confirmed=3 Pending=0 | Groups=3 (toplam üye=7) | MultiDroneSeen=3 [+2 suppressed in 12.0s]
+[21:25:43.161] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.0m tgt=-
+[21:25:43.163] | EKF_OUTPUT | FusionEngine   | FILTER       | T3: EKF UPDATED | gps=(-35.362713,149.165386) | sigma=6.3m | delta=16.9m | vel=1.5m/s [+6 suppressed in 3.0s]
+[21:25:43.690] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.01, cov=0.09
+[21:25:43.818] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+32 suppressed in 3.0s]
+[21:25:45.384] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362932, 149.164953, alt=5.0m) | Target(-35.362536, 149.165132) | HorizDist=47.0m SlantRange=47.3m | σ_r=21.4m σ_t=4.3m | sin_eps=0.107 edge=0.32 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:45.398] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362663,149.165563) | ned=(12.5,-28.5)m | sigma=38.8m | conf=0.50 [+189 suppressed in 3.0s]
+[21:25:45.449] | DEBUG      | CONTROL        | TRACKER_35   | CMD: vx=0.00, yaw=0.08, cov=0.01
+[21:25:45.909] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 3 group (5 members) | IDs: [2, 4, 6] | avg_σ=13.2m max_σ=19.9m [+23 suppressed in 8.0s]
+[21:25:45.909] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=3 groups=3 stable_ids=[2, 4, 6] :: id=4 box=(723,388)/71x57 gps=(-35.362630,149.165215) q=6.8 edge=0 GG1x2 m=[4, 5] | id=2 box=(484,345)/47x37 gps=(-35.362565,149.165010) q=4.0 edge=0 GG6x2 m=[2, 3] | id=6 box=(1211,478)/31x79 gps=(-35.362681,149.165397) q=5.3 edge=1 GG83x1 m=[6]
+[21:25:45.962] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=7 groups=3 singles=0 :: G49:x3 ids=68,88,118 | G1:x2 ids=36,41 | G19:x2 ids=56,20
+[21:25:46.148] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+24 suppressed in 3.0s]
+[21:25:46.531] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 3 group (7 members) | IDs: [1, 5, 9] | avg_σ=28.5m max_σ=40.5m [+41 suppressed in 8.0s]
+[21:25:46.531] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=3 groups=3 stable_ids=[1, 5, 9] :: id=9 box=(1057,304)/62x35 gps=(-35.362658,149.165574) q=4.9 edge=0 GG49x3 m=[7, 8, 9] | id=5 box=(731,315)/54x44 gps=(-35.362603,149.165331) q=5.6 edge=0 GG1x2 m=[4, 5] | id=1 box=(320,328)/73x50 gps=(-35.362542,149.165113) q=4.8 edge=0 GG19x2 m=[1, 2]
+[21:25:46.847] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+29 suppressed in 3.0s]
+[21:25:47.120] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5763: TRACK | target=T2 | local_id=4 | lat=-35.362668 lon=149.165251 | σ=5.2m [+510 suppressed in 8.0s]
+[21:25:47.170] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165075 | Local:[5763:2,5773:1] | D5763 | obs=349 consec=349 sw=0 GRP[G6]x2 | σ=19.5m | T3[CONFIRMED/PENDING/OWNED] @-35.362711,149.165391 | Local:[5773:9,5763:6] | D5773 | obs=221 consec=221 sw=0 GRP[G49]x3 | σ=8.0m Δ=4.7m | T2[CONFIRMED/PENDING/FREE] @-35.362668,149.165252 | Local:[5763:4,5773:5] | FREE | obs=314 consec=314 sw=0 GRP[G1]x2 | σ=11.7m
+[21:25:47.170] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.0m tgt=-
+[21:25:47.170] | FUSION_DETAIL | TargetFusion   | FUSION       | T2: 2 obs -> FUSED | drones: [5763, 5773] | sigma=5.7m | coast=False [+24 suppressed in 15.0s]
+[21:25:47.172] | EKF_OUTPUT | FusionEngine   | FILTER       | T2: EKF UPDATED | gps=(-35.362668,149.165249) | sigma=5.1m | delta=5.3m | vel=0.1m/s [+5 suppressed in 3.0s]
+[21:25:47.174] | ID_UPDATE  | LEADER         | ID           | T1: Drone_5773 LocalID 1→2
+[21:25:47.228] | UI_STATE   | LEADER         | UI           | /swarm_data targets=3 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/candidate grp=1 | T3:CONFIRMED/candidate grp=1 | T2:CONFIRMED/candidate grp=1 drone_preview=D5763:track tgt=- link=- | D5773:track tgt=- link=- raw_preview=-
+[21:25:47.549] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.15, cov=0.09 [+6 suppressed in 3.0s]
+[21:25:47.914] | DEBUG      | CONTROL        | TRACKER_88   | CMD: vx=0.00, yaw=0.01, cov=0.09
+[21:25:48.199] | GROUP      | LEADER         | CLUSTER      | T3: Group size changed x3→x2 [+10 suppressed in 8.0s]
+[21:25:48.434] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5763 | gps=(-35.362630,149.165213) | ned=(16.2,-60.3)m | sigma=11.7m | conf=0.64 [+194 suppressed in 3.0s]
+[21:25:49.869] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+32 suppressed in 3.0s]
+[21:25:50.351] | OBS_QUALITY | Target         | QUALITY      | T2: D5763[OWNER] quality=6.75 | obs=384 consec=384 [+641 suppressed in 10.0s]
+[21:25:50.434] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362924, 149.165395, alt=6.8m) | Target(-35.362626, 149.165224) | HorizDist=36.6m SlantRange=37.3m | σ_r=11.2m σ_t=3.5m | sin_eps=0.183 edge=0.15 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:50.752] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+19 suppressed in 3.0s]
+[21:25:50.967] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=5 groups=2 singles=0 :: G1:x2 ids=35,29 | G6:x2 ids=15,51
+[21:25:51.179] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362619,149.165075 | Local:[5763:2,5773:2] | D5763 | obs=437 consec=437 sw=0 GRP[G6]x2 | σ=19.6m | T3[CONFIRMED/PENDING/OWNED] @-35.362711,149.165389 | Local:[5773:9,5763:6] | D5773 | obs=308 consec=308 sw=0 GRP[G49]x2 | σ=8.0m | T2[CONFIRMED/PENDING/FREE] @-35.362668,149.165248 | Local:[5763:4,5773:5] | FREE | obs=402 consec=402 sw=0 GRP[G1]x2 | σ=11.8m
+[21:25:51.179] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.1m tgt=-
+[21:25:51.182] | EKF_OUTPUT | FusionEngine   | FILTER       | T2: EKF UPDATED | gps=(-35.362668,149.165245) | sigma=4.9m | delta=5.4m | vel=0.0m/s [+5 suppressed in 3.0s]
+[21:25:51.199] | DEBUG      | CONTROL        | TRACKER_88   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+11 suppressed in 3.0s]
+[21:25:51.296] | INFO       | WEB_UI         | UI           | Camera selected | port=5773 [+1 suppressed in 5.0s]
+[21:25:51.450] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5763 | gps=(-35.362627,149.165211) | ned=(16.5,-60.5)m | sigma=11.8m | conf=0.74 [+196 suppressed in 3.0s]
+[21:25:52.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=2 active_camera=5773 phases=5763:TRACK,5773:TRACK status="Human detected! Engaged Tracking & Collision Mode."[21:25:52.232] | UI_STATE   | LEADER         | UI           | /swarm_data targets=3 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/candidate grp=1 | T3:CONFIRMED/candidate grp=1 | T2:CONFIRMED/candidate grp=1 drone_preview=D5763:track tgt=- link=- | D5773:track tgt=- link=- raw_preview=-
+
+[21:25:52.874] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+31 suppressed in 3.0s]
+[21:25:53.829] | DEBUG      | CONTROL        | TRACKER_56   | CMD: vx=0.00, yaw=0.01, cov=0.09 [+24 suppressed in 3.0s]
+[21:25:54.478] | EKF_INPUT  | TargetFusion   | FILTER       | T2: OBS | drone=5773 | gps=(-35.362601,149.165334) | ned=(19.4,-49.4)m | sigma=24.5m | conf=0.63 [+194 suppressed in 3.0s]
+[21:25:55.038] | DEBUG      | CONTROL        | TRACKER_36   | CMD: vx=0.00, yaw=0.20, cov=0.04 [+6 suppressed in 3.0s]
+[21:25:55.139] | RESPONSE   | Coordinator    | FILTER       | →DRONE_5773: TRACK | target=T2 | local_id=5 | lat=-35.362668 lon=149.165243 | σ=4.9m [+517 suppressed in 8.0s]
+[21:25:55.190] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(3): T1[CONFIRMED/PENDING/OWNED] @-35.362618,149.165075 | Local:[5763:2,5773:2] | D5763 | obs=522 consec=522 sw=0 GRP[G6]x2 | σ=21.0m | T3[CONFIRMED/PENDING/OWNED] @-35.362711,149.165394 | Local:[5773:9,5763:6] | D5773 | obs=393 consec=393 sw=0 GRP[G49]x2 | σ=39.4m | T2[CONFIRMED/PENDING/FREE] @-35.362668,149.165244 | Local:[5763:4,5773:5] | FREE | obs=487 consec=487 sw=0 GRP[G1]x2 | σ=24.3m
+[21:25:55.192] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=3 | Confirmed=3 Pending=0 | Groups=3 (toplam üye=6) | MultiDroneSeen=3 [+2 suppressed in 12.0s]
+[21:25:55.193] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.0m tgt=-
+[21:25:55.196] | EKF_OUTPUT | FusionEngine   | FILTER       | T3: EKF UPDATED | gps=(-35.362711,149.165397) | sigma=5.0m | delta=16.5m | vel=0.0m/s [+5 suppressed in 3.0s]
+[21:25:55.472] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362923, 149.165395, alt=6.8m) | Target(-35.362626, 149.165223) | HorizDist=36.6m SlantRange=37.2m | σ_r=11.1m σ_t=3.5m | sin_eps=0.183 edge=0.15 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:25:55.606] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=0.00, yaw=0.01, cov=0.10 [+17 suppressed in 3.0s]
+[21:25:55.907] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=0.00, yaw=0.01, cov=0.04 [+32 suppressed in 3.0s]
+[21:25:55.995] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=5 groups=2 singles=0 :: G1:x2 ids=35,29 | G6:x2 ids=15,51
+[21:25:55.997] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 3 bbox | 3 group (5 members) | IDs: [2, 4, 6] | avg_σ=13.1m max_σ=19.7m [+1 suppressed in 8.0s]
+[21:25:55.997] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=3 groups=3 stable_ids=[2, 4, 6] :: id=4 box=(718,387)/72x58 gps=(-35.362630,149.165213) q=6.7 edge=0 GG1x2 m=[4, 5] | id=2 box=(480,345)/48x38 gps=(-35.362568,149.165010) q=4.1 edge=0 GG6x2 m=[2, 3] | id=6 box=(1203,478)/31x80 gps=(-35.362683,149.165396) q=5.6 edge=1 GG83x1 m=[6]
+[21:25:56.795] | USER_CMD   | LEADER         | USER         | MISSION APPROVAL MODE ACTIVATED
+[21:25:56.796] | GUARD      | LEADER         | ASSIGN       | CAPACITY_GUARD: Drone_5763 already active on 5763
+[21:25:56.797] | USER_CMD   | LEADER         | USER         | MISSION PRE-ASSIGN: {5763: 'T1', 5773: 'T3'}
+[21:25:56.798] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T1 → ASSIGNED | drone=5763 local_id=2
+[21:25:56.798] | USER_CMD   | LEADER         | USER         | MASS APPROVE: T3 → ASSIGNED | drone=5773 local_id=9
+[21:25:56.821] | INFO       | HANDSHAKE      | LEADER       | Lock APPROVED: T1 by Drone_5763
+[21:25:56.822] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ATTACK_FSM: IDLE -> LOCKING | Target=T1 pos=(-35.362565,149.165007)
+[21:25:56.822] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ASSIGNMENT_ACCEPTED | target=T1 -> LOCKING
+[21:25:56.867] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: IDLE -> LOCKING | Target=T3 pos=(-35.362664,149.165565)
+[21:25:56.868] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ASSIGNMENT_ACCEPTED | target=T3 -> LOCKING
+[21:25:56.908] | DEBUG      | CONTROL        | TRACKER_35   | CMD: vx=2.00, yaw=0.05, cov=0.01 [+1 suppressed in 3.0s]
+[21:25:57.199] | GRACE      | LEADER         | GRACE        | T2: GRACE PERIOD STARTED - Coasting (NoObs=0.3s)
+[21:25:57.201] | EKF_HOLD   | FusionEngine   | FILTER       | T3: ATTACK HOLD | blocked update drift=16.0m
+[21:25:57.225] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 3 bbox | 3 group (7 members) | IDs: [2, 5, 9] | avg_σ=27.8m max_σ=38.7m [+4 suppressed in 8.0s]
+[21:25:57.225] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=3 groups=3 stable_ids=[2, 5, 9] :: id=9 box=(978,302)/57x37 gps=(-35.362665,149.165563) q=4.0 edge=0 GG49x3 m=[7, 9] | id=5 box=(661,314)/52x45 gps=(-35.362605,149.165330) q=5.6 edge=0 GG1x2 m=[4, 5] | id=2 box=(242,330)/77x53 gps=(-35.362545,149.165114) q=5.7 edge=0 GG19x2 m=[1, 2]
+[21:25:57.285] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ATTACK_FSM: LOCKING -> VERIFY | bbox=(456.9969159784267, 325.16271259940544, 503.9969159784267, 363.16271259940544) track_id=2
+[21:25:57.286] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | VISUAL_LOCK | group_id=G6 bbox_center=(480.4969159784267, 344.16271259940544)
+[21:25:57.340] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: LOCKING -> VERIFY | bbox=(949.1000676885641, 283.979213451103, 1006.1000676885641, 320.979213451103) track_id=9
+[21:25:57.340] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | VISUAL_LOCK | group_id=G49 bbox_center=(977.6000676885641, 302.479213451103)
+[21:25:57.378] | SUCCESS    | LEADER         | ATTACK       | T1: VERIFY_APPROVED for Drone_5763 | lock_dist=8.0m — entering autonomous mode
+[21:25:57.379] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ATTACK_FSM: VERIFY -> AUTONOMOUS | Leader disconnected, centering target
+[21:25:57.379] | SUCCESS    | DRONE_5763     | ATTACK_FLOW  | Leader APPROVED — entering autonomous mode
+[21:25:57.430] | REJECT     | LEADER         | ATTACK       | T3: VERIFY_REJECTED for Drone_5773 | lock_dist=15.8m > 15.0m
+[21:25:57.431] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Verify rejected by leader | attempts=1 lock=(-35.362665,149.165563)
+[21:25:57.431] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: VERIFY -> LOCKING | Retry: leader_rejected
+[21:25:57.471] | STATE      | DRONE_5763     | MOTION       | Motion intent -> ATTACK_CENTERING (autonomous centering hover)
+[21:25:57.472] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:25:57.473] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:25:57.568] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS | drone=5763 | gps=(-35.362567,149.165010) | ned=(23.2,-78.8)m | sigma=2.8m | conf=1.00 [+159 suppressed in 3.0s]
+[21:25:57.873] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: LOCKING -> VERIFY | bbox=(946.9661718637967, 284.748332323186, 1006.9661718637967, 321.748332323186) track_id=9
+[21:25:57.874] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | VISUAL_LOCK | group_id=G49 bbox_center=(976.9661718637967, 303.248332323186)
+[21:25:57.969] | SUCCESS    | LEADER         | ATTACK       | T3: VERIFY_APPROVED for Drone_5773 | lock_dist=14.9m — entering autonomous mode
+[21:25:57.970] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: VERIFY -> AUTONOMOUS | Leader disconnected, centering target
+[21:25:57.970] | SUCCESS    | DRONE_5773     | ATTACK_FLOW  | Leader APPROVED — entering autonomous mode
+[21:25:58.056] | STATE      | DRONE_5773     | MOTION       | Motion intent -> ATTACK_CENTERING (autonomous centering hover)
+[21:25:58.056] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:25:58.057] | RECOVERY   | TargetFusion   | FILTER       | T3: OBS BUFFERED | reason=suspect_jump | trusted=15.2m
+[21:25:58.057] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:25:58.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=3 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/engaged_monitor grp=1 | T3:CONFIRMED/engaged_monitor grp=1 | T2:CONFIRMED/candidate grp=1 drone_preview=D5763:track tgt=- link=closed | D5773:track tgt=- link=closed raw_preview=-[21:25:58.230] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TRACK mission=True tracking=True collision=False route_transit=0 route_scan=6 planned_terminal=True terminal_event=- loc=(-35.362923,149.165395,6.8m) status="Human detected! Engaged Tracking & Collision Mode."
+
+[21:25:58.233] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TRACK mission=True tracking=True collision=False route_transit=0 route_scan=6 planned_terminal=True terminal_event=- loc=(-35.362932,149.164953,5.0m) status="Human detected! Engaged Tracking & Collision Mode."
+[21:25:58.612] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=2.00, yaw=0.51, cov=0.01 [+32 suppressed in 3.0s]
+[21:25:58.923] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=2.00, yaw=-0.18, cov=0.01 [+27 suppressed in 3.0s]
+[21:25:59.016] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:25:59.016] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:25:59.204] | LIFECYCLE  | LEADER         | TRACK        | T2: CONFIRMED → LOST (NoObs=2.3s)
+[21:25:59.206] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/EXECUTING/OWNED] @-35.362617,149.165075 | Local:[-] | D5763 | obs=560 consec=560 sw=0 GRP[G6]x2 | σ=21.0m | T3[CONFIRMED/EXECUTING/OWNED] @-35.362710,149.165397 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m
+[21:25:59.207] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.0m tgt=-
+[21:25:59.207] | WARNING    | KalmanFilter   | FUSION       | REJECTED (mahal=3.9sigma > 3sigma) | reject_count=1
+[21:25:59.208] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF UPDATED | gps=(-35.362568,149.165017) | sigma=2.7m | delta=7.5m | vel=1.0m/s [+4 suppressed in 3.0s]
+[21:25:59.209] | EKF_HOLD   | FusionEngine   | FILTER       | T3: ATTACK HOLD | blocked update drift=15.9m
+[21:25:59.613] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:25:59.614] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:00.188] | DEBUG      | CONTROL        | TRACKER_35   | CMD: vx=2.00, yaw=0.07, cov=0.01 [+6 suppressed in 3.0s]
+[21:26:00.259] | DEBUG      | CONTROL        | TRACKER_88   | CMD: vx=2.00, yaw=0.36, cov=0.01 [+7 suppressed in 3.0s]
+[21:26:00.388] | DEBUG      | CONTROL        | TRACKER_232  | CMD: vx=2.00, yaw=-0.05, cov=0.01
+[21:26:00.475] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362923, 149.165395, alt=6.8m) | Target(-35.362626, 149.165226) | HorizDist=36.5m SlantRange=37.1m | σ_r=11.1m σ_t=3.5m | sin_eps=0.183 edge=0.20 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:26:00.539] | INFO       | WEB_UI         | UI           | Camera selected | port=5773 [+1 suppressed in 5.0s]
+[21:26:00.574] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:00.575] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS | drone=5763 | gps=(-35.362567,149.165010) | ned=(23.2,-78.8)m | sigma=2.8m | conf=1.00 [+57 suppressed in 3.0s]
+[21:26:00.575] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:01.030] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=3 groups=1 singles=0 :: G1:x2 ids=35,29
+[21:26:01.032] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[2, 5] :: id=5 box=(772,388)/72x57 gps=(-35.362630,149.165215) q=6.3 edge=0 GG1x2 m=[4, 5] | id=2 box=(554,344)/16x34 gps=(-35.362562,149.165019) q=3.5 edge=0 GG6x1 m=[2]
+[21:26:01.181] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:01.181] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:01.210] | LIFECYCLE  | LEADER         | TRACK        | T2: LOST → DELETED (NoObs=4.3s)
+[21:26:01.228] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=2 active_camera=5773 phases=5763:TRACK,5773:TRACK status="Human detected! Engaged Tracking & Collision Mode."
+[21:26:01.924] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=2.00, yaw=-0.13, cov=0.01 [+26 suppressed in 3.0s]
+[21:26:02.019] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ATTACK_FSM: AUTONOMOUS -> APPROACH | Visual terminal armed @ (-35.362568,149.165011) alt=6.8m
+[21:26:02.020] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | VISUAL_ATTACK_COMMITTED | center=(546.8838983351434, 343.3349205742703) terminal=-35.36256843399576,149.16501142323187
+[21:26:02.108] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:02.110] | STATE      | DRONE_5763     | MOTION       | Motion intent -> ATTACK (visual kamikaze dive)
+[21:26:02.111] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:02.111] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:02.589] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=7.1m
+[21:26:02.718] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:02.718] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:02.873] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Attack visual family switch accepted | group:G6 -> group:G1
+[21:26:02.874] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Clamped visual terminal update | raw=12.4m cap=10.5m ref=planned
+[21:26:03.036] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (3.80,0.00) -> (3.03,-2.30)
+[21:26:03.130] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=11.0m
+[21:26:03.213] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/EXECUTING/OWNED] @-35.362570,149.165016 | Local:[-] | D5763 | obs=560 consec=560 sw=0 GRP[G6]x2 | σ=21.0m Δ=7.5m | T3[CONFIRMED/EXECUTING/OWNED] @-35.362680,149.165503 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m Δ=10.1m
+[21:26:03.224] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.8m tgt=- | D5773[TRACKING] alt=5.1m tgt=-
+[21:26:03.226] | FUSION_DETAIL | TargetFusion   | FUSION       | TOTAL: 2 targets, 2 results [+25 suppressed in 15.0s]
+[21:26:03.227] | EKF_OUTPUT | FusionEngine   | FILTER       | T3: EKF UPDATED | gps=(-35.362665,149.165571) | sigma=2.3m | delta=2.7m | vel=1.8m/s [+2 suppressed in 3.0s]
+[21:26:03.237] | UI_STATE   | LEADER         | UI           | /swarm_data targets=2 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/engaged_monitor grp=1 | T3:CONFIRMED/engaged_monitor grp=1 drone_preview=D5763:track tgt=- link=closed | D5773:track tgt=- link=closed raw_preview=-
+[21:26:03.286] | DEBUG      | CONTROL        | TRACKER_88   | CMD: vx=2.00, yaw=0.19, cov=0.01 [+32 suppressed in 3.0s]
+[21:26:03.327] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.042). Clamping to 0.050.
+[21:26:03.383] | DEBUG      | CONTROL        | TRACKER_68   | CMD: vx=2.00, yaw=0.19, cov=0.01 [+17 suppressed in 3.0s]
+[21:26:03.480] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[5, 9] :: id=9 box=(753,297)/54x37 gps=(-35.362663,149.165567) q=4.1 edge=0 GG49x3 m=[9, 12, 15] | id=5 box=(448,315)/55x46 gps=(-35.362605,149.165331) q=5.7 edge=0 GG1x2 m=[4, 5]
+[21:26:03.511] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G966 -> group:G6
+[21:26:03.515] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Attack visual family switch accepted | group:G6 -> group:G966
+[21:26:03.559] | DEBUG      | CONTROL        | TRACKER_282  | CMD: vx=2.00, yaw=0.18, cov=0.01
+[21:26:03.609] | EKF_INPUT  | TargetFusion   | FILTER       | T1: OBS | drone=5763 | gps=(-35.362598,149.165043) | ned=(19.8,-75.8)m | sigma=2.8m | conf=1.00 [+65 suppressed in 3.0s]
+[21:26:03.693] | DEBUG      | CONTROL        | TRACKER_35   | CMD: vx=2.00, yaw=0.20, cov=0.01 [+2 suppressed in 3.0s]
+[21:26:03.699] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:03.699] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:03.790] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=21.5m
+[21:26:04.037] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 1 bbox | 1 group (2 members) | IDs: [2] | avg_σ=19.2m max_σ=19.2m [+28 suppressed in 8.0s]
+[21:26:04.042] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Attack visual family switch accepted | group:G6 -> group:G977
+[21:26:04.130] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:04.169] | DEBUG      | CONTROL        | TRACKER_36   | CMD: vx=2.00, yaw=-0.14, cov=0.01
+[21:26:04.270] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:04.271] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:04.486] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.6m
+[21:26:04.559] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:04.850] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: AUTONOMOUS -> APPROACH | Visual terminal armed @ (-35.362665,149.165567) alt=5.1m
+[21:26:04.851] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | VISUAL_ATTACK_COMMITTED | center=(734.7062523732518, 297.4528600559725) terminal=-35.36266485150918,149.16556734875115
+[21:26:04.931] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:04.931] | STATE      | DRONE_5773     | MOTION       | Motion intent -> ATTACK (visual kamikaze dive)
+[21:26:04.989] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=2.00, yaw=0.00, cov=0.01 [+31 suppressed in 3.0s]
+[21:26:05.073] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.8m
+[21:26:05.246] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:05.247] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:05.303] | RECOVERY   | TargetFusion   | FILTER       | T3: OBS BUFFERED | reason=suspect_jump | trusted=6.9m
+[21:26:05.384] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 2 bbox | 2 group (6 members) | IDs: [4, 15] | avg_σ=21.5m max_σ=24.4m [+10 suppressed in 8.0s]
+[21:26:05.388] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G49 -> group:G1
+[21:26:05.388] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=15.3m cap=7.0m ref=planned
+[21:26:05.389] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=7.0m
+[21:26:05.513] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362915, 149.165387, alt=6.8m) | Target(-35.362640, 149.165237) | HorizDist=33.5m SlantRange=34.2m | σ_r=9.9m σ_t=3.2m | sin_eps=0.199 edge=0.48 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:26:05.582] | RECOVERY   | TargetFusion   | FILTER       | T3: REANCHOR CONFIRMED | count=4 | ports=[5773] | max_trusted=12.9m
+[21:26:05.620] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:05.624] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.6m
+[21:26:05.661] | DEBUG      | CONTROL        | TRACKER_320  | CMD: vx=2.00, yaw=0.06, cov=0.01
+[21:26:05.664] | INFO       | DRONE_5773     | VISION       | ATTACK WORLD ANCHOR: group:G1049 -> group:G19
+[21:26:05.669] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Terminal run visual lost, coasting with last attack vector | loss_count=1
+[21:26:05.670] | RECOVERY   | TargetFusion   | FILTER       | T3: OBS BUFFERED | reason=suspect_jump | trusted=12.9m
+[21:26:05.830] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:05.833] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:05.913] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.0m
+[21:26:05.914] | RECOVERY   | TargetFusion   | FILTER       | T3: REANCHOR CONFIRMED | count=4 | ports=[5773] | max_trusted=12.9m
+[21:26:06.011] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G1051 -> group:G1
+[21:26:06.011] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=14.7m cap=11.2m ref=planned
+[21:26:06.013] | RECOVERY   | TargetFusion   | FILTER       | T3: OBS BUFFERED | reason=suspect_jump | trusted=12.9m
+[21:26:06.051] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=4 groups=2 singles=0 :: G977:x2 ids=35,29 | G1:x2 ids=15,276
+[21:26:06.143] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.0m
+[21:26:06.143] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:06.229] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=2 active_camera=5763 phases=5763:TRACK,5773:TRACK status="Human detected! Engaged Tracking & Collision Mode."
+[21:26:06.356] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.029). Clamping to 0.050. [+29 suppressed in 3.0s]
+[21:26:06.446] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=13.0m
+[21:26:06.532] | DEBUG      | CONTROL        | TRACKER_325  | CMD: vx=2.00, yaw=0.01, cov=0.01
+[21:26:06.542] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G1051 -> group:G1
+[21:26:06.543] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=16.3m cap=11.4m ref=planned
+[21:26:06.632] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362724,149.165430) | ned=(5.7,-40.7)m | sigma=2.8m | conf=1.00 [+67 suppressed in 3.0s]
+[21:26:06.680] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:06.685] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.3m
+[21:26:06.767] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:06.767] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:07.203] | DEBUG      | CONTROL        | TRACKER_36   | CMD: vx=2.00, yaw=-0.47, cov=0.01 [+6 suppressed in 3.0s]
+[21:26:07.236] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/EXECUTING/OWNED] @-35.362602,149.165046 | Local:[-] | D5763 | obs=560 consec=560 sw=0 GRP[G6]x2 | σ=21.0m Δ=4.4m | T3[CONFIRMED/EXECUTING/OWNED] @-35.362672,149.165556 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m Δ=4.9m
+[21:26:07.238] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=2 | Confirmed=2 Pending=0 | Groups=2 (toplam üye=5) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
+[21:26:07.240] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=7.0m tgt=- | D5773[TRACKING] alt=5.0m tgt=-
+[21:26:07.242] | RECOVERY   | EKF            | FILTER       | REANCHOR to (6.30, -39.29)
+[21:26:07.242] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF UPDATED | gps=(-35.362625,149.165073) | sigma=2.2m | delta=2.3m | vel=1.1m/s [+3 suppressed in 3.0s]
+[21:26:07.267] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=7.9m
+[21:26:07.385] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:07.385] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:07.434] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (6.80,0.00) -> (5.06,-4.54)
+[21:26:07.565] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (6.80,0.00) -> (3.22,5.99)
+[21:26:07.643] | DEBUG      | CONTROL        | TRACKER_335  | CMD: vx=2.00, yaw=-0.18, cov=0.01
+[21:26:07.647] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=22.1m
+[21:26:07.648] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:07.702] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:07.790] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.6m
+[21:26:08.046] | DEBUG      | CONTROL        | TRACKER_35   | CMD: vx=2.00, yaw=0.30, cov=0.02 [+1 suppressed in 3.0s]
+[21:26:08.049] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[4, 10] :: id=4 box=(945,198)/101x78 gps=(-35.362639,149.165221) q=7.1 edge=0 GG977x2 m=[4, 5] | id=10 box=(618,127)/14x42 gps=(-35.362584,149.165013) q=5.1 edge=0 GG1x1 m=[10]
+[21:26:08.055] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Terminal run visual lost, coasting with last attack vector | loss_count=1
+[21:26:08.139] | DEBUG      | CONTROL        | TRACKER_276  | CMD: vx=2.00, yaw=0.25, cov=0.01
+[21:26:08.144] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:08.194] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=14.8m
+[21:26:08.327] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:08.327] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:08.419] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.4m
+[21:26:08.710] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=12.2m
+[21:26:08.756] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:08.897] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:08.898] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:08.951] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.8m
+[21:26:09.237] | UI_STATE   | LEADER         | UI           | /swarm_data targets=2 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/engaged_monitor grp=1 | T3:CONFIRMED/engaged_monitor grp=1 drone_preview=D5763:track tgt=- link=closed | D5773:track tgt=- link=closed raw_preview=-
+[21:26:09.238] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=12.8m
+[21:26:09.547] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.4m
+[21:26:09.669] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:09.670] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362724,149.165430) | ned=(5.7,-40.7)m | sigma=2.8m | conf=1.00 [+69 suppressed in 3.0s]
+[21:26:09.750] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=10.8m
+[21:26:09.794] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:09.880] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:09.880] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:10.050] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=6.7m
+[21:26:10.217] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:10.254] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=10.7m
+[21:26:10.427] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:10.428] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:10.540] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362836, 149.165301, alt=6.7m) | Target(-35.362655, 149.165249) | HorizDist=20.7m SlantRange=21.8m | σ_r=5.8m σ_t=2.3m | sin_eps=0.309 edge=0.67 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:26:10.644] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=10.1m
+[21:26:10.668] | DEBUG      | CONTROL        | TRACKER_335  | CMD: vx=2.00, yaw=-0.00, cov=0.01 [+34 suppressed in 3.0s]
+[21:26:10.755] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=10.3m
+[21:26:10.797] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G977 -> group:G83
+[21:26:11.063] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=4 groups=2 singles=0 :: G977:x2 ids=35,29 | G1:x2 ids=276,15
+[21:26:11.142] | DEBUG      | CONTROL        | TRACKER_276  | CMD: vx=2.00, yaw=0.01, cov=0.01 [+34 suppressed in 3.0s]
+[21:26:11.148] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.7m
+[21:26:11.187] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[5, 15] :: id=15 box=(648,104)/63x47 gps=(-35.362591,149.165377) q=4.8 edge=0 GG19x3 m=[13, 15, 16] | id=5 box=(250,140)/77x62 gps=(-35.362623,149.165295) q=6.7 edge=0 GG1x2 m=[4, 5]
+[21:26:11.191] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G49 -> group:G19
+[21:26:11.247] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/EXECUTING/OWNED] @-35.362638,149.165085 | Local:[-] | D5763 | obs=560 consec=560 sw=0 GRP[G6]x2 | σ=21.0m Δ=5.4m | T3[CONFIRMED/EXECUTING/OWNED] @-35.362717,149.165447 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m Δ=11.0m
+[21:26:11.249] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=6.2m tgt=- | D5773[TRACKING] alt=5.5m tgt=-
+[21:26:11.250] | EKF_OUTPUT | FusionEngine   | FILTER       | T1: EKF UPDATED | gps=(-35.362657,149.165104) | sigma=2.2m | delta=1.5m | vel=1.0m/s [+3 suppressed in 3.0s]
+[21:26:11.284] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=8.1m cap=7.0m ref=locked
+[21:26:11.285] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=13.1m
+[21:26:11.408] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:11.408] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:11.533] | INFO       | DRONE_5773     | VISION       | ATTACK WORLD ANCHOR: group:G1179 -> group:G49
+[21:26:11.660] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.7m
+[21:26:11.707] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G19 -> group:G49
+[21:26:11.708] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:11.749] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (6.80,0.00) -> (5.06,-4.54)
+[21:26:11.788] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=68.3m cap=7.0m ref=locked
+[21:26:11.789] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=24.9m
+[21:26:11.873] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (6.80,0.00) -> (3.30,5.94)
+[21:26:11.953] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:11.954] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:12.192] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Ignored terminal world update while visual attack active | dist=259.5m ref=planned
+[21:26:12.243] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.0m
+[21:26:12.244] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:12.686] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Attack visual family switch accepted | group:G49 -> group:G19
+[21:26:12.687] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=12.0m cap=7.0m ref=locked
+[21:26:12.687] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=30.9m
+[21:26:12.688] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362734,149.165410) | ned=(4.6,-42.5)m | sigma=2.8m | conf=1.00 [+71 suppressed in 3.0s]
+[21:26:12.795] | CAMERA_STATS | DRONE_5763     | VISION       | CAMERA: 2 bbox | 2 group (3 members) | IDs: [5, 10] | avg_σ=8.1m max_σ=10.7m [+8 suppressed in 8.0s]
+[21:26:12.803] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.8m
+[21:26:12.975] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:12.975] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:13.272] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=12.3m
+[21:26:13.306] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.6m
+[21:26:13.525] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:13.525] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:13.681] | DEBUG      | CONTROL        | TRACKER_335  | CMD: vx=2.00, yaw=0.01, cov=0.01 [+35 suppressed in 3.0s]
+[21:26:13.778] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.5m
+[21:26:13.778] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:13.818] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.5m
+[21:26:14.148] | DEBUG      | CONTROL        | TRACKER_276  | CMD: vx=2.00, yaw=0.01, cov=0.02 [+35 suppressed in 3.0s]
+[21:26:14.287] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=7.9m
+[21:26:14.318] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:14.403] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.6m
+[21:26:14.498] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:14.499] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:14.531] | CAMERA_STATS | DRONE_5773     | VISION       | CAMERA: 2 bbox | 2 group (4 members) | IDs: [5, 15] | avg_σ=14.0m max_σ=16.0m [+53 suppressed in 8.0s]
+[21:26:14.877] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=7.5m
+[21:26:14.920] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.6m
+[21:26:15.050] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:15.052] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:15.233] | UI_STATE   | LEADER         | UI           | /swarm_data targets=2 drones=2 raw_buffers=0 target_preview=T1:CONFIRMED/engaged_monitor grp=1 | T3:CONFIRMED/engaged_monitor grp=1 drone_preview=D5763:track tgt=- link=closed | D5773:track tgt=- link=closed raw_preview=-
+[21:26:15.255] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(2): T1[CONFIRMED/EXECUTING/OWNED] @-35.362657,149.165104 | Local:[-] | D5763 | obs=560 consec=560 sw=0 GRP[G6]x2 | σ=21.0m Δ=2.7m | T3[CONFIRMED/EXECUTING/OWNED] @-35.362729,149.165419 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m Δ=2.9m
+[21:26:15.258] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[TRACKING] alt=3.7m tgt=- | D5773[TRACKING] alt=4.7m tgt=-
+[21:26:15.259] | EKF_OUTPUT | FusionEngine   | FILTER       | T3: EKF UPDATED | gps=(-35.362736,149.165407) | sigma=2.3m | delta=0.6m | vel=0.4m/s [+3 suppressed in 3.0s]
+[21:26:15.420] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.2m
+[21:26:15.465] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.6m
+[21:26:15.553] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362735, 149.165191, alt=3.7m) | Target(-35.362591, 149.165010) | HorizDist=22.9m SlantRange=23.2m | σ_r=10.8m σ_t=2.4m | sin_eps=0.161 edge=0.06 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:26:15.695] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362734,149.165410) | ned=(4.6,-42.5)m | sigma=2.8m | conf=1.00 [+69 suppressed in 3.0s]
+[21:26:15.740] | GUARD      | DRONE_5763     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,1.17,-0.01) -> (6.63,0.00,1.17,-0.01)
+[21:26:15.779] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:15.975] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.0m
+[21:26:16.028] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.4m
+[21:26:16.029] | DEBUG      | DRONE_5763     | FLIGHT       | Body->NED: (6.63,0.00) -> (4.83,-4.54)
+[21:26:16.030] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T1
+[21:26:16.030] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T1
+[21:26:16.066] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=3 groups=1 singles=0 :: G19:x3 ids=335,336,360
+[21:26:16.160] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (6.80,0.00) -> (3.27,5.96)
+[21:26:16.389] | INFO       | DRONE_5763     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:16.535] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.4m
+[21:26:16.568] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.5m
+[21:26:16.625] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:16.626] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:16.719] | DEBUG      | CONTROL        | TRACKER_335  | CMD: vx=2.00, yaw=0.01, cov=0.02 [+33 suppressed in 3.0s]
+[21:26:16.753] | GUARD      | DRONE_5763     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,1.34,-0.00) -> (6.34,0.00,1.34,-0.00)
+[21:26:16.940] | INFO       | DRONE_5763     | VISION       | ATTACK WORLD ANCHOR: group:G1230 -> group:G1
+[21:26:16.940] | CAMERA_FLOW | DRONE_5763     | VISION       | DETECTION_FLOW count=2 groups=2 stable_ids=[2, 10] :: id=10 box=(575,378)/48x143 gps=(-35.362591,149.165010) q=7.0 edge=0 GG1x1 m=[10] | id=2 box=(703,391)/52x162 gps=(-35.362591,149.165036) q=7.6 edge=0 GG1230x1 m=[2]
+[21:26:17.096] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.3m
+[21:26:17.097] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,0.96,-0.01) -> (6.73,0.00,0.96,-0.01)
+[21:26:17.221] | WARNING    | DRONE_5763     | ATTACK_FLOW  | Terminal run visual lost, coasting with last attack vector | loss_count=1
+[21:26:17.309] | INFO       | TRACK          | TRACKER      | Lock switched to 15 after 5 frames
+[21:26:17.312] | DEBUG      | CONTROL        | TRACKER_15   | CMD: vx=2.00, yaw=0.02, cov=0.01 [+34 suppressed in 3.0s]
+[21:26:17.513] | PROTOCOL   | DRONE_5763     | ATTACK_FLOW  | ATTACK_FSM: APPROACH -> IMPACT | TARGET ELIMINATED
+[21:26:17.514] | SUCCESS    | DRONE_5763     | ATTACK_FLOW  | IMPACT_CONFIRMED | coverage=0.0% alt=2.6m reason=terminal_airpoint_reached
+[21:26:17.514] | BRIDGE     | DRONE_5763     | SWARM_LINK   | TX IMPACT_CONFIRMED | target=T1
+[21:26:17.514] | SUCCESS    | LEADER         | ATTACK       | T1: IMPACT_CONFIRMED by Drone_5763 | coverage=0.0% alt=2.6m — finalizing target
+[21:26:17.514] | RESPONSE   | DRONE_5763     | SWARM_LINK   | RX ACK | for=IMPACT_CONFIRMED target=T1
+[21:26:17.514] | SUCCESS    | DRONE_5763     | ATTACK_FLOW  | Attack success path | reason=terminal_airpoint_reached
+[21:26:17.515] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: TRACK -> TERMINAL_HOLD | terminal event confirmed
+[21:26:17.516] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal impact confirmed — executing 1.5s fly-through coasting
+[21:26:17.516] | STATE      | DRONE_5763     | MOTION       | Motion intent -> HOLD (post-impact fly-through coasting)
+[21:26:17.633] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.2m
+[21:26:17.800] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:18.158] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=8.7m
+[21:26:18.158] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,0.99,-0.01) -> (6.48,0.00,0.99,-0.01)
+[21:26:18.158] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:18.159] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:18.230] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=TERMINAL_HOLD transit=none scan_points=6
+[21:26:18.235] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=TERMINAL_HOLD mission=True tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=True terminal_event=IMPACT loc=(-35.362680,149.165129,2.2m) status="Terminal event confirmed. Executing fly-through coasting, then holding for RTL."
+[21:26:18.237] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=1 active_camera=5763 phases=5763:TERMINAL_HOLD,5773:TRACK status="Terminal event confirmed. Executing fly-through coasting, then holding for RTL."
+[21:26:18.666] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.0m
+[21:26:18.749] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362734,149.165410) | ned=(4.6,-42.5)m | sigma=2.8m | conf=1.00 [+52 suppressed in 3.0s]
+[21:26:19.038] | STATE      | DRONE_5763     | MOTION       | Motion intent -> FAILSAFE_HOLD (terminal completion hold)
+[21:26:19.039] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=10.0s
+[21:26:19.218] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=9.6m
+[21:26:19.219] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,1.27,-0.01) -> (6.00,0.00,1.27,-0.01)
+[21:26:19.264] | RADAR      | LEADER         | BATTLESPACE  | TARGETS(1): T3[CONFIRMED/EXECUTING/OWNED] @-35.362735,149.165407 | Local:[-] | D5773 | obs=431 consec=431 sw=0 GRP[G49]x3 | σ=38.9m Δ=1.3m
+[21:26:19.264] | RADAR_DETAY | LEADER         | BATTLESPACE  | RADAR_STATS: Total=1 | Confirmed=1 Pending=0 | Groups=1 (toplam üye=3) | MultiDroneSeen=0 [+2 suppressed in 12.0s]
+[21:26:19.264] | RADAR      | LEADER         | BATTLESPACE  | DRONES(2): D5763[MISSION] alt=1.7m tgt=- | D5773[TRACKING] alt=2.8m tgt=-
+[21:26:19.265] | FUSION_DETAIL | TargetFusion   | FUSION       | TOTAL: 2 targets, 2 results [+8 suppressed in 15.0s]
+[21:26:19.265] | EKF_OUTPUT | FusionEngine   | FILTER       | T3: EKF UPDATED | gps=(-35.362736,149.165406) | sigma=2.2m | delta=0.0m | vel=0.1m/s [+3 suppressed in 3.0s]
+[21:26:19.717] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:19.718] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:19.790] | DEBUG      | CONTROL        | TRACKER_335  | CMD: vx=2.00, yaw=0.01, cov=0.03 [+35 suppressed in 3.0s]
+[21:26:19.794] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=10.5m
+[21:26:19.876] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:20.024] | DEBUG      | CONTROL        | TRACKER_336  | CMD: vx=2.00, yaw=0.01, cov=0.02
+[21:26:20.025] | INFO       | DRONE_5773     | VISION       | ATTACK WORLD ANCHOR: group:G1325 -> group:G19
+[21:26:20.025] | CAMERA_FLOW | DRONE_5773     | VISION       | DETECTION_FLOW count=1 groups=1 stable_ids=[16] :: id=16 box=(674,366)/106x110 gps=(-35.362671,149.165546) q=7.1 edge=0 GG19x2 m=[13, 15, 16]
+[21:26:20.042] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=9.0s
+[21:26:20.099] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=24.9m cap=18.0m ref=planned
+[21:26:20.268] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,1.30,0.04) -> (5.37,0.00,1.30,0.04)
+[21:26:20.353] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Ignored terminal world update while visual attack active | dist=102.4m ref=locked
+[21:26:20.439] | DEBUG      | DRONE_5773     | FLIGHT       | Body->NED: (5.20,0.00) -> (2.59,4.51)
+[21:26:20.587] | GPS_CALC   | GeoMath        | RGI          | RAY-GROUND: Drone(-35.362780, 149.165293, alt=1.9m) | Target(-35.362652, 149.165520) | HorizDist=25.0m SlantRange=25.1m | σ_r=22.8m σ_t=2.5m | sin_eps=0.077 edge=0.15 corr=0.000 GPS_err=2.5m Alt_err=1.5m
+[21:26:20.598] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=38.4m
+[21:26:20.675] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=61.4m cap=7.0m ref=locked
+[21:26:21.045] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=8.0s
+[21:26:21.057] | DEBUG      | GeoMath        | SYSTEM       | Shallow ray (ray_z=0.045). Clamping to 0.050. [+10 suppressed in 3.0s]
+[21:26:21.059] | INFO       | DRONE_5773     | VISION       | ATTACK WORLD ANCHOR: group:G1359 -> group:G19
+[21:26:21.142] | GROUP_FLOW | GROUP          | TRACKER      | cluster candidates=3 groups=1 singles=0 :: G1334:x2 ids=336,360
+[21:26:21.145] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Frozen planned terminal point during visual dive | source=approach_visual jump=20.8m
+[21:26:21.227] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Clamped visual terminal update | raw=46.5m cap=7.0m ref=locked[21:26:21.228] | UI_STATE   | LEADER         | UI           | /swarm_data targets=1 drones=2 raw_buffers=0 target_preview=T3:CONFIRMED/engaged_monitor grp=1 drone_preview=D5763:recovery tgt=- link=closed | D5773:track tgt=- link=closed raw_preview=-
+
+[21:26:21.231] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:21.234] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:21.311] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Ignored terminal world update while visual attack active | dist=90.4m ref=locked
+[21:26:21.311] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,1.06,0.08) -> (5.20,0.00,1.06,0.08)
+[21:26:21.770] | EKF_INPUT  | TargetFusion   | FILTER       | T3: OBS | drone=5773 | gps=(-35.362734,149.165410) | ned=(4.6,-42.5)m | sigma=2.8m | conf=1.00 [+37 suppressed in 3.0s]
+[21:26:21.851] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Terminal run visual lost, coasting with last attack vector | loss_count=1
+[21:26:22.049] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=7.0s
+[21:26:22.327] | INFO       | DRONE_5773     | VISION       | ATTACK WORLD ANCHOR: group:G1393 -> group:G19
+[21:26:22.331] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Ignored terminal world update while visual attack active | dist=622.1m ref=locked
+[21:26:22.332] | INFO       | DRONE_5773     | ATTACK_FLOW  | Terminal attack using bbox-first guidance
+[21:26:22.332] | GUARD      | DRONE_5773     | MOTION       | BODY filtered by ATTACK: (6.80,0.00,0.24,0.09) -> (5.20,0.00,0.24,0.09)
+[21:26:22.794] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX EXECUTION_UPDATE | target=T3
+[21:26:22.795] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=EXECUTION_UPDATE target=T3
+[21:26:22.875] | WARNING    | DRONE_5773     | ATTACK_FLOW  | Ignored terminal world update while visual attack active | dist=580.9m ref=locked
+[21:26:23.052] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=6.0s
+[21:26:23.097] | DEBUG      | CONTROL        | TRACKER_336  | CMD: vx=2.00, yaw=-0.01, cov=0.06 [+19 suppressed in 3.0s]
+[21:26:23.179] | PROTOCOL   | DRONE_5773     | ATTACK_FLOW  | ATTACK_FSM: APPROACH -> IMPACT | TARGET ELIMINATED
+[21:26:23.180] | SUCCESS    | DRONE_5773     | ATTACK_FLOW  | IMPACT_CONFIRMED | coverage=4.6% alt=0.5m reason=terminal_airpoint_reached
+[21:26:23.180] | BRIDGE     | DRONE_5773     | SWARM_LINK   | TX IMPACT_CONFIRMED | target=T3
+[21:26:23.180] | SUCCESS    | LEADER         | ATTACK       | T3: IMPACT_CONFIRMED by Drone_5773 | coverage=4.6% alt=0.5m — finalizing target
+[21:26:23.180] | RESPONSE   | DRONE_5773     | SWARM_LINK   | RX ACK | for=IMPACT_CONFIRMED target=T3
+[21:26:23.180] | SUCCESS    | DRONE_5773     | ATTACK_FLOW  | Attack success path | reason=terminal_airpoint_reached
+[21:26:23.181] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: TRACK -> TERMINAL_HOLD | terminal event confirmed
+[21:26:23.181] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal impact confirmed — executing 1.5s fly-through coasting
+[21:26:23.181] | STATE      | DRONE_5773     | MOTION       | Motion intent -> HOLD (post-impact fly-through coasting)
+[21:26:23.230] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=TERMINAL_HOLD transit=none scan_points=6
+[21:26:23.231] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=TERMINAL_HOLD mission=True tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=True terminal_event=IMPACT loc=(-35.362751,149.165358,0.5m) status="Terminal event confirmed. Executing fly-through coasting, then holding for RTL."
+[21:26:23.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=2 tracking_or_attack=0 active_camera=5763 phases=5763:TERMINAL_HOLD,5773:TERMINAL_HOLD status="Terminal event confirmed. Executing fly-through coasting, then holding for RTL."
+[21:26:24.055] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=5.0s
+[21:26:24.695] | STATE      | DRONE_5773     | MOTION       | Motion intent -> FAILSAFE_HOLD (terminal completion hold)
+[21:26:24.696] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=10.0s
+[21:26:25.059] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=4.0s
+[21:26:25.221] | STATE      | DRONE_5773     | MOTION       | Motion intent -> RTL_PREP (mission stop)
+[21:26:25.222] | STOP       | DRONE_5773     | MISSION_CTRL | Zero velocity sent before RTL
+[21:26:25.223] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: TERMINAL_HOLD -> RTL | stop mission
+[21:26:25.224] | INFO       | HumanTracker   | TRACKING     | Tracker reset
+[21:26:25.237] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=RTL transit=home scan_points=6
+[21:26:25.297] | STATE      | DRONE_5773     | MOTION       | Motion intent -> FAILSAFE_HOLD (terminal completion hold)
+[21:26:25.698] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=9.0s
+[21:26:26.062] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=3.0s
+[21:26:26.232] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:recovery tgt=- link=closed | D5773:rtl tgt=- link=closed raw_preview=-
+[21:26:26.701] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=8.0s
+[21:26:27.065] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=2.0s
+[21:26:27.226] | STOP       | DRONE_5773     | MISSION_CTRL | Engagement state cleared
+[21:26:27.226] | STOP       | DRONE_5773     | MISSION_CTRL | Swarm assignment released
+[21:26:27.228] | STATE      | DRONE_5773     | MISSION_CTRL | MISSION: RTL -> IDLE | soft reset
+[21:26:27.232] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=6
+[21:26:27.234] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362725,149.165423,0.5m) status="Mission stopped. Drone returning to launch (RTL)."[21:26:27.234] | STATE      | DRONE_5763     | MOTION       | Motion intent -> RTL_PREP (mission stop)
+
+[21:26:27.235] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=1 tracking_or_attack=0 active_camera=5763 phases=5763:TERMINAL_HOLD,5773:IDLE status="Drone connected. Ready for mission."[21:26:27.235] | STOP       | DRONE_5763     | MISSION_CTRL | Zero velocity sent before RTL
+
+[21:26:27.238] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: TERMINAL_HOLD -> RTL | stop mission
+[21:26:27.265] | STATE      | DRONE_5763     | MOTION       | Motion intent -> FAILSAFE_HOLD (terminal completion hold)
+[21:26:27.704] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=7.0s
+[21:26:28.067] | STATUS     | DRONE_5763     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=1.0s
+[21:26:28.228] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=RTL transit=home scan_points=6
+[21:26:28.229] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=RTL mission=False tracking=False collision=False route_transit=2 route_scan=6 planned_terminal=False terminal_event=- loc=(-35.362629,149.165069,1.4m) status="Terminal event confirmed. Executing fly-through coasting, then holding for RTL."
+[21:26:28.706] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=6.0s
+[21:26:29.069] | STOP       | DRONE_5763     | MISSION_CTRL | Terminal hold complete — initiating drone-local RTL
+[21:26:29.070] | STATE      | DRONE_5763     | MOTION       | Motion intent -> RTL_PREP (mission stop)
+[21:26:29.070] | STOP       | DRONE_5763     | MISSION_CTRL | Zero velocity sent before RTL
+[21:26:29.070] | STOP       | DRONE_5763     | MISSION_CTRL | Engagement state cleared
+[21:26:29.070] | STOP       | DRONE_5763     | MISSION_CTRL | Swarm assignment released
+[21:26:29.244] | STOP       | DRONE_5763     | MISSION_CTRL | Engagement state cleared
+[21:26:29.245] | STOP       | DRONE_5763     | MISSION_CTRL | Swarm assignment released
+[21:26:29.245] | STATE      | DRONE_5763     | MISSION_CTRL | MISSION: RTL -> IDLE | soft reset
+[21:26:29.246] | RESET      | LEADER         | SYSTEM       | Soft reset completed: radar, targets, fusion and ownership cleared.
+[21:26:29.709] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=5.0s
+[21:26:30.229] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=0
+[21:26:30.713] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=4.0s
+[21:26:31.716] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=3.0s
+[21:26:32.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:26:32.720] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=2.0s
+[21:26:33.724] | STATUS     | DRONE_5773     | MISSION_CTRL | Terminal hold active | event=IMPACT remaining=1.0s
+[21:26:34.727] | STOP       | DRONE_5773     | MISSION_CTRL | Terminal hold complete — initiating drone-local RTL
+[21:26:35.228] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=0 planned_terminal=False terminal_event=- loc=(-35.362719,149.165437,7.0m) status="No active mission."
+[21:26:35.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=0 tracking_or_attack=0 active_camera=5773 phases=5763:IDLE,5773:IDLE status="No active mission."
+[21:26:37.235] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:26:43.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:26:49.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:26:54.232] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:26:59.108] | INFO       | HumanTracker   | TRACKING     | Tracker reset [+4 suppressed in 5.0s]
+[21:26:59.230] | STATE      | DRONE_5763     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=0
+[21:26:59.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=0 tracking_or_attack=0 active_camera=5773 phases=5763:IDLE,5773:IDLE status="Drone connected. Ready for mission."
+[21:27:00.229] | STATUS     | DRONE_5763     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=0 planned_terminal=False terminal_event=- loc=(-35.363113,149.165197,15.0m) status="Mission stopped. Drone returning to launch (RTL)."
+[21:27:00.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:04.761] | INFO       | HumanTracker   | TRACKING     | Tracker reset
+[21:27:05.229] | STATE      | DRONE_5773     | ROUTE        | Route visual updated | phase=IDLE transit=none scan_points=0
+[21:27:05.231] | STATUS     | DRONE_5773     | MISSION_STATUS | Status snapshot | phase=IDLE mission=False tracking=False collision=False route_transit=0 route_scan=0 planned_terminal=False terminal_event=- loc=(-35.363259,149.165293,15.0m) status="Drone connected. Ready for mission."
+[21:27:05.231] | STATUS     | DroneManager   | STATUS       | Fleet snapshot | connected=2/2 mission_active=0 tracking_or_attack=0 active_camera=5763 phases=5763:IDLE,5773:IDLE status="Drone connected. Ready for mission."
+[21:27:06.228] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:11.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:17.233] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:23.230] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:29.229] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:34.812] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:40.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:45.812] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:50.815] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:27:56.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:01.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:06.812] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:12.810] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:17.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:22.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:28:28.812] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:29:01.811] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:30:01.824] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:31:01.820] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:32:01.815] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-
+[21:33:01.821] | UI_STATE   | LEADER         | UI           | /swarm_data targets=0 drones=2 raw_buffers=0 target_preview=- drone_preview=D5763:idle tgt=- link=- | D5773:idle tgt=- link=- raw_preview=-

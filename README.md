@@ -1,23 +1,28 @@
 <div align="center">
 
-<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="600"/>
+# ORCUS v2.2
+
+### Swarm Kamikaze Drone System
+
+<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="430"/>
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![ROS](https://img.shields.io/badge/ROS-Melodic/Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
 [![Gazebo](https://img.shields.io/badge/Gazebo-Simulation-orange.svg)](http://gazebosim.org/)
 [![YOLO](https://img.shields.io/badge/YOLOv12-Detection-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
+[![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
 [![Flask](https://img.shields.io/badge/Flask-Web-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-
----
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/V8X-XiSy9as)
 
 🎥 **Demo Video**  
+
 <p align="center">
   <a href="https://youtu.be/V8X-XiSy9as">
-    <img src="image/video.png" width="600">
+    <img src="image/video.png" width="900">
   </a>
 </p>
 
@@ -33,32 +38,34 @@
 
 ## What Is ORCUS?
 
-**ORCUS** is a **fully autonomous swarm kamikaze drone system** designed to fuse perception, localization, coordination, and terminal attack execution into a single operational stack. The current stable release in this repository is **v2.1**.
+**ORCUS** is a **fully autonomous swarm kamikaze drone system** that brings perception, geo-localization, swarm coordination, verification, and terminal attack execution together inside one system. The current stable release in this repository is **v2.2**.
 
-The system detects **both individual and grouped targets**, estimates their geo-location from monocular imagery, fuses observations coming from multiple drones into a shared battlespace picture, computes the most rational drone-to-target match, and drives terminal engagement through a guarded attack protocol.
+The system detects **individuals and grouped targets** in the field, computes where those targets are on the ground, combines observations coming from different drones into one shared target picture, finds the most suitable drone-target match across the swarm, and runs terminal engagement through a controlled multi-stage attack chain.
 
-This is not a "flying demo" architecture. ORCUS is built to:
+ORCUS:
 
-- detect targets and **estimate where they are**
-- distinguish **single entities and grouped targets**
-- turn local detections into a **canonical battlespace model**
-- assign the **most appropriate platform**, not merely the first observer
-- preserve terminal autonomy while preventing unstable swarm-side interference
-- restart missions without poisoning the next cycle with stale state
+- does not just see the target, it **computes its position**
+- can **group individual detections**
+- combines observations coming from different drones into **one shared target picture**
+- assigns the target to the **most suitable platform**, not simply the first observer
+- runs the attack through a **controlled approval chain**
+- keeps visual tracking alive during terminal flight and tries to **recover** from short disruptions
+- stays restartable by reducing hidden runtime state that can leak across missions
 
 ---
 
 ## Highlighted Capabilities
 
-- **Ray-Ground Intersection (RGI) geo-localization:** Monocular detections are projected onto the ground plane to produce target GPS with covariance-aware confidence.
-- **EKF-backed multi-drone sensor fusion:** Observations from separate drones are consolidated into a single canonical target representation while suppressing duplicates and noise.
-- **Individual / group target discrimination:** The system models both single entities and grouped targets such as `2x` and `3x`, and carries group size into downstream decision logic.
-- **Hungarian-based dynamic attack assignment:** Drone-to-target pairing is optimized using distance, visibility, target quality, and ownership state.
-- **Family-aware deconfliction and target isolation:** Similar, nearby, or same-family targets are protected against false merge, false lock, overwrite, and double-attack conditions.
-- **Handshake-driven terminal attack pipeline:** Lock, echo, confirmation, and terminal phases are explicitly separated rather than blended into a loose attack trigger.
-- **IBVS-driven terminal guidance:** Final approach and dive commands are generated directly from image-space feedback.
-- **Operator-grade control panel:** Radar, map, target ownership, drone states, and mission buttons are unified in a single web control surface.
-- **Lifecycle and ownership state machine:** States such as `FREE`, `OWNED`, `LOCKED`, `CONFIRMED_ATTACK`, and `ATTACKING` keep the swarm decision layer deterministic.
+- **DBSCAN-based grouping:** Nearby detections are clustered in metric space before they are promoted to leader-side targets. This reduces tracker jitter, cuts repeated geo-localization work, lowers the number of targets sent to the leader, and makes downstream fusion easier to manage.
+- **RGI-based geo-localization:** Each usable observation is projected from camera geometry into world coordinates. The system carries not only position, but also uncertainty.
+- **Covariance-aware target fusion:** Multi-drone observations are merged into one shared target structure while suppressing duplicates, noise, and unstable overwrites.
+- **EKF / Kalman target filtering:** Shared target state is filtered on the leader side so radar jumps, target drift, and unstable assignment behavior are reduced.
+- **Hungarian-based dynamic assignment:** Drone-to-target matching is solved over a global cost matrix, so target distribution is deliberate rather than accidental.
+- **Family-aware ownership and deconfliction:** Once a target family enters the attack pipeline, late low-quality observations or nearby duplicates are prevented from breaking that commitment.
+- **Verification-driven attack protocol:** Assignment, verification, and terminal attack are kept separate; the system does not treat them as one loose trigger.
+- **BBox-first terminal guidance:** Final approach is driven from live visual reference, with bounded reacquire and recovery behavior when visual quality degrades.
+- **Shared battlespace view:** Radar, map, target ownership, drone state, and mission outcomes are all built from the same shared target picture.
+- **Controlled mission lifecycle:** Pause, stop, RTL, cleanup, and restart are treated as parts of one mission cycle rather than disconnected commands.
 
 ---
 
@@ -76,196 +83,221 @@ flowchart TD
     H --> I[Covariance and Quality Scoring]
     I --> J[Swarm Coordinator]
 
-    J --> K[Identity Index]
-    J --> L[Ownership State]
-    J --> M[Target Lifecycle]
-    J --> N[Fusion Engine]
-    J --> O[Assignment Engine]
-    J --> P[Attack Protocol]
-    J --> Q[Battlespace / Radar / Map]
+    J --> K[Target Registry and Lifecycle]
+    K --> L[Fusion Engine]
+    L --> M[EKF-Filtered Canonical Target]
+    M --> N[Ownership and Assignment]
+    N --> O[Drone-Target Assignment]
+    O --> P[Leader Verification and Attack Protocol]
+    P --> Q[AttackController]
+    Q --> R[Terminal Guidance / Recovery Logic]
+    R --> S[FlightController / MAVLink]
+    S --> T[Terminal Engagement / Resume / RTL]
 
-    N --> R[EKF-Filtered Canonical Target]
-    O --> S[Drone-Target Assignment]
-    P --> T[Lock / Echo / Confirm]
+    M --> U[Battlespace / Radar / Map]
+    O --> U
+    T --> U
 
-    R --> S
-    S --> T
-    T --> U[TrackingController]
-    U --> V[AttackFSM]
-    V --> W[IBVS Guidance]
-    W --> X[FlightController / MAVLink]
-    X --> Y[Terminal Engagement and Impact / RTL]
+    E -->|continuous scan cycle| F
+    J -->|not yet actionable| E
+    N -->|no suitable ownership / assignment| E
+    P -->|leader not ready to approve| J
+    P -->|verify rejected / lock mismatch| J
+    Q -->|target lost before stable commit| E
+    R -->|reacquire / retry| Q
+    T -->|mission continues after strike or release| E
 
-    A --> AB[Pause]
-    A --> AC[Stop]
-    AB --> AD[In-Place Hold]
-    AC --> AE[RTL]
-    AE --> AF[Mission Cleanup and Reset]
-    AF --> A
+    A --> V[Pause]
+    A --> W[Stop]
+    V --> X[In-Place Hold]
+    W --> Y[RTL]
+    Y --> Z[Mission Cleanup and Reset]
+    Z --> A
 ```
-
----
 
 ## System Architecture
 
-ORCUS uses a modular architecture rather than a monolithic mission script. Responsibilities are separated cleanly so that perception, swarm logic, and flight behavior can evolve without destabilizing the entire system.
+ORCUS uses a modular architecture rather than a monolithic mission script. Responsibilities are separated cleanly so that perception, swarm logic, mission execution, and flight behavior can evolve without destabilizing the entire system.
 
 ### Layers
 
-| Layer | Primary Modules | Role |
-|---|---|---|
-| `core` | `fleet_manager`, `geo_math`, `logger`, `pid_controller` | platform control, math utilities, logging, low-level helpers |
-| `vision` | `detector`, `camera_handler`, `group_tracker`, `tracker/` | detection, tracking, group analysis, camera processing |
-| `mission` | `mission_controller`, `navigation`, `scanner`, `tracking_controller`, `attack_fsm`, `ibvs_guidance`, `swarm_bridge` | mission execution, target tracking, attack FSM, command generation |
-| `swarm` | `coordinator`, `target`, `state_machine`, `assignment`, `ownership`, `protocol`, `fusion_engine`, `target_fusion`, `battlespace` | swarm decisions, target lifecycle, fusion, assignment, radar/map view |
+| Layer     | Primary Modules                                                                               | Role                                                                                      |
+| --------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `core`    | `fleet_manager`, `geo_math`, `logger`, `pid_controller`, `comm`                               | platform control, math utilities, canonical state definitions, logging, low-level helpers |
+| `vision`  | `detector`, `camera_handler`, `group_tracker`, `detection_processor`                          | detection, tracking, group analysis, observation normalization, camera processing         |
+| `mission` | `mission_controller`, `navigation`, `attack_controller`, `flight_controller`, `follower_link` | mission execution, drone-side attack flow, movement control, command generation           |
+| `swarm`   | `coordinator`, `target`, `assignment`, `leader_link`, `target_fusion`, `battlespace`          | swarm decisions, target lifecycle, fusion, assignment, verification, radar/map view       |
 
 ### Core Architectural Principles
 
-- **One physical target, one canonical record:** Local tracker identities are mapped into a shared registry.
-- **Perception and decision are separated:** Vision produces evidence; swarm logic makes commitment decisions.
-- **State-first control:** Attack, hover, lost, and reset behavior are managed as state transitions, not scattered conditionals.
-- **Leader authority with terminal autonomy:** The leader coordinates assignment; the drone executes the last phase without unstable micromanagement.
-- **Unified modeling of individuals and groups:** Single targets and grouped targets coexist in the same battlespace, but they are not processed blindly as the same entity.
-- **Deterministic mission cycling:** Pause, stop, resume, and restart belong to the same controlled mission lifecycle.
+- **Leader-side coordination, drone-side execution:** The leader keeps the shared target picture, assignment, and verification; the drone handles movement and terminal execution.
+- **Modular separation of responsibility:** Vision, swarm, mission, and control are kept separate instead of being mixed into one large mission script.
+- **Observation is not commitment:** A detection can remain just an observation, become a tracked target, or become an attack candidate depending on stability and evidence quality.
+- **One shared target picture:** Different drones do not operate on competing local truths; their observations are reconciled into one shared target view.
+- **Group-aware target reasoning:** Individual detections and grouped targets are handled inside the same structure, with grouping evidence kept in the decision chain.
+- **Deterministic mission lifecycle:** Pause, stop, RTL, cleanup, and restart are handled as controlled states inside one mission loop.
 
 ---
 
 ## Core Algorithms
 
-### 1. Geo-Localization and Target Position Estimation
+### 1. Grouping and Target Construction
 
-ORCUS is built around **position credibility**, not detection alone. It uses **Ray-Ground Intersection (RGI)** to intersect the camera ray with the ground plane and produce a world-coordinate estimate for each target.
+ORCUS clusters nearby detections in metric space with **DBSCAN**. The point is not just to label a crowd as a group.
 
-That chain is:
+Grouping helps in three practical ways:
 
-1. extract the image-space target center
-2. apply camera model and drone pose
-3. compute a GPS hypothesis via RGI
-4. attach covariance / sigma rather than a blind point estimate
-5. feed that confidence into fusion, assignment, and radar decisions
+1. it reduces tracker fluctuation  
+   One physical group is less likely to split into multiple unstable targets from frame to frame.
 
-This allows the system to say not only "the target is here," but also "the target is here with this level of confidence."
+2. it reduces workload  
+   Fewer grouped targets means fewer world-position calculations and fewer reports sent to the leader.
 
-### 2. Sensor Fusion and Canonical Target Construction
+3. it makes the rest of the system cleaner  
+   Fusion, ownership, assignment, and terminal selection all behave better when the swarm sees one coherent grouped target instead of several fragments.
 
-In a multi-drone scene, the same physical target may appear under different local tracker IDs. In addition, the scene may contain both **single entities and grouped targets**. ORCUS evaluates:
+In short, grouping is not cosmetic. It is the first simplification step that makes the rest of the system more stable and easier to scale.
+
+### 2. Geo-Localization
+
+ORCUS does not stop at seeing a target in the image. It computes where that target is on the ground with **Ray-Ground Intersection (RGI)**.
+
+The system takes the contact point inside the bounding box, applies camera geometry, drone pose, and camera angle, then intersects that ray with the ground. The output is a world position.
+
+The important part is that ORCUS also keeps the uncertainty of that estimate. The rest of the system does not only ask, "Where is the target?" It also asks, "How much do we trust this position?" That is why fusion, assignment, and verification can behave more carefully.
+
+### 3. Target Fusion
+
+After geo-localization, ORCUS must decide whether new observations belong to an existing target or to a different one. That is the fusion problem.
+
+The fusion side looks at:
 
 - spatial proximity
-- group-size evidence
-- local identity overlap
 - covariance quality
-- ownership and attack-pipeline protections
+- local identity evidence
+- group size and family consistency
+- current ownership and attack state
 
-The objective is not to merge aggressively. The objective is to:
+The goal is simple: if the evidence is strong, keep one physical target as one shared target. If the evidence is weak, refuse the merge. That balance matters. Over-aggressive fusion collapses separate targets into one. Over-weak fusion creates duplicates that the swarm starts chasing.
 
-- avoid showing the same target twice
-- avoid merging physically separate targets
-- avoid corrupting an active attack family with unrelated observations
+### 4. EKF-Based Target Filtering
 
-ORCUS uses **controlled fusion, duplicate suppression, and family-aware guard** logic.
+Once the shared target exists, ORCUS stabilizes its world state with **EKF / Kalman filtering** on the leader side.
 
-### 3. Group Analysis and Multi-Target Separation
+The reason is practical. Raw measurements jump. When raw measurements drive the decision layer directly, target position jumps with them. Filtering suppresses that motion and gives the swarm a steadier target state.
 
-ORCUS does not treat every detection as a flat list of unrelated blobs. The grouping pipeline:
+In practice, this makes the radar calmer, the target more continuous, and the assignment logic less reactive to noise.
 
-- clusters individuals into group hypotheses
-- converts clusters into group targets
-- carries group member count into target metadata
-- distinguishes grouped targets from single entities in radar and assignment logic
-- uses group evidence in deconfliction and attack decisions
+### 5. Dynamic Assignment
 
-This matters in scenes such as `2x`, `2x`, `3x`, where correct target separation is mission-critical.
+ORCUS matches drones to targets with the **Hungarian algorithm**. The system builds a cost matrix from distance, visibility, target quality, covariance, current ownership, and deconfliction pressure, then solves for the best global distribution.
 
-### 4. Dynamic Attack Assignment
+The benefit is straightforward: target sharing stops depending on who happened to see the target first. The swarm sees the whole field instead of making local guesses, which reduces pile-on, wasted crossing routes, and unstable contention over the same target.
 
-The assignment engine abandons the simplistic "first observer attacks" pattern. Instead, it builds a cost model using:
+### 6. Ownership and Deconfliction
 
-- drone-to-target distance
-- visibility
-- target quality
-- covariance
-- ownership state
-- immutable attack protections
+After assignment, ORCUS uses ownership and deconfliction logic to stop the attack pipeline from being broken by nearby duplicates or competing claims.
 
-It then solves the pairing with the **Hungarian algorithm**, reducing duplicate commitments, cross-over routes, and uneven load distribution across the swarm.
+This part decides:
 
-### 5. Deconfliction, Ownership, and Swarm Isolation
+- who owns the target
+- when that ownership is sticky
+- when handoff is allowed
+- when nearby candidates should be treated as the same family
+- when an active attack should be protected from overwrite
 
-Once a target family enters the attack pipeline, nearby duplicates or wrong family evidence can destabilize the system. ORCUS counters this with:
+This is not just bookkeeping. It is what keeps multiple drones from converging on the same target family or replacing a valid attack target with a late, weaker observation.
 
-- immutable terminal attack states
-- proximity lock guards
-- family evidence checks
-- group-size and group-member validation
-- owner / reserved / handoff ownership modeling
+### 7. Terminal Guidance and Recovery
 
-This prevents same-target pile-on, family contamination, and overwrite during terminal engagement.
+Terminal control is **bbox-first**. ORCUS keeps the live visual target as the main terminal reference and drives the approach with filtered control and smoothing logic.
+
+That matters because the last phase is no longer a static GPS problem. It is a fast-changing visual tracking problem. If visual contact stays healthy, the attack remains image-driven. If visual quality drops briefly, the system first tries bounded reacquire and recovery before giving up the path.
+
+That makes the terminal phase more stable exactly where instability matters most.
 
 ---
 
 ## Attack Execution Logic
 
-The attack path is not a single loose trigger. ORCUS runs a guarded engagement handshake:
+```mermaid
+flowchart LR
+    A[Shared Target] --> B[Assignment]
+    B --> C[Leader Approval]
+    C --> D[Drone Verification]
+    D --> E[Attack Commit]
+    E --> F[Terminal Guidance]
+    F --> G[Impact / Resume / RTL]
 
-1. the leader approves the target
-2. the drone requests lock
-3. the leader validates lock and ownership
-4. the drone echoes the target for verification
-5. the leader confirms engagement
-6. the drone enters centering
-7. IBVS drives the terminal dive
+    C -->|not approved| A
+    D -->|rejected / mismatch| A
+    F -->|reacquire / recovery| D
+```
 
-The goal is to avoid a system that jumps directly from a noisy positive to a dive command. ORCUS separates **detection**, **commitment**, and **terminal execution** on purpose.
-
-This pipeline also:
-
-- stabilizes representative target choice in grouped scenes
-- blocks mid-attack target swaps
-- preserves a controlled contract between leader decisions and terminal drone behavior
-
----
-
-## Evolution: v2.0 vs v2.1
-
-| Topic | v2.0 | v2.1 |
-|---|---|---|
-| Swarm architecture | leader-follower core | modular coordinator + lifecycle + protocol + ownership layers |
-| Target fusion | working but more fragile merge/fusion path | stronger canonical target logic, duplicate suppression, family evidence |
-| Geo-localization | RGI-based estimate | RGI + filtered target pipeline + covariance-aware stability |
-| Assignment | Hungarian-based pairing | assignment guards, family suppression, attack-aware distribution |
-| Group handling | more limited practical separation | stronger individual/group discrimination and grouped-target metadata |
-| Attack protocol | baseline approval flow | 7-step handshake with lock / echo / confirm separation |
-| State management | more vulnerable mission transitions | soft reset, pause/resume, stop interlocks, runtime cleanup |
-| UI safety | looser command behavior | stronger Start / Pause / Stop interlocks |
-| Chronic failure classes addressed | state leak, overwrite, stale attack instability, pause-side radar drift risk | guarded and hardened in the v2.1 architecture |
-| Operational stability | demonstration-grade | significantly hardened for repeatable runs |
-
+ORCUS does not treat attack execution as a one-step trigger. A target is assigned first, then approved by the leader, then verified by the drone, and only after that allowed to enter terminal guidance. If approval or verification fails, the system returns to the shared target loop instead of forcing an unstable attack.
 ---
 
 ## Repository Layout
 
 ```text
 ORCUS-main/
-├── app.py
-├── config.py
+├── app.py               # Flask control hub, web routes, mission commands, system entry point
+├── config.py            # Global thresholds, gains, swarm rules, and attack tuning
 ├── modules/
 │   ├── core/
+│   │   ├── comm.py          # Canonical state enums, session phases, link state mapping
+│   │   ├── fleet_manager.py # Drone connections, fleet utilities, controller creation
+│   │   ├── geo_math.py      # RGI, covariance, distance, bearing, coordinate transforms
+│   │   ├── logger.py        # Structured logs, JSONL events, throttling, mission-phase logging
+│   │   └── pid_controller.py # PID helpers, low-pass filters, velocity smoothing
 │   ├── mission/
+│   │   ├── attack_controller.py  # Drone-side attack FSM, verify flow, terminal logic, fallback
+│   │   ├── flight_controller.py  # Motion command gate and MAVLink command emission
+│   │   ├── follower_link.py      # Drone-to-leader communication surface
+│   │   ├── mission_controller.py # High-level mission lifecycle orchestration
+│   │   └── navigation.py         # Search flow, transit, recovery, and non-terminal movement
 │   ├── swarm/
+│   │   ├── assignment.py    # Assignment engine, ownership, and deconfliction
+│   │   ├── battlespace.py   # Radar, map, and battlespace presentation
+│   │   ├── coordinator.py   # Leader-side orchestration and periodic decision loop
+│   │   ├── leader_link.py   # Verification and leader-side command handling
+│   │   ├── target.py        # Target registry, lifecycle, identity, and ingest logic
+│   │   └── target_fusion.py # Fusion engine, EKF filters, duplicate handling
 │   └── vision/
+│       ├── camera_handler.py      # Camera access and frame acquisition
+│       ├── detection_processor.py # Detection normalization, group handling, world projection
+│       ├── detector.py            # Detection and tracking backend integration
+│       └── group_tracker.py       # Group smoothing and grouped target continuity
 ├── simulator/
 ├── static/
 ├── templates/
-├── tests/
 ├── logs/
 └── README.md
 ```
 
 ---
 
-## � Installation & Setup
+## Evolution: v2.1 vs v2.2
+
+| Topic                      | v2.1                                                                         | v2.2                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Overall structure          | the system was already modular, but some responsibilities still overlapped   | coordination, execution, and shared state handling are separated more clearly                   |
+| Target model               | target continuity depended more on raw tracker behavior                      | targets are held in a more stable and more group-aware structure                                |
+| World-position reliability | RGI and covariance awareness were already present                            | the same base remains, but confidence now feeds fusion, filtering, and assignment more directly |
+| Fusion behavior            | duplicate suppression existed, but active-target protection was more limited | fusion is more careful around active target families and more robust against bad merges         |
+| Filtering                  | target stability existed, but it was less explicit                           | EKF-backed shared target state is clearer and more consistent                                   |
+| Assignment                 | assignment was optimized                                                     | assignment, ownership, and attack commitment now work together more tightly                     |
+| Verification flow          | an approval path existed                                                     | leader approval, drone verification, and execution boundaries are easier to follow              |
+| Terminal behavior          | terminal attack was guarded                                                  | reacquire, fallback, and recovery behavior are clearer and better controlled                    |
+| Mission lifecycle          | pause/resume and reset were already stronger than older versions             | stop, pause, RTL, cleanup, and restart are handled more cleanly as one loop                     |
+| Operational result         | repeatable and hardened                                                      | easier to read, easier to maintain, and more resilient overall                                  |
+
+---
+
+## 🚀 Installation & Setup
 
 ### Prerequisites
+
 - Ubuntu 20.04
 - Python 3.8+
 - ROS Noetic
@@ -277,6 +309,7 @@ Follow the complete setup instructions in our Docker-based simulation repository
 🔗 **[ArduGazeboSim-Docker Repository](https://github.com/koesan/ArduGazeboSim-Docker)**
 
 This includes:
+
 - Docker installation
 - ROS package setup
 - ArduPilot SITL installation
@@ -305,11 +338,13 @@ cp ORCUS/simulator/worlds/multi_drone.world catkin_ws/src/iq_sim/worlds/
 ## 🎮 Running the System
 
 ### Terminal 1: Launch Simulation
+
 ```bash
 roslaunch iq_sim multi_drone.launch
 ```
 
 ### Terminal 2-3: Connect Drones
+
 ```bash
 # Terminal 2 - Drone 1
 sim_vehicle.py -v ArduCopter -f gazebo-iris -I0
@@ -319,6 +354,7 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris -I1
 ```
 
 ### Terminal 4: Start ORCUS Control Hub
+
 ```bash
 cd ArduGazeboSim/ORCUS
 pip3 install -r requirements.txt
@@ -326,22 +362,10 @@ python3 app.py
 ```
 
 ### Access Web Interface
-```
+
+```text
 http://localhost:5000/
 ```
-
----
-
-## Why v2.1?
-
-Because this release is not just "more features." It is a stability-focused hardening step that separates:
-
-- seeing a target from locating it correctly
-- observing a target from owning it
-- approving an attack from executing a terminal strike
-- stopping a mission from leaving hidden mission state behind
-
-That separation is what turns a demo chain into a serious systems-engineering project.
 
 ---
 
@@ -361,32 +385,34 @@ This project is for **educational and research purposes only**. The developers a
 
 ## ORCUS Nedir?
 
-**ORCUS**, çoklu platformun ortak algı, ortak hedef resmi ve koordineli terminal taarruz mantığıyla çalıştığı **tam otonom bir sürü kamikaze drone sistemidir**. Bu depodaki mevcut kararlı sürüm **v2.1**'dir.
+**ORCUS**, algılama, coğrafi konum kestirimi, sürü koordinasyonu, doğrulama ve terminal taarruz yürütmesini aynı sistem içinde birleştiren **tam otonom bir sürü kamikaze drone sistemidir**. Bu depodaki mevcut kararlı sürüm **v2.2**'dir.
 
-Sistem; sahadaki **bireyleri ve grup hedeflerini** görüntüden çıkarır, hedeflerin coğrafi konumunu hesaplar, farklı platformlardan gelen gözlemleri tek hedef resmine birleştirir, sürü içinde en doğru drone-hedef eşleşmesini üretir ve terminal taarruzu kontrollü bir protokol üzerinden yürütür.
+Sistem; sahadaki **bireyleri ve grup hedeflerini** görüntüden çıkarır, hedeflerin coğrafi konumunu hesaplar, farklı platformlardan gelen gözlemleri ortak bir hedef resmi içinde birleştirir, sürü içinde en doğru drone-hedef eşleşmesini üretir ve terminal taarruzu çok aşamalı, doğrulamalı bir saldırı zinciri üzerinden yürütür.
 
-Bu mimari yalnızca "uçan bir demo" üretmek için kurulmadı. ORCUS:
+ORCUS:
 
 - hedefi sadece görmez, **konumunu hesaplar**
-- tekil birey ile **grup hedefi** ayırt eder
-- yerel tespitleri **kanonik bir battlespace resmine** dönüştürür
-- ilk göreni değil, **en uygun platformu** hedefe yollar
-- terminal fazda gereksiz lider müdahalesini keser, ama sürü güvenliğini korur
-- görev çevrimleri arasında stale state, overwrite ve kararsızlık üretmeden yeniden çalışabilir
+- tekil bireyleri **gruplayabilir**
+- farklı drone tespitlerini **tek ortak hedef resmi** içinde birleştirir
+- hedefi ilk görene değil, **en uygun platforma** atar
+- saldırıyı tek adımda başlatmaz, **kontrollü bir onay zinciriyle** yürütür
+- terminal fazda görsel takibi korur, kısa bozulmalarda **yeniden toparlanmaya** çalışır
+- görev çevrimleri arasında gizli state birikmesini azaltarak sistemi yeniden çalıştırılabilir tutar
 
 ---
 
 ## Öne Çıkan Yetenekler
 
-- **Ray-Ground Intersection (RGI) tabanlı monoküler coğrafi konumlandırma:** Kamera ışınını zeminle kestirerek hedef GPS üretir; karar katmanına kovaryansla birlikte besler.
-- **EKF destekli çoklu drone sensor fusion:** Aynı fiziksel hedefe ait farklı gözlemler tek kanonik hedefte toplanır, gürültü filtrelenir, yalancı duplicate'ler bastırılır.
-- **Birey / grup hedef ayrıştırma ve group clustering:** Sistem sahadaki tekil bireyleri ve `2x`, `3x` gibi grup hedeflerini ayrı kategoriler olarak izler; grup boyutu karar katmanına taşınır.
-- **Hungarian tabanlı dinamik saldırı ataması:** Drone-hedef eşleşmesi mesafe, kalite, görünürlük ve sahiplik durumlarına göre optimize edilir.
-- **Family-aware deconfliction, grouping ve target isolation:** Yakın, benzer veya aynı aileye ait birey/grup hedeflerde yanlış merge, yanlış lock, grup overwrite ve çift saldırı riskini baskılar.
-- **Handshake kontrollü terminal taarruz hattı:** Lock, echo, doğrulama ve attack fazları birbirinden ayrılmıştır; terminal faz kontrollü ama gereksiz müdahalesiz yürütülür.
-- **IBVS tabanlı terminal guidance:** Görüntü merkezleme ve dalış komutları doğrudan görüntü tabanlı servo mantığıyla üretilir.
-- **Operatör merkezli kontrol paneli:** Radar, harita, hedef sahipliği, drone görev durumu ve görev butonları tek web komuta ekranında birleşir.
-- **Ownership ve lifecycle state machine:** `FREE`, `OWNED`, `LOCKED`, `CONFIRMED_ATTACK`, `ATTACKING` gibi hedef durumları karar akışını deterministik tutar.
+- **DBSCAN tabanlı gruplaşma:** Yakın tespitler lider tarafına ayrı ayrı taşınmadan önce metre uzayında kümelenir. Bu, tracker dalgalanmasını azaltır, daha az konum hesabı yapılmasını sağlar, lidere daha az hedef gönderir ve füzyon tarafını rahatlatır.
+- **RGI tabanlı coğrafi konum kestirimi:** Her uygun gözlem, kamera geometrisinden dünya koordinatına taşınır. Sistem yalnız konum değil, o konumun belirsizliğini de üretir.
+- **Kovaryans farkındalıklı hedef füzyonu:** Çoklu drone gözlemleri tek ortak hedef yapısında birleştirilir; duplicate, gürültü ve kararsız overwrite baskılanır.
+- **EKF / Kalman tabanlı hedef filtreleme:** Ortak hedef durumu lider tarafında filtrelenerek radar sıçraması, hedef oynaması ve kararsız atama davranışı azaltılır.
+- **Hungarian tabanlı dinamik atama:** Drone-hedef eşleşmesi global maliyet tablosu üzerinden çözülür; hedef paylaşımı tesadüfi değil rasyonel hale gelir.
+- **Family-aware sahiplik ve deconfliction:** Saldırı hattına giren hedef family'leri geç gelen düşük kaliteli veya yakın duplicate gözlemlerle bozulmaz.
+- **Doğrulama odaklı saldırı protokolü:** Atama, doğrulama ve terminal taarruz birbirinden ayrıdır; sistem bunları tek adımda birbirine karıştırmaz.
+- **BBox-first terminal guidance:** Son yaklaşım canlı görsel referansla yürütülür; kısa görsel bozulmalarda sınırlı yeniden yakalama ve toparlanma mantığı vardır.
+- **Ortak battlespace görünümü:** Radar, harita, hedef sahipliği, drone durumu ve sonuç işaretleri aynı ortak hedef yapısından beslenir.
+- **Kontrollü görev yaşam döngüsü:** Pause, stop, RTL, cleanup ve restart birbirinden kopuk komutlar değil, aynı görev çevriminin parçalarıdır.
 
 ---
 
@@ -394,7 +420,7 @@ Bu mimari yalnızca "uçan bir demo" üretmek için kurulmadı. ORCUS:
 
 ```mermaid
 flowchart TD
-    A[Operator Control Panel] --> B[Alan Seçimi ve Cell Partition]
+    A[Operatör Kontrol Paneli] --> B[Alan Seçimi ve Cell Partition]
     B --> C[MissionController]
     C --> D[Takeoff ve Area Approach]
     D --> E[Scanner]
@@ -404,173 +430,176 @@ flowchart TD
     H --> I[Covariance ve Quality Scoring]
     I --> J[Swarm Coordinator]
 
-    J --> K[Identity Index]
-    J --> L[Ownership State]
-    J --> M[Target Lifecycle]
-    J --> N[Fusion Engine]
-    J --> O[Assignment Engine]
-    J --> P[Attack Protocol]
-    J --> Q[Battlespace / Radar / Harita]
+    J --> K[Target Registry ve Lifecycle]
+    K --> L[Fusion Engine]
+    L --> M[EKF-Filtered Canonical Target]
+    M --> N[Ownership ve Assignment]
+    N --> O[Drone-Target Assignment]
+    O --> P[Leader Verification ve Attack Protocol]
+    P --> Q[AttackController]
+    Q --> R[Terminal Guidance / Recovery Logic]
+    R --> S[FlightController / MAVLink]
+    S --> T[Terminal Engagement / Resume / RTL]
 
-    N --> R[EKF-Filtered Canonical Target]
-    O --> S[Drone-Target Assignment]
-    P --> T[Lock / Echo / Confirm]
+    M --> U[Battlespace / Radar / Harita]
+    O --> U
+    T --> U
 
-    R --> S
-    S --> T
-    T --> U[TrackingController]
-    U --> V[AttackFSM]
-    V --> W[IBVS Guidance]
-    W --> X[FlightController / MAVLink]
-    X --> Y[Terminal Engagement and Impact / RTL]
+    E -->|sürekli tarama çevrimi| F
+    J -->|henüz aksiyonlanabilir değil| E
+    N -->|uygun sahiplik / atama yok| E
+    P -->|lider onayı henüz çıkmadı| J
+    P -->|verify reddi / lock uyuşmazlığı| J
+    Q -->|kararlı commit öncesi hedef kaybı| E
+    R -->|reacquire / retry| Q
+    T -->|taarruz sonrası görev sürer| E
 
-    A --> AB[Pause]
-    A --> AC[Stop]
-    AB --> AD[In-Place Hold]
-    AC --> AE[RTL]
-    AE --> AF[Mission Cleanup and Reset]
-    AF --> A
+    A --> V[Pause]
+    A --> W[Stop]
+    V --> X[In-Place Hold]
+    W --> Y[RTL]
+    Y --> Z[Mission Cleanup ve Reset]
+    Z --> A
 ```
-
----
 
 ## Sistem Mimarisi
 
-ORCUS, tek dosyaya sıkışmış bir görev mantığı yerine, sorumlulukları açık biçimde ayrılmış modüler bir mimari kullanır. Böylece algılama, sürü zekası ve uçuş kontrolü aynı proje içinde birlikte çalışırken birbirini kırmadan gelişebilir.
+ORCUS, tek dosyaya sıkışmış bir görev mantığı yerine modüler bir mimari kullanır. Böylece algılama, sürü zekası, görev icrası ve uçuş davranışı aynı proje içinde birlikte çalışırken birbirini bozmadan gelişebilir.
 
 ### Katmanlar
 
-| Katman | Ana Modüller | Rol |
-|---|---|---|
-| `core` | `fleet_manager`, `geo_math`, `logger`, `pid_controller` | platform yönetimi, matematiksel yardımcılar, kayıt ve temel kontrol |
-| `vision` | `detector`, `camera_handler`, `group_tracker`, `tracker/` | tespit, takip, grup analizi ve kamera işleme |
-| `mission` | `mission_controller`, `navigation`, `scanner`, `tracking_controller`, `attack_fsm`, `ibvs_guidance`, `swarm_bridge` | görev akışı, hedef takibi, attack FSM ve komut üretimi |
-| `swarm` | `coordinator`, `target`, `state_machine`, `assignment`, `ownership`, `protocol`, `fusion_engine`, `target_fusion`, `battlespace` | sürü kararı, hedef yaşam döngüsü, füzyon, atama ve radar/harita görünümü |
+| Katman    | Ana Modüller                                                                                  | Rol                                                                                            |
+| --------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `core`    | `fleet_manager`, `geo_math`, `logger`, `pid_controller`, `comm`                               | platform yönetimi, matematiksel yardımcılar, ortak durum tanımları, kayıt ve temel yardımcılar |
+| `vision`  | `detector`, `camera_handler`, `group_tracker`, `detection_processor`                          | tespit, takip, grup analizi, gözlem normalize etme ve kamera işleme                            |
+| `mission` | `mission_controller`, `navigation`, `attack_controller`, `flight_controller`, `follower_link` | görev akışı, drone-side attack flow, hareket kontrolü ve komut üretimi                         |
+| `swarm`   | `coordinator`, `target`, `assignment`, `leader_link`, `target_fusion`, `battlespace`          | sürü kararı, hedef yaşam döngüsü, füzyon, atama, doğrulama ve radar/harita görünümü            |
 
 ### Temel Mimari İlkeler
 
-- **Tek fiziksel hedef, tek kanonik kayıt:** Yerel tracker kimlikleri ortak hedef kaydına bağlanır.
-- **Observation ile decision ayrımı:** Görüntü verisi kanıt üretir; sürü katmanı karar verir.
-- **State-first yaklaşım:** Attack, hover, lost ve reset davranışları dağınık koşullarla değil, durum geçişleriyle yönetilir.
-- **Leader authority + terminal autonomy:** Lider atama ve sürü koordinasyonunu yönetir; drone terminal fazı kontrollü biçimde yürütür.
-- **Birey ve grup için ortak ama bilinçli model:** Tekil hedefler ve grup hedefleri aynı battlespace içinde tutulur, ancak körlemesine aynı nesne gibi işlenmez.
-- **Deterministik görev çevrimi:** Pause, stop, resume ve yeniden başlatma aynı görev yaşam döngüsünün parçasıdır.
+- **Lider tarafı koordinasyon, drone tarafı icra:** Kanonik hedef resmi, atama ve doğrulama lider tarafında tutulur; hareket ve terminal yürütme drone tarafında icra edilir.
+- **Modüler sorumluluk ayrımı:** Vision, swarm, mission ve control tarafları tek bir görev script'i içinde karışmak yerine ayrı sorumluluklarla çalışır.
+- **Observation ile commitment ayrımı:** Bir detection önce gözlem, sonra hedef, sonra atanabilir hedef, sonra da doğrulanmış taarruz adayı haline gelir.
+- **Tek ortak battlespace resmi:** Farklı drone'lardan gelen veriler rakip yerel gerçeklikler olarak değil, tek ortak hedef resmi içinde işlenir.
+- **Grup-farkındalıklı hedef modeli:** Tekil ve grup hedefler aynı yapı içinde tutulur; grup bilgisi karar zincirinin aktif parçasıdır.
+- **Deterministik görev çevrimi:** Pause, stop, RTL, cleanup ve restart aynı kontrollü görev yaşam döngüsünün parçalarıdır.
 
 ---
 
 ## Çekirdek Algoritmalar
 
-### 1. Konum Tespiti ve Coğrafi Kestirim
+### 1. Gruplama ve Hedef Üretimi
 
-ORCUS'un en kritik unsurlarından biri **konum tespiti doğruluğudur**. Sistem yalnızca bbox üretmez; **Ray-Ground Intersection (RGI)** ile kamera ışınını zemin düzlemiyle kesiştirerek hedefin dünya koordinatını kestirir.
+ORCUS, yakın tespitleri metre uzayında **DBSCAN** ile kümeler. Buradaki amaç yalnız “kalabalığı grup diye etiketlemek” değildir.
 
-Bu zincir:
+Gruplama üç işe aynı anda yarar:
 
-1. görüntüde bbox merkezi çıkarılır
-2. kamera modeli ve drone duruşu uygulanır
-3. RGI ile hedef GPS hipotezi üretilir
-4. sonuç sadece tek nokta değil, **kovaryans / sigma** ile birlikte taşınır
-5. bu güven metriği fusion, assignment ve radar kararlarına beslenir
+1. tracker dalgalanmasını azaltır  
+   Aynı fiziksel grup, üyeler arası küçük yer değişimleri yüzünden her karede farklı hedeflere bölünmez.
 
-Bu sayede sistem yalnızca "hedef burada olabilir" demez; "hedef burada ve bu kadar güvenilir" diyebilir.
+2. işlem yükünü düşürür  
+   Her kutu için ayrı ayrı dünya konumu üretmek yerine daha az sayıda, daha anlamlı hedef üzerinde çalışılır.
 
-### 2. Sensor Fusion ve Kanonik Hedef Üretimi
+3. lider tarafını rahatlatır  
+   Daha az hedef raporu gönderildiği için füzyon, sahiplik ve atama tarafı gereksiz duplicate baskısı altında kalmaz.
 
-Çoklu drone sahaya baktığında aynı fiziksel hedef farklı local ID'lerle görülebilir. Üstelik sahne sadece bireylerden değil, **grup hedeflerinden** de oluşabilir. ORCUS bu verileri:
+Kısacası gruplaşma, yalnız algısal bir kolaylık değil; tüm sistemin kararlılığını ve ölçeklenebilirliğini artıran ilk sadeleştirme adımıdır.
 
-- mekansal yakınlık
-- grup boyutu kanıtı
-- local identity eşleşmesi
-- kovaryans kalitesi
-- sahiplik ve attack pipeline korumaları
+### 2. Konum Tespiti ve Coğrafi Kestirim
 
-üzerinden değerlendirir.
+ORCUS, bir hedefi yalnız görüntüde görmekle yetinmez; onun yerde nerede olduğunu da hesaplar. Bunun için **Ray-Ground Intersection (RGI)** kullanır.
 
-Amaç agresif merge yapmak değildir. Amaç:
+Sistem, bbox içinden seçilen temas noktasını kamera geometrisi, drone pozu ve kamera açısı ile birlikte işler; sonra bu ışını zeminle kesiştirerek hedefin dünya koordinatını üretir.
 
-- aynı hedefi iki kez göstermemek
-- farklı fiziksel hedefleri yanlış birleştirmemek
-- aktif saldırı hattını alakasız gözlemlerle kirletmemektir
+Buradaki kritik nokta şudur: ORCUS yalnız koordinat üretmez, o koordinatın ne kadar güvenilir olduğunu da üretir. Kovaryans bilgisi bu yüzden taşınır. Çünkü sonraki adımların sorusu sadece “hedef nerede?” değildir; “bu konuma ne kadar güveniyoruz?” sorusudur.
 
-ORCUS, **kontrollü füzyon, duplicate suppression ve family-aware guard** mantığını kullanır.
+Bu bilgi olmadan fusion kaba olur, assignment kararsızlaşır, verify hattı da gereksiz risk alır.
 
-### 3. Grup Analizi ve Çoklu Hedef Ayrıştırma
+### 3. Hedef Füzyonu
 
-ORCUS her tespiti düz bir hedef listesi gibi işlemez. Grup analizi hattı:
+Çoklu drone aynı fiziksel hedefi farklı anlarda, farklı açılardan ve farklı yerel kimliklerle görebilir. Füzyon tarafının işi bu gözlemleri tek ortak hedefte toplamaktır.
 
-- bireyleri kümeler
-- kümeleri grup hedefe dönüştürür
-- grup üye sayısını hedef metadata'sına taşır
-- radar görünümünde grup hedefleri tekil hedeflerden ayırır
-- assignment ve deconfliction kararlarında bu bilgiyi kullanır
+Bu katman karar verirken:
 
-Bu katman özellikle `2x`, `2x`, `3x` gibi sahne düzenlerinde kritik fark yaratır; çünkü karar motoru sadece koordinata değil, hedefin **birey mi grup mu** olduğuna da bakar.
+- mekansal yakınlığa
+- kovaryans kalitesine
+- grup boyutu ve family tutarlılığına
+- yerel kimlik örtüşmesine
+- aktif saldırı hattı korumalarına
 
-### 4. Dynamic Assignment / Dinamik Saldırı Ataması
+bakar.
 
-Atama motoru, ilk görenin saldırdığı kaba mantığı terk eder. Bunun yerine:
+Doğru füzyonun faydası nettir: aynı hedef iki kez görünmez, farklı hedefler gereksiz yere birleşmez, aktif saldırı hattı sonradan gelen zayıf gözlemle bozulmaz.
 
-- drone-hedef mesafesi
+### 4. EKF Tabanlı Hedef Filtreleme
+
+Kanonik hedef üretildikten sonra bu hedefin dünya durumu **EKF / Kalman filtreleme** ile kararlı tutulur.
+
+Filtrelemenin amacı teorik şıklık değil, pratik kararlılıktır. Gürültülü gözlemler doğrudan karar tarafına verilirse hedef konumu zıplar, radar oynar, atama kararsız hale gelir. Filtre bu oynaklığı bastırır ve hedefi zaman içinde daha tutarlı hale getirir.
+
+Bunun faydası özellikle üç yerde görülür:
+
+- radar ve harita sunumu daha stabil olur
+- aynı hedefe verilen kararlar kare kare değişmez
+- verify ve terminal öncesi hedef kayması azalır
+
+### 5. Dinamik Atama
+
+ORCUS, drone-hedef eşleşmesini **Hungarian algoritması** ile çözer. Yani sistem her drone ile her hedef arasındaki maliyeti çıkarır, sonra toplam maliyeti en iyi yapan dağılımı seçer.
+
+Bu maliyetin içinde:
+
+- mesafe
 - görünürlük
 - hedef kalitesi
 - kovaryans
-- sahiplik durumu
-- immutable attack korumaları
+- mevcut sahiplik durumu
+- deconfliction baskısı
 
-üzerinden bir maliyet matrisi kurar ve **Hungarian algoritması** ile en uygun eşleşmeyi üretir.
+yer alır.
 
-Sonuç: sürü içinde aynı hedefe yığılma, gereksiz çapraz rota ve asimetrik yüklenme azalır.
+Bunun doğrudan faydası şudur: sürü, hedef paylaşımını rastlantısal biçimde değil, bütün sahayı görerek yapar. Aynı hedefe yığılma azalır, gereksiz rota kesişmeleri düşer ve daha dengeli bir taarruz dağılımı oluşur.
 
-### 5. Çakışma Önleme, Sahiplik ve Sürü İzolasyonu
+### 6. Sahiplik ve Çakışma Önleme
 
-Bir hedef family’si saldırı hattına girdikten sonra, yakın duplicate veya yanlış grup üyeliği başka drone'ları da aynı aileye çekebilir. ORCUS bunu şu yapılarla baskılar:
+Atama yapıldıktan sonra asıl kritik konu, o hedefin başka gözlemler yüzünden bozulmamasıdır. ORCUS burada sahiplik, handoff ve family-aware deconfliction mantığı kullanır.
 
-- immutable terminal attack state'leri
-- proximity lock guard
-- family evidence kontrolleri
-- grup boyutu ve group-member doğrulaması
-- owner / reserved / handoff sahiplik modeli
+Bu katman:
 
-Bu sayede aynı hedefe çift saldırı, family contamination ve terminal overwrite riski azaltılır.
+- hedefin kime ait olduğunu tutar
+- ownership'in ne kadar korunacağını belirler
+- handoff gerekip gerekmediğine karar verir
+- yakın duplicate'lerin mevcut saldırı hattını bozmasını engeller
+
+Bu sayede aynı hedefe iki drone'un birden yüklenmesi, geç gelen gözlemin aktif hedefi overwrite etmesi veya aynı family içindeki hedeflerin birbirine karışması ciddi ölçüde azalır.
+
+### 7. Terminal Guidance ve Recovery
+
+Terminal fazda ORCUS **bbox-first** çalışır. Yani drone son yaklaşımda canlı görsel referansı merkeze alır. Bu tercih önemlidir, çünkü terminal anda sahne artık statik bir GPS problemi değil, hızlı değişen bir görsel takip problemidir.
+
+Burada kullanılan filtered PID, low-pass filtering, velocity smoothing ve lock continuity kontrolleri drone'u daha sakin ve kararlı tutar. Kısa görsel bozulmalarda sistem hemen saldırıyı düşürmez; önce sınırlı yeniden yakalama ve toparlanma mantığı dener.
+
+Bunun pratik karşılığı şudur: terminal faz ya hep ya hiç mantığıyla değil, kontrollü toleranslarla yürür.
 
 ---
 
 ## Taarruz Yürütme Mantığı
 
-Taarruz hattı tek bir gevşek tetikleyiciyle başlamaz. ORCUS kontrollü bir el sıkışma protokolü kullanır:
+```mermaid
+flowchart LR
+    A[Kanonik Hedef] --> B[Atama]
+    B --> C[Lider Onayı]
+    C --> D[Drone Verify]
+    D --> E[Taarruz Commit]
+    E --> F[Terminal Guidance]
+    F --> G[Impact / Resume / RTL]
 
-1. lider hedefi onaylar
-2. drone lock ister
-3. lider lock ve ownership durumunu doğrular
-4. drone echo ile hedefi tekrar teyit eder
-5. lider saldırıyı doğrular
-6. drone centering fazına girer
-7. IBVS terminal dalışı yürütür
+    C -->|onay yok| A
+    D -->|verify reddi / uyuşmazlık| A
+    F -->|reacquire / recovery| D
+```
 
-Amaç, false positive lock ile doğrudan dalışa giden zayıf mimariden uzak durmak; saldırı kararını doğrulamak ve terminal fazda gereksiz state salınımını önlemektir.
-
-Bu hat aynı zamanda:
-
-- grup hedeflerde temsilci hedef seçimini kararlı tutar
-- mid-attack target swap riskini baskılar
-- lider kararı ile terminal drone davranışı arasında kontrollü bir rol ayrımı kurar
-
----
-
-## v2.0 -> v2.1 Evrimi
-
-| Başlık | v2.0 | v2.1 |
-|---|---|---|
-| Sürü mimarisi | leader-follower temel yapı | modüler coordinator + lifecycle + protocol + ownership katmanları |
-| Hedef birleştirme | çalışan ama daha kırılgan merge/fusion akışı | duplicate suppression, family evidence ve daha kontrollü canonical target yapısı |
-| Konum tespiti | RGI tabanlı konum kestirimi | RGI + filtered target pipeline + covariance farkındalığı |
-| Görev atama | Hungarian temelli atama | assignment guard, family suppression ve attack-aware dağıtım |
-| Grup yönetimi | daha sınırlı pratik ayrıştırma | daha güçlü birey/grup ayrımı ve grup metadata hattı |
-| Attack protokolü | temel onay akışı | 7 adımlı handshake, lock/echo/confirm ayrımı, terminal immutability |
-| State yönetimi | görev geçişlerinde daha kırılgan alanlar | soft reset, pause/resume, stop interlock ve runtime cleanup zinciri |
-| UI güvenlik kilitleri | daha gevşek | Start/Pause/Stop interlock mantığı ve tekrar başlatma güvenliği |
-| Çözülen kronik sorunlar | state leak, hedef overwrite, stale attack kararsızlığı, pause sonrası radar bozulması riski | bu sınıflar v2.1'de sistematik guard ve reset mimarisiyle sertleştirildi |
-| Operasyonel kararlılık | demo seviyesinde işleyen | tekrar çalıştırılabilir, daha sertleştirildi |
+ORCUS, taarruzu tek adımlı bir tetikleme gibi ele almaz. Hedef önce atanır, sonra lider tarafından onaylanır, ardından drone tarafından doğrulanır ve ancak bundan sonra terminal guidance hattına girer. Onay ya da verify başarısız olursa sistem saldırıyı zorlamak yerine tekrar ortak hedef döngüsüne döner.
 
 ---
 
@@ -578,26 +607,63 @@ Bu hat aynı zamanda:
 
 ```text
 ORCUS-main/
-├── app.py
-├── config.py
+├── app.py               # Flask kontrol merkezi, web route'ları, görev komutları, sistem giriş noktası
+├── config.py            # Genel eşikler, gain'ler, swarm kuralları ve attack tuning
 ├── modules/
 │   ├── core/
+│   │   ├── comm.py          # Kanonik durum enum'ları, session fazları, link state eşleme
+│   │   ├── fleet_manager.py # Drone bağlantıları, fleet yardımcıları, controller üretimi
+│   │   ├── geo_math.py      # RGI, kovaryans, mesafe, bearing, koordinat dönüşümleri
+│   │   ├── logger.py        # Structured log, JSONL event, throttle ve görev fazı logları
+│   │   └── pid_controller.py # PID yardımcıları, low-pass filtreler, velocity smoothing
 │   ├── mission/
+│   │   ├── attack_controller.py  # Drone-side attack FSM, verify flow, terminal logic, fallback
+│   │   ├── flight_controller.py  # Hareket komutu üretimi ve MAVLink emission
+│   │   ├── follower_link.py      # Drone-to-leader iletişim yüzeyi
+│   │   ├── mission_controller.py # Üst seviye görev yaşam döngüsü orkestrasyonu
+│   │   └── navigation.py         # Search flow, transit, recovery ve non-terminal hareket
 │   ├── swarm/
+│   │   ├── assignment.py    # Assignment engine, ownership ve deconfliction
+│   │   ├── battlespace.py   # Radar, harita ve battlespace sunumu
+│   │   ├── coordinator.py   # Leader-side orkestrasyon ve periyodik karar döngüsü
+│   │   ├── leader_link.py   # Verify ve leader-side komut işleme
+│   │   ├── target.py        # Target registry, lifecycle, identity ve ingest mantığı
+│   │   └── target_fusion.py # Fusion engine, EKF filtreleri, duplicate yönetimi
 │   └── vision/
+│       ├── camera_handler.py      # Kamera erişimi ve frame alma
+│       ├── detection_processor.py # Detection normalize etme, grup işleme, world projection
+│       ├── detector.py            # Detection ve tracking backend entegrasyonu
+│       └── group_tracker.py       # Grup smoothing ve grouped target continuity
 ├── simulator/
 ├── static/
 ├── templates/
-├── tests/
 ├── logs/
 └── README.md
 ```
 
 ---
 
+## v2.1 -> v2.2 Evrimi
+
+| Başlık              | v2.1                                                       | v2.2                                                                                          |
+| ------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Genel yapı          | modülerdi, fakat bazı sorumluluk sınırları daha iç içeydi  | lider tarafı koordinasyon, drone tarafı icra ve ortak durum yönetimi daha net ayrıldı         |
+| Hedef modeli        | hedef sürekliliği daha çok tracker davranışına dayanıyordu | grup-farkındalıklı ve daha kararlı bir hedef modeli kullanılıyor                              |
+| Konum kestirimi     | RGI ve kovaryans farkındalığı vardı                        | aynı temel korunuyor, ama güven bilgisi fusion, filtreleme ve atamaya daha düzenli bağlanıyor |
+| Füzyon              | duplicate baskılama ve family korumaları vardı             | aktif hedefleri koruyan ve toparlanma mantığıyla çalışan daha temiz bir füzyon davranışı var  |
+| Filtreleme          | hedef kararlılığı vardı ama daha sınırlı hissediliyordu    | EKF destekli ortak hedef durumu daha belirgin ve daha tutarlı                                 |
+| Atama               | optimize edilmiş atama vardı                               | atama, sahiplik ve saldırı commit hattı daha temiz bağlanıyor                                 |
+| Doğrulama hattı     | onay akışı vardı                                           | lider onayı, drone verify ve terminal yürütme sınırları daha açık                             |
+| Terminal davranış   | korumalıydı                                                | reacquire, fallback ve recovery mantığı daha anlaşılır ve daha kontrollü                      |
+| Görev yaşam döngüsü | pause/resume ve reset tarafı güçlenmişti                   | stop, pause, RTL, cleanup ve yeniden başlatma tek çevrim olarak daha temiz yönetiliyor        |
+| Operasyonel sonuç   | tekrar çalıştırılabilir ve sertleştirilmişti               | daha okunabilir, daha bakımı yapılabilir ve daha dayanıklı bir yapı oluştu                    |
+
+---
+
 ## 🚀 Kurulum ve Yapılandırma
 
-### Gereksinimler(Zorunlı)
+### Gereksinimler
+
 - Ubuntu 20.04
 - Python 3.8+
 - ROS Noetic
@@ -609,6 +675,7 @@ Docker tabanlı simülasyon deposundaki kurulum talimatlarını takip edin:
 🔗 **[ArduGazeboSim-Docker Deposu](https://github.com/koesan/ArduGazeboSim-Docker)**
 
 Bu şunları içerir:
+
 - Docker kurulumu
 - ROS paket kurulumu
 - ArduPilot SITL kurulumu
@@ -624,7 +691,7 @@ git clone https://github.com/koesan/ORCUS.git
 ### Adım 3: Drone Modelleri ve Dünya Yapılandırması
 
 ```bash
-# Kamereli drone modellerini kopyala
+# Kameralı drone modellerini kopyala
 cp -r ORCUS/simulator/drone/drone1/* catkin_ws/src/iq_sim/models/drone1/
 cp -r ORCUS/simulator/drone/drone2/* catkin_ws/src/iq_sim/models/drone2/
 
@@ -637,11 +704,13 @@ cp ORCUS/simulator/worlds/multi_drone.world catkin_ws/src/iq_sim/worlds/
 ## 🎮 Sistemi Çalıştırma
 
 ### Terminal 1: Simülasyonu Başlat
+
 ```bash
 roslaunch iq_sim multi_drone.launch
 ```
 
 ### Terminal 2-3: Drone'ları Bağla
+
 ```bash
 # Terminal 2 - Drone 1
 sim_vehicle.py -v ArduCopter -f gazebo-iris -I0
@@ -651,6 +720,7 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris -I1
 ```
 
 ### Terminal 4: ORCUS Kontrol Merkezini Başlat
+
 ```bash
 cd ArduGazeboSim/ORCUS
 pip3 install -r requirements.txt
@@ -658,7 +728,8 @@ python3 app.py
 ```
 
 ### Web Arayüzüne Eriş
-```
+
+```text
 http://localhost:5000/
 ```
 

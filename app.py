@@ -10,6 +10,7 @@ import threading
 import logging
 import rospy
 from modules.core.fleet_manager import DroneManager
+from modules.core.logger import SwarmLogger
 import time
 from config import APP_HOST, APP_PORT
 
@@ -41,6 +42,25 @@ def _monitor_rtl_completion(controllers_to_watch):
 def _json_payload():
     """Safely parse JSON request bodies."""
     return request.get_json(silent=True) or {}
+
+
+def _json_safe(value):
+    """Recursively convert numpy-like values to plain JSON-safe types."""
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v) for v in value]
+    if hasattr(value, "tolist"):
+        try:
+            return value.tolist()
+        except Exception:
+            pass
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    return value
 
 @app.route('/')
 def index():
@@ -297,6 +317,7 @@ def select_camera():
         with drone_manager.lock:
             drone_manager.active_drone_port = port
             drone_manager.active_drone = drone_manager.drones[port]
+        SwarmLogger.log("INFO", "WEB_UI", f"Camera selected | port={port}", "UI")
         
         time.sleep(0.1)
         return jsonify({'status': 'ok', 'message': f'Camera {port} selected'})
@@ -308,14 +329,49 @@ def swarm_data():
     """Returns swarm and target data in JSON format."""
     if not drone_manager.swarm_manager:
          return jsonify({})
-    
+
+    payload = {'targets': {}, 'drones': {}, 'raw_targets': {}}
     try:
-        data = drone_manager.swarm_manager.get_battlespace_state()
-        data['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
-        return jsonify(data)
-    except Exception as e:
-        logging.error(f"swarm_data error: {e}")
-        return jsonify({'targets': {}, 'drones': {}, 'raw_targets': {}})
+        payload.update(drone_manager.swarm_manager.get_battlespace_state() or {})
+    except Exception:
+        logging.exception("swarm_data battlespace error")
+    try:
+        payload['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
+    except Exception:
+        logging.exception("swarm_data raw-target buffer error")
+    try:
+        targets = payload.get("targets", {}) or {}
+        drones = payload.get("drones", {}) or {}
+        raw_targets = payload.get("raw_targets", {}) or {}
+        target_preview = []
+        for tid, item in list(targets.items())[:4]:
+            target_preview.append(
+                f"{tid}:{item.get('track_state')}/{item.get('presentation_state') or item.get('status')} "
+                f"grp={int(bool(item.get('is_group')))}"
+            )
+        drone_preview = []
+        for port, item in list(drones.items())[:4]:
+            drone_preview.append(
+                f"D{port}:{item.get('execution_state') or item.get('action')} "
+                f"tgt={item.get('current_target_id') or '-'} "
+                f"link={item.get('session_phase') or '-'}"
+            )
+        raw_preview = []
+        for port, items in list(raw_targets.items())[:4]:
+            raw_preview.append(f"D{port}:{len(items or [])}")
+        SwarmLogger.log_throttled(
+            "UI_STATE",
+            "LEADER",
+            f"/swarm_data targets={len(targets)} drones={len(drones)} raw_buffers={len(raw_targets)} "
+            f"target_preview={' | '.join(target_preview) if target_preview else '-'} "
+            f"drone_preview={' | '.join(drone_preview) if drone_preview else '-'} "
+            f"raw_preview={' | '.join(raw_preview) if raw_preview else '-'}",
+            "UI",
+            interval_s=5.0,
+        )
+    except Exception:
+        logging.exception("swarm_data summary log error")
+    return jsonify(_json_safe(payload))
 
 @app.route('/approve_attack/<target_id>')
 def approve_attack(target_id):

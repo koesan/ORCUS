@@ -1,8 +1,4 @@
-"""Mission Controller — Mission lifecycle coordinator.
-
-Navigation and Scanner are now separate modules, imported here.
-Backward-compat properties are preserved.
-"""
+"""Mission lifecycle orchestrator."""
 
 import threading
 import time
@@ -10,16 +6,18 @@ from dronekit import VehicleMode
 
 from modules.mission.flight_controller import FlightController
 from modules.mission.navigation import Navigation
-from modules.mission.scanner import Scanner
-from modules.mission.tracking_controller import TrackingController
+from modules.mission.attack_controller import AttackController
 from modules.vision.detector import HumanTracker
-from modules.core.logger import SwarmLogger
+from modules.core.logger import SwarmLogger, MissionState, MissionPhase
 from config import (
     TAKEOFF_ALTITUDE, MISSION_STATUS_MESSAGES,
-    CENTER_CONFIRM_HOLD_S, CENTER_CONFIRM_TOLERANCE_M,
-    RESUME_SCAN_AFTER_LOST,
-    IBVS_ALTITUDE_FLOOR_M,
     RTL_LANDING_TIMEOUT_S,
+    MISSION_ROW_TRANSITION_DELAY_S,
+    MISSION_CELL_LOOP_DELAY_S,
+    MISSION_PROGRESS_LOG_INTERVAL_S,
+    STATUS_SNAPSHOT_LOG_INTERVAL_S,
+    TERMINAL_COMPLETE_HOVER_S,
+    TERMINAL_COMPLETE_LOG_INTERVAL_S,
 )
 
 
@@ -32,15 +30,14 @@ class MissionController:
         self.swarm_manager = swarm_manager or getattr(drone_manager, "swarm_manager", None)
         self._camera_handler = self.drone_manager.camera_handler
 
-        # Sub-modules
         self.flight_ctrl = FlightController(port=self.assigned_port)
         self.navigation = Navigation(
             flight_ctrl=self.flight_ctrl,
             status_callback=self._set_status,
+            drone_manager=self.drone_manager,
         )
-        self.scanner = Scanner(port=self.assigned_port)
         self._human_tracker = HumanTracker()
-        self.tracking_ctrl = TrackingController(
+        self.attack_ctrl = AttackController(
             flight_ctrl=self.flight_ctrl,
             camera_handler=self._camera_handler,
             human_tracker=self._human_tracker,
@@ -49,7 +46,6 @@ class MissionController:
             port=self.assigned_port,
         )
 
-        # Mission state
         self.is_mission_active = False
         self.current_mission_type = None
         self.current_mission_point = None
@@ -60,20 +56,94 @@ class MissionController:
         self._pause_event = threading.Event()
         self._pause_event.set()
         self._stop_in_progress = False
-        self.ibvs_altitude_floor_m = IBVS_ALTITUDE_FLOOR_M
-
-    # ------------------------------------------------------------------
-    # Status helper
-    # ------------------------------------------------------------------
+        self.state = MissionState()
+        self.current_nav_target = None
+        self._last_status_signature = None
+        self._status_message = getattr(self.drone_manager, "mission_status_message", "")
 
     def _set_status(self, msg):
+        self._status_message = msg
         self.drone_manager.mission_status_message = msg
+
+    def _set_phase(self, phase, reason=None):
+        """Update mission phase and keep status transitions observable."""
+        if not hasattr(self, "state") or self.state is None:
+            self.state = MissionState()
+        prev = getattr(self.state, "phase", MissionPhase.IDLE)
+        self.state.transition(phase, reason=reason)
+        if prev != phase:
+            SwarmLogger.log_phase_change(
+                module=f"DRONE_{self.assigned_port}",
+                entity="MISSION",
+                old_phase=prev,
+                new_phase=phase,
+                source="MISSION_CTRL",
+                reason=reason,
+                level="STATE",
+                event_type="mission_phase_transition",
+                structured_source="MISSION_CTRL",
+                structured_level="STATE",
+                drone_id=self.assigned_port,
+            )
+
+    def _log_mission_progress(self, event: str, message: str,
+                              interval_s: float = MISSION_PROGRESS_LOG_INTERVAL_S,
+                              level: str = "INFO"):
+        SwarmLogger.log_throttled(
+            level,
+            f"DRONE_{self.assigned_port}",
+            message,
+            f"MISSION_{event}",
+            interval_s=interval_s,
+        )
+
+    def _log_status_snapshot(self, status: dict):
+        route = status.get("route_visual") or {}
+        current = status.get("current_location") or {}
+        planned = status.get("planned_terminal_point")
+        event = status.get("terminal_event")
+        signature = (
+            status.get("mission_phase"),
+            bool(status.get("tracking_mode")),
+            bool(status.get("is_mission_active")),
+            bool(status.get("collision_detected")),
+            status.get("status_message"),
+            len(route.get("transit_path") or []),
+            len(route.get("scan_path") or []),
+            bool(planned),
+            event.get("id") if isinstance(event, dict) else None,
+        )
+        if signature == self._last_status_signature:
+            return
+        self._last_status_signature = signature
+        lat = current.get("lat")
+        lon = current.get("lon")
+        alt = current.get("alt")
+        loc_str = (
+            f"({float(lat):.6f},{float(lon):.6f},{float(alt or 0.0):.1f}m)"
+            if lat is not None and lon is not None else "(no-fix)"
+        )
+        self._log_mission_progress(
+            "STATUS",
+            f"Status snapshot | phase={status.get('mission_phase')} mission={status.get('is_mission_active')} "
+            f"tracking={status.get('tracking_mode')} collision={status.get('collision_detected')} "
+            f"route_transit={len(route.get('transit_path') or [])} route_scan={len(route.get('scan_path') or [])} "
+            f"planned_terminal={bool(planned)} terminal_event={(event.get('kind') or event.get('type')) if isinstance(event, dict) else '-'} "
+            f"loc={loc_str} status=\"{status.get('status_message')}\"",
+            interval_s=STATUS_SNAPSHOT_LOG_INTERVAL_S,
+            level="STATUS",
+        )
+
+    @property
+    def mission_phase(self):
+        state = getattr(self, "state", None)
+        return getattr(state, "phase", MissionPhase.IDLE)
 
     def _is_active(self):
         return self.is_mission_active
 
     def _is_active_and_not_tracking(self):
-        return self.is_mission_active and not self.tracking_ctrl.tracking_mode
+        return self.is_mission_active and not self.attack_ctrl.tracking_mode
 
     def _is_paused(self):
         return self._paused
@@ -93,81 +163,60 @@ class MissionController:
         while self._paused and self.is_mission_active:
             self._pause_event.wait(timeout=0.2)
 
-    # ------------------------------------------------------------------
-    # Backward-compatible properties
-    # ------------------------------------------------------------------
+    def _handle_terminal_completion(self, vehicle):
+        """After a confirmed terminal event, fly through the target briefly before holding for RTL."""
+        self._set_phase(MissionPhase.TERMINAL_HOLD, reason="terminal event confirmed")
+        self._set_status("Terminal event confirmed. Executing fly-through coasting, then holding for RTL.")
+        
+        coast_deadline = time.time() + 1.5
+        SwarmLogger.log(
+            "STATUS",
+            f"DRONE_{self.assigned_port}",
+            "Terminal impact confirmed — executing 1.5s fly-through coasting",
+            "MISSION_CTRL"
+        )
+        while time.time() < coast_deadline:
+            if vehicle and vehicle != "connecting":
+                try:
+                    cmd = self.attack_ctrl._coast_visual_dive_command()
+                    if cmd:
+                        vx, vy, vz, yaw = cmd
+                        self.flight_ctrl.command_body_velocity(
+                            vehicle, "ATTACK_FLY_THROUGH", vx, vy, vz, yaw,
+                            attack_approved=True, reason="post-impact fly-through coasting"
+                        )
+                except Exception:
+                    pass
+            time.sleep(0.05)
 
-    @property
-    def tracking_mode(self):
-        return self.tracking_ctrl.tracking_mode
+        deadline = time.time() + max(0.0, float(TERMINAL_COMPLETE_HOVER_S))
+        event = self.attack_ctrl.get_terminal_event() or {}
+        event_kind = event.get("kind") or event.get("type") or "terminal_event"
+        while time.time() < deadline:
+            if vehicle and vehicle != "connecting":
+                try:
+                    self.flight_ctrl.command_hold(vehicle, reason="terminal completion hold", failsafe=True)
+                except Exception:
+                    pass
+            remaining = max(0.0, deadline - time.time())
+            SwarmLogger.log_throttled(
+                "STATUS",
+                f"DRONE_{self.assigned_port}",
+                f"Terminal hold active | event={event_kind} remaining={remaining:.1f}s",
+                "MISSION_CTRL",
+                interval_s=TERMINAL_COMPLETE_LOG_INTERVAL_S,
+            )
+            time.sleep(0.2)
 
-    @tracking_mode.setter
-    def tracking_mode(self, value):
-        self.tracking_ctrl.tracking_mode = value
-
-    @property
-    def attack_approved(self):
-        return self.tracking_ctrl.attack_approved
-
-    @attack_approved.setter
-    def attack_approved(self, value):
-        self.tracking_ctrl.attack_approved = value
-
-    @property
-    def collision_detected(self):
-        return self.tracking_ctrl.collision_detected
-
-    @collision_detected.setter
-    def collision_detected(self, value):
-        self.tracking_ctrl.collision_detected = value
-
-    @property
-    def current_target_id(self):
-        return self.tracking_ctrl.current_target_id
-
-    @current_target_id.setter
-    def current_target_id(self, value):
-        self.tracking_ctrl.current_target_id = value
-
-    @property
-    def assigned_local_tracker_id(self):
-        return self.tracking_ctrl.assigned_local_tracker_id
-
-    @assigned_local_tracker_id.setter
-    def assigned_local_tracker_id(self, value):
-        self.tracking_ctrl.assigned_local_tracker_id = value
-
-    @property
-    def lock_status(self):
-        return self.tracking_ctrl.lock_status
-
-    @lock_status.setter
-    def lock_status(self, value):
-        self.tracking_ctrl.lock_status = value
-
-    @property
-    def target_gps_lat(self):
-        return self.tracking_ctrl.target_gps_lat
-
-    @target_gps_lat.setter
-    def target_gps_lat(self, value):
-        self.tracking_ctrl.target_gps_lat = value
-
-    @property
-    def target_gps_lon(self):
-        return self.tracking_ctrl.target_gps_lon
-
-    @target_gps_lon.setter
-    def target_gps_lon(self, value):
-        self.tracking_ctrl.target_gps_lon = value
-
-    @property
-    def scanning_active(self):
-        return self.tracking_ctrl.scanning_active
-
-    @scanning_active.setter
-    def scanning_active(self, value):
-        self.tracking_ctrl.scanning_active = value
+        SwarmLogger.log(
+            "STOP",
+            f"DRONE_{self.assigned_port}",
+            "Terminal hold complete — initiating drone-local RTL",
+            "MISSION_CTRL",
+        )
+        self.stop_mission()
+        self.await_rtl_completion()
+        self.soft_reset_state()
 
     @property
     def grid_status(self):
@@ -196,9 +245,9 @@ class MissionController:
     @camera_handler.setter
     def camera_handler(self, value):
         self._camera_handler = value
-        if hasattr(self, "tracking_ctrl"):
-            self.tracking_ctrl.camera_handler = value
-            self.tracking_ctrl.detector.camera_handler = value
+        if hasattr(self, "attack_ctrl"):
+            self.attack_ctrl.camera_handler = value
+            self.attack_ctrl.detector.camera_handler = value
 
     @property
     def human_tracker(self):
@@ -207,9 +256,9 @@ class MissionController:
     @human_tracker.setter
     def human_tracker(self, value):
         self._human_tracker = value
-        if hasattr(self, "tracking_ctrl"):
-            self.tracking_ctrl.human_tracker = value
-            self.tracking_ctrl.detector.human_tracker = value
+        if hasattr(self, "attack_ctrl"):
+            self.attack_ctrl.human_tracker = value
+            self.attack_ctrl.detector.human_tracker = value
 
     # ------------------------------------------------------------------
     # Public API
@@ -222,6 +271,17 @@ class MissionController:
     def set_area(self, coordinates):
         """Set observation area and create grid."""
         self.create_grid(coordinates)
+        scan_points = self.navigation.compute_scan_route_points()
+        if scan_points:
+            first = scan_points[0]
+            last = scan_points[-1]
+            SwarmLogger.log(
+                "INFO",
+                f"DRONE_{self.assigned_port}",
+                f"Area assigned | scan_points={len(scan_points)} "
+                f"entry=({first['row']},{first['col']}) exit=({last['row']},{last['col']})",
+                "ROUTE",
+            )
         return {
             "status": "ok",
             "message": MISSION_STATUS_MESSAGES["AREA_SET"].format(
@@ -250,10 +310,16 @@ class MissionController:
             self._paused = False
             self._stop_in_progress = False
             self._pause_event.set()
+            self._set_phase(MissionPhase.TRANSIT, reason="mission start requested")
             if resume_point:
                 self._set_status(MISSION_STATUS_MESSAGES["RESUMING"])
             else:
                 self._set_status(MISSION_STATUS_MESSAGES["STARTING"])
+            self._log_mission_progress(
+                "START",
+                f"Mission start requested | type={mission_type} resume_point={resume_point}",
+                interval_s=0.0,
+            )
 
             self.is_mission_active = True
             self._sync_runtime_dependencies()
@@ -264,22 +330,6 @@ class MissionController:
             )
             self._mission_thread.start()
             return {"status": "ok", "message": self.drone_manager.mission_status_message}
-
-    def send_ned_velocity(self, vehicle, vx, vy, vz):
-        """Backward-compatible proxy used by tests and stop/pause flows."""
-        return self.flight_ctrl.send_ned_velocity(vehicle, vx, vy, vz)
-
-    def execute_tracking_mode(self, vehicle, is_mission_active_check=None):
-        """Backward-compatible proxy for legacy callers."""
-        self._sync_runtime_dependencies()
-        if is_mission_active_check is None:
-            is_mission_active_check = lambda: self.is_mission_active
-        return self.tracking_ctrl.execute_tracking_mode(
-            vehicle,
-            is_mission_active_check,
-            pause_check=self._is_paused,
-            pause_waiter=self._wait_if_paused,
-        )
 
     def pause_mission(self):
         """Pause mission in-place and hold current position."""
@@ -295,7 +345,7 @@ class MissionController:
         vehicle = self._get_vehicle()
         if vehicle and vehicle != "connecting":
             try:
-                self.send_ned_velocity(vehicle, 0, 0, 0)
+                self.flight_ctrl.command_hold(vehicle, reason="mission pause")
             except Exception:
                 pass
             try:
@@ -303,6 +353,7 @@ class MissionController:
             except Exception:
                 pass
 
+        self._set_phase(MissionPhase.PAUSED, reason="pause requested")
         self._set_status("Mission paused. Holding position.")
         return {"status": "ok", "message": "Mission paused. Holding position."}
 
@@ -322,11 +373,14 @@ class MissionController:
             except Exception:
                 pass
 
+        next_phase = MissionPhase.TRANSIT if getattr(self, "current_mission_type", None) else MissionPhase.IDLE
+        self._set_phase(next_phase, reason="resume requested")
         self._set_status(MISSION_STATUS_MESSAGES["RESUMING"])
         return {"status": "ok", "message": MISSION_STATUS_MESSAGES["RESUMING"]}
 
     def soft_reset_state(self):
         """Clear mission-local state while preserving live drone connections."""
+        prev_phase = self.mission_phase
         with self._mission_lock:
             self.is_mission_active = False
             self._paused = False
@@ -334,10 +388,14 @@ class MissionController:
             self._pause_event.set()
             self.current_mission_type = None
             self.current_mission_point = None
+            self.current_nav_target = None
             self.mission_path_points = []
             self._mission_thread = None
-        self.scanning_active = False
-        self.tracking_ctrl.reset_engagement_state()
+            self._set_phase(MissionPhase.IDLE, reason="soft reset")
+            if prev_phase != MissionPhase.RTL:
+                self.navigation.clear_transit_reservation()
+        self.attack_ctrl.scanning_active = False
+        self.attack_ctrl.reset_engagement_state()
         self.navigation.reset_runtime_state()
         try:
             self._camera_handler.reset_runtime_state(ports=[self.assigned_port])
@@ -357,12 +415,17 @@ class MissionController:
         if target_vehicle and target_vehicle != "connecting" and active:
             # Zero velocity before RTL
             try:
-                self.send_ned_velocity(target_vehicle, 0, 0, 0)
+                self.flight_ctrl.send_ned_velocity(target_vehicle, 0, 0, 0)
+                self.flight_ctrl.command_world_velocity(
+                    target_vehicle, "RTL_PREP", 0.0, 0.0, 0.0, reason="mission stop"
+                )
                 SwarmLogger.log("STOP", f"DRONE_{self.assigned_port}",
                                 "Zero velocity sent before RTL", "MISSION_CTRL")
             except Exception as e:
                 SwarmLogger.log("WARNING", f"DRONE_{self.assigned_port}",
                                 f"Zero velocity send failed: {e}", "MISSION_CTRL")
+
+            self.navigation.wait_for_rtl_slot(target_vehicle)
 
             try:
                 target_vehicle.mode = VehicleMode("RTL")
@@ -373,7 +436,9 @@ class MissionController:
                 self.is_mission_active = False
                 self._paused = False
                 self._pause_event.set()
-            self.tracking_ctrl.reset_engagement_state()
+                self._set_phase(MissionPhase.RTL, reason="stop mission")
+                self.current_nav_target = None
+            self.attack_ctrl.reset_engagement_state()
             if mission_thread and mission_thread.is_alive() and mission_thread is not threading.current_thread():
                 mission_thread.join(timeout=2.0)
             with self._mission_lock:
@@ -440,10 +505,10 @@ class MissionController:
 
         current_location = None
         battery_level = None
-        status_message = getattr(self.drone_manager, "mission_status_message", None)
+        status_message = getattr(self, "_status_message", None) or getattr(self.drone_manager, "mission_status_message", None)
 
         try:
-            vehicle = getattr(self.drone_manager, "active_drone", None)
+            vehicle = self._get_vehicle()
             if vehicle:
                 loc = getattr(vehicle, "location", None)
                 if loc:
@@ -466,18 +531,32 @@ class MissionController:
             for (row, col), status in self.grid_status.items()
         }
 
-        return {
+        status = {
             "is_mission_active": self.is_mission_active,
             "is_paused": self._paused,
-            "tracking_mode": self.tracking_mode,
-            "collision_detected": self.collision_detected,
+            "mission_phase": self.mission_phase,
+            "tracking_mode": self.attack_ctrl.tracking_mode,
+            "collision_detected": self.attack_ctrl.collision_detected,
             "elapsed_time": elapsed,
             "grid_status": json_grid,
             "mission_path_points": self.mission_path_points,
             "current_location": current_location,
             "battery_level": battery_level,
             "status_message": status_message,
+            "route_visual": self.navigation.build_route_visual(
+                current_location=current_location,
+                mission_phase=self.mission_phase,
+                current_nav_target=self.current_nav_target,
+                vehicle=self._get_vehicle(),
+            ),
+            "planned_terminal_point": self.attack_ctrl.get_planned_terminal_point(),
+            "terminal_event": self.attack_ctrl.get_terminal_event(),
+            "attack_phase": self.attack_ctrl.fsm.phase,
+            "attack_target_id": self.attack_ctrl.fsm.assigned_target_id,
+            "attack_autonomous": self.attack_ctrl.fsm.is_autonomous,
         }
+        self._log_status_snapshot(status)
+        return status
 
     # ------------------------------------------------------------------
     # Private
@@ -489,14 +568,17 @@ class MissionController:
         return self.drone_manager.active_drone
 
     def _sync_runtime_dependencies(self):
-        """Propagate late-bound compatibility fields into refactored submodules."""
-        self.tracking_ctrl.port = self.assigned_port
-        self.tracking_ctrl.swarm_manager = self.swarm_manager or getattr(self.drone_manager, "swarm_manager", None)
-        self.tracking_ctrl.bridge.port = self.assigned_port
-        self.tracking_ctrl.bridge._sm = self.tracking_ctrl.swarm_manager
-        self.tracking_ctrl.detector.port = self.assigned_port
-        self.scanner.port = self.assigned_port
+        """Propagate late-bound runtime dependencies into submodules."""
+        self.attack_ctrl.port = self.assigned_port
+        self.attack_ctrl.swarm_manager = self.swarm_manager or getattr(self.drone_manager, "swarm_manager", None)
+        self.attack_ctrl.bridge.port = self.assigned_port
+        self.attack_ctrl.bridge._sm = self.attack_ctrl.swarm_manager
+        self.attack_ctrl.detector.port = self.assigned_port
         self.flight_ctrl.port = self.assigned_port
+        self.flight_ctrl.motion.port = self.assigned_port
+        self.navigation.flight_ctrl = self.flight_ctrl
+        self.navigation.scanner.port = self.assigned_port
+        self.navigation.scanner.flight_ctrl = self.flight_ctrl
 
     def _run_mission_loop(self, mission_type, start_point=None):
         """Main mission execution loop."""
@@ -512,11 +594,14 @@ class MissionController:
         try:
             self.mission_path_points = []
             self.mission_start_time = time.time()
+            self._set_phase(MissionPhase.TAKEOFF, reason="arm and takeoff")
 
             self.flight_ctrl.arm_and_takeoff(
                 vehicle, TAKEOFF_ALTITUDE, status_callback=self._set_status)
 
             self._set_status(MISSION_STATUS_MESSAGES["BEGIN_MISSION_FLIGHT"])
+            self._set_phase(MissionPhase.TRANSIT, reason="takeoff complete")
+            self.flight_ctrl.set_motion_intent("TRANSIT", reason="post takeoff mission transit")
             SwarmLogger.log("INFO", f"DRONE_{self.assigned_port}",
                             self.drone_manager.mission_status_message, "MISSION")
 
@@ -531,6 +616,7 @@ class MissionController:
                 self._run_multi_cell(vehicle, start_point)
 
         except Exception as e:
+            self._set_phase(MissionPhase.ERROR, reason=str(e))
             self._set_status(MISSION_STATUS_MESSAGES["MISSION_ERROR"].format(error=str(e)))
             SwarmLogger.log("ERROR", f"DRONE_{self.assigned_port}",
                             self.drone_manager.mission_status_message, "MISSION")
@@ -541,10 +627,11 @@ class MissionController:
         finally:
             if vehicle and self.is_mission_active:
                 try:
-                    if self.tracking_mode or self.attack_approved:
+                    if self.attack_ctrl.tracking_mode or self.attack_ctrl.attack_approved:
                         SwarmLogger.log("WARNING", f"DRONE_{self.assigned_port or '?'}",
                                         "RTL BLOCKED: Tracking/Attack active", "MISSION_CTRL")
                     else:
+                        self._set_phase(MissionPhase.COMPLETE, reason="mission finished")
                         self._set_status(MISSION_STATUS_MESSAGES["MISSION_COMPLETE"])
                         vehicle.mode = VehicleMode("RTL")
                 except Exception:
@@ -552,7 +639,9 @@ class MissionController:
             with self._mission_lock:
                 self.is_mission_active = False
                 self._mission_thread = None
-            self.tracking_ctrl.tracking_mode = False
+                self.current_nav_target = None
+                self.navigation.clear_transit_reservation()
+            self.attack_ctrl.tracking_mode = False
             self._set_status(MISSION_STATUS_MESSAGES["STOPPED"])
 
     def _run_single_cell(self, vehicle):
@@ -573,7 +662,13 @@ class MissionController:
             self._wait_if_paused()
             if not self.is_mission_active:
                 break
-            self.scanning_active = False
+            self.attack_ctrl.scanning_active = False
+            self._set_phase(MissionPhase.TRANSIT, reason="single-cell approach")
+            self.current_nav_target = (target_lat, target_lon)
+            self._log_mission_progress(
+                "SINGLE_TRANSIT",
+                f"Single-cell approach | lat={target_lat:.6f} lon={target_lon:.6f}",
+            )
             ok = self.navigation.approach_target(
                 vehicle, target_lat, target_lon, 0, 0, 0, 0,
                 is_active_check=self._is_active_and_not_tracking,
@@ -581,22 +676,33 @@ class MissionController:
                 pause_waiter=self._wait_if_paused,
             )
 
-            if ok and not self.tracking_mode:
-                self.scanning_active = True
-                human_detected = self.scanner.perform_360_rotation_scan(
+            if ok and not self.attack_ctrl.tracking_mode:
+                self.current_nav_target = None
+                self.attack_ctrl.scanning_active = True
+                self._set_phase(MissionPhase.SCAN, reason="single-cell sweep")
+                human_detected = self.navigation.perform_scan(
                     vehicle,
+                    detection_check=lambda: self.attack_ctrl.check_human_detection(),
                     is_active_check=self._is_active,
-                    detection_check=lambda: self.tracking_ctrl.check_human_detection(self.is_mission_active),
-                    status_callback=self._set_status,
                     pause_check=self._is_paused,
                     pause_waiter=self._wait_if_paused,
                 )
                 if human_detected:
                     self.execute_tracking_mode(vehicle, self._is_active)
-                self.scanning_active = False
-            elif self.tracking_mode:
+                self.attack_ctrl.scanning_active = False
+            elif self.attack_ctrl.tracking_mode:
+                self.current_nav_target = None
                 self.execute_tracking_mode(vehicle, self._is_active)
-                self.scanning_active = False
+                self.attack_ctrl.scanning_active = False
+                if self.is_mission_active and not self._stop_in_progress:
+                    continue
+
+            if not ok and self.is_mission_active and not self._stop_in_progress and not self.attack_ctrl.tracking_mode:
+                self._log_mission_progress(
+                    "SINGLE_RETRY",
+                    "Single-cell approach incomplete; retrying approach/scan loop",
+                    level="WARNING",
+                )
 
             time.sleep(1.0)
 
@@ -610,11 +716,11 @@ class MissionController:
 
         prev_row, prev_col = None, None
 
-        while self.is_mission_active and not self.tracking_mode:
+        while self.is_mission_active and not self.attack_ctrl.tracking_mode:
             self._wait_if_paused()
             if not self.is_mission_active:
                 break
-            self.scanning_active = False
+            self.attack_ctrl.scanning_active = False
             self.current_mission_point = (cur_row, cur_col, horiz_dir, vert_dir)
             target = self.centers_2d[cur_row][cur_col]
 
@@ -629,11 +735,18 @@ class MissionController:
                 continue
 
             lat, lon = target
+            self.current_nav_target = (lat, lon)
             self._set_status(MISSION_STATUS_MESSAGES["SCANNING_AREA"].format(
                 row=cur_row, col=cur_col))
+            self._set_phase(MissionPhase.TRANSIT, reason=f"cell {cur_row},{cur_col} approach")
+            self._log_mission_progress(
+                "CELL_TRANSIT",
+                f"Approaching cell=({cur_row},{cur_col}) from=({prev_row},{prev_col}) "
+                f"lat={lat:.6f} lon={lon:.6f} dir=({horiz_dir},{vert_dir})",
+            )
 
             if prev_row is not None:
-                self.scanning_active = True
+                self.attack_ctrl.scanning_active = True
 
             ok = self.navigation.approach_target(
                 vehicle, lat, lon, prev_row, prev_col, cur_row, cur_col,
@@ -642,41 +755,49 @@ class MissionController:
                 pause_waiter=self._wait_if_paused,
             )
 
-            if self.tracking_mode:
+            if self.attack_ctrl.tracking_mode:
+                self.current_nav_target = None
                 self.execute_tracking_mode(vehicle, self._is_active)
-                self.scanning_active = False
+                self.attack_ctrl.scanning_active = False
                 continue
 
             if ok:
-                self.scanning_active = True
-                hold_ok = self.navigation.confirm_center_stability(
-                    vehicle, lat, lon,
-                    hold_s=CENTER_CONFIRM_HOLD_S,
-                    tol_m=CENTER_CONFIRM_TOLERANCE_M,
+                self.current_nav_target = None
+                self.attack_ctrl.scanning_active = True
+                self._set_phase(MissionPhase.SCAN, reason=f"cell {cur_row},{cur_col} scan")
+                self._log_mission_progress(
+                    "CELL_HOLD",
+                    f"Cell hold/confirm | cell=({cur_row},{cur_col}) lat={lat:.6f} lon={lon:.6f}",
+                )
+                hold_ok, human_detected = self.navigation.scan_confirmed_cell(
+                    vehicle, lat, lon, cur_row, cur_col,
+                    detection_check=lambda: self.attack_ctrl.check_human_detection(),
                     is_active_check=self._is_active,
                     pause_check=self._is_paused,
                     pause_waiter=self._wait_if_paused,
                 )
-                if hold_ok and self.is_mission_active and not self.tracking_mode:
-                    human_detected = self.scanner.perform_360_rotation_scan(
-                        vehicle,
-                        is_active_check=self._is_active,
-                        detection_check=lambda: self.tracking_ctrl.check_human_detection(self.is_mission_active),
-                        status_callback=self._set_status,
-                        pause_check=self._is_paused,
-                        pause_waiter=self._wait_if_paused,
-                    )
-                    if human_detected:
-                        self.execute_tracking_mode(vehicle, self._is_active)
-                        self.scanning_active = False
-                        continue
-                self.navigation.grid_status[(cur_row, cur_col)] = "visited"
+                if human_detected:
+                    self.execute_tracking_mode(vehicle, self._is_active)
+                    self.attack_ctrl.scanning_active = False
+                    continue
                 self._set_status(MISSION_STATUS_MESSAGES["CELL_CONFIRMED"].format(
                     row=cur_row, col=cur_col))
-                self.scanning_active = False
+                self._log_mission_progress(
+                    "CELL_DONE",
+                    f"Cell complete | cell=({cur_row},{cur_col}) hold_ok={hold_ok}",
+                )
+                self.attack_ctrl.scanning_active = False
             else:
+                if self._stop_in_progress or not self.is_mission_active:
+                    self.current_nav_target = None
+                    break
                 self.navigation.grid_status[(cur_row, cur_col)] = "old"
                 self._set_status(MISSION_STATUS_MESSAGES["CELL_SKIPPED"].format(row=cur_row, col=cur_col))
+                self._log_mission_progress(
+                    "CELL_SKIP",
+                    f"Cell skipped | cell=({cur_row},{cur_col})",
+                    level="WARNING",
+                )
 
             prev_row, prev_col = cur_row, cur_col
             cur_row, cur_col, horiz_dir, vert_dir = \
@@ -686,9 +807,40 @@ class MissionController:
                 self.is_mission_active = False
 
             if cur_row != prev_row:
-                time.sleep(0.12)
-            time.sleep(0.08)
+                time.sleep(MISSION_ROW_TRANSITION_DELAY_S)
+            time.sleep(MISSION_CELL_LOOP_DELAY_S)
 
+    def execute_tracking_mode(self, vehicle, is_mission_active_check=None):
+        """Mission-aware tracking wrapper with explicit recovery phases."""
+        self._sync_runtime_dependencies()
+        self.navigation.clear_transit_reservation()
+        if is_mission_active_check is None:
+            is_mission_active_check = lambda: self.is_mission_active
 
-# Backward-compatible alias
-CollisionMissionController = MissionController
+        phase = MissionPhase.ATTACK if self.attack_ctrl.attack_approved else MissionPhase.TRACK
+        self._set_phase(phase, reason="tracking entered")
+        result = self.attack_ctrl.execute_tracking_mode(
+            vehicle,
+            is_mission_active_check,
+            pause_check=self._is_paused,
+            pause_waiter=self._wait_if_paused,
+        )
+
+        if not self.is_mission_active:
+            return result
+
+        # SCAN_RESUME: graceful return to scan loop (not a terminal event)
+        if self.attack_ctrl.fsm.phase == "SCAN_RESUME":
+            self.attack_ctrl.reset_engagement_state()
+            self._set_phase(MissionPhase.RETURN_TO_SCAN, reason="scan resume after verify timeout")
+            return result
+
+        if self.attack_ctrl.has_terminal_completion_pending() or self.attack_ctrl.collision_detected:
+            self._handle_terminal_completion(vehicle)
+            return result
+
+        if self.attack_ctrl.fsm.phase is None and not self.attack_ctrl.attack_approved:
+            self._set_phase(MissionPhase.RETURN_TO_SCAN, reason="tracking ended; resume scan")
+        else:
+            self._set_phase(MissionPhase.ATTACK_ABORT, reason="tracking disengaged")
+        return result

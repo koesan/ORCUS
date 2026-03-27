@@ -1,4 +1,4 @@
-"""Camera Handler - ROS camera feed to JPEG streaming with swarm support."""
+"""ROS camera ingestion and JPEG streaming."""
 
 import cv2
 import numpy as np
@@ -8,7 +8,7 @@ import time
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from config import (
-    CAMERA_TOPICS, LOG_THROTTLE_SEC, JPEG_QUALITY, 
+    CAMERA_TOPICS, JPEG_QUALITY,
     PLACEHOLDER_IMAGE_SIZE, FONT_SCALE, FONT_THICKNESS,
     FRAME_BUFFER_TIMEOUT_FRAMES
 )

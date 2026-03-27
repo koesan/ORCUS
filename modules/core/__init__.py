@@ -1,8 +1,8 @@
-"""ORCUS Core Package - Fleet management, coordinate math, logging, PID control."""
+"""ORCUS core exports."""
 
 
 def __getattr__(name):
-    """Lazy import — dronekit/rospy bağımlılığı olmadan modül erişimi."""
+    """Lazy import to avoid heavyweight optional dependencies at package import time."""
     if name == "DroneManager":
         from modules.core.fleet_manager import DroneManager
         return DroneManager
@@ -12,6 +12,9 @@ def __getattr__(name):
     if name == "SwarmLogger":
         from modules.core.logger import SwarmLogger
         return SwarmLogger
+    if name == "LinkDiscipline":
+        from modules.core.comm import LinkDiscipline
+        return LinkDiscipline
     if name == "PID":
         from modules.core.pid_controller import PID
         return PID
@@ -25,6 +28,7 @@ __all__ = [
     'DroneManager',
     'GeoMath',
     'SwarmLogger',
+    'LinkDiscipline',
     'PID',
     'FilteredPID',
 ]

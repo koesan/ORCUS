@@ -1,4 +1,7 @@
-"""PID Controllers - Simple PID and FilteredPID with anti-windup."""
+"""PID controllers and lightweight signal filters used across the stack."""
+
+import time
+from typing import Tuple
 
 from config import PID_KP, PID_KI, PID_KD
 
@@ -6,7 +9,7 @@ from config import PID_KP, PID_KI, PID_KD
 class PID:
     """Simple PID controller for drone navigation and movement.
 
-    Used by: mission/navigation.py, mission/tracking_controller.py
+    Used by: mission/navigation.py, mission/attack_controller.py
     Interface: step(error, dt) -> control_output
     """
 
@@ -108,3 +111,75 @@ class FilteredPID:
         self.previous_timestamp = 0
         self.i = 0
         self.d = 0
+
+
+class LowPassFilter:
+    """Single-pole low-pass filter for noisy scalar signals."""
+
+    def __init__(self, alpha: float = 0.3):
+        self.alpha = alpha
+        self.value = None
+
+    def update(self, new_value: float) -> float:
+        """Filter a new sample and return the smoothed value."""
+        if self.value is None:
+            self.value = new_value
+        else:
+            self.value = self.alpha * new_value + (1 - self.alpha) * self.value
+        return self.value
+
+    def reset(self) -> None:
+        """Clear filter state."""
+        self.value = None
+
+
+class VelocitySmoother:
+    """Rate-limit velocity commands to avoid abrupt motion changes."""
+
+    def __init__(self, max_accel: float = 2.0, max_decel: float = 4.0, dt_floor: float = 0.02):
+        self.max_accel = max_accel
+        self.max_decel = max_decel
+        self.dt_floor = dt_floor
+        self.last_vx = 0.0
+        self.last_vy = 0.0
+        self.last_vz = 0.0
+        self.last_time = None
+
+    def smooth(self, vx: float, vy: float, vz: float) -> Tuple[float, float, float]:
+        """Smooth velocity commands on each axis independently."""
+        current_time = time.time()
+
+        if self.last_time is None:
+            self.last_time = current_time
+            self.last_vx = vx
+            self.last_vy = vy
+            self.last_vz = vz
+            return vx, vy, vz
+
+        dt = current_time - self.last_time
+        if dt <= 0:
+            dt = self.dt_floor
+        self.last_time = current_time
+
+        vx = self._smooth_axis(vx, self.last_vx, dt)
+        vy = self._smooth_axis(vy, self.last_vy, dt)
+        vz = self._smooth_axis(vz, self.last_vz, dt)
+
+        self.last_vx = vx
+        self.last_vy = vy
+        self.last_vz = vz
+        return vx, vy, vz
+
+    def _smooth_axis(self, target: float, current: float, dt: float) -> float:
+        delta = target - current
+        max_delta = self.max_accel * dt if delta > 0 else self.max_decel * dt
+        if abs(delta) > max_delta:
+            delta = max_delta if delta > 0 else -max_delta
+        return current + delta
+
+    def reset(self) -> None:
+        """Reset smoother state."""
+        self.last_vx = 0.0
+        self.last_vy = 0.0
+        self.last_vz = 0.0
+        self.last_time = None

@@ -33,6 +33,8 @@ DRONE_CONNECTION_RETRY_DELAY = 5    # Delay between connection retries (seconds)
 # ==============================================================================
 MAX_SPEED_M_S = 4.0                 # Max speed (m/s)
 CONTROL_INTERVAL_S = 0.15           # PID control loop interval (seconds)
+MISSION_ROW_TRANSITION_DELAY_S = 0.12  # Delay after changing scan row/column
+MISSION_CELL_LOOP_DELAY_S = 0.08       # Base delay between mission loop steps
 CELL_REACHED_THRESHOLD_M = 1.2      # Threshold to consider cell center reached (meters)
 FINE_APPROACH_THRESHOLD_M = 7.0     # Distance threshold for deceleration (meters)
 FINE_APPROACH_SCALE = 0.35          # Approach speed scale
@@ -42,8 +44,6 @@ FINE_APPROACH_HOLD_S = 0.5          # Short hold time for center confirmation (s
 PER_CELL_TIMEOUT_S = 60.0           # Max time to reach a cell (seconds)
 RETRY_LIMIT = 2                     # Retry limit before skipping cell
 GPS_MEDIAN_WINDOW = 7               # GPS median filter window size
-GPS_FILTER_WINDOW_SIZE = 15         # Moving average filter size (for GPS stabilization)
-BBOX_FILTER_WINDOW_SIZE = 15        # Bbox width filter window size (to prevent distance jumps)
 STUCK_MOVED_THRESHOLD_M = 0.12      # Movement threshold for stuck detection (meters)
 STUCK_TIMEOUT_S = 8.0               # Timeout for stuck detection (seconds)
 PID_KP = 0.9
@@ -72,6 +72,13 @@ CAMERA_TOPICS = {
 }
 
 LOG_THROTTLE_SEC = 1.0              # Log write frequency (seconds) - Increased to reduce spam
+MISSION_PROGRESS_LOG_INTERVAL_S = 2.0   # Mission progress log interval for cell/scan lifecycle
+TRACKING_PROGRESS_LOG_INTERVAL_S = 1.5  # Tracking/attack progress snapshot log interval
+TRACKING_RECOVERY_LOG_INTERVAL_S = 1.0  # Recovery/reacquire log interval
+SWARM_ACTION_LOG_INTERVAL_S = 1.5       # Leader action/suppression decision log interval
+SWARM_HEARTBEAT_LOG_INTERVAL_S = 4.0    # Heartbeat/no-active heartbeat log interval
+BRIDGE_LOG_INTERVAL_S = 1.5             # Drone<->leader bridge packet/response summary interval
+STATUS_SNAPSHOT_LOG_INTERVAL_S = 4.0    # Mission/UI/status snapshot interval
 JPEG_QUALITY = 80                   # JPEG compression quality (0-100)
 
 # ==============================================================================
@@ -204,7 +211,7 @@ METERS_PER_DEGREE_LAT = 111320.0
 RGI_RAY_Z_MIN = 0.05                    # Minimum ray Z component for valid intersection
 RGI_MAX_HORIZ_DIST_M = 500.0            # Maximum horizontal distance for valid target (meters)
 RGI_SIN_EPS_MIN = 0.01                  # Minimum sin(depression angle) to avoid singularity
-RGI_COT_EPS_CLAMP = 10.0                # Maximum cot(eps) for radial error calculation (100.0 was too large)
+RGI_COT_EPS_CLAMP = 10.0                # Maximum cot(eps) for radial error calculation (100.0 çok büyüktü)
 RGI_MIN_SIGMA_CROSS_M = 1.0             # Minimum cross-range uncertainty (meters)
 RGI_MIN_SIGMA_RADIAL_M = 2.0            # Minimum radial uncertainty (meters)
 RGI_SHALLOW_VARIANCE_MULT = 1000.0      # Variance multiplier for shallow rays
@@ -214,18 +221,31 @@ RGI_Z_STD_M = 0.5                       # Z-axis standard deviation (meters)
 KALMAN_MAHALANOBIS_THRESHOLD = 9.21     # Chi-square 99% threshold for 2 DOF outlier rejection
 KALMAN_MIN_DT = 0.05                    # Minimum time step for prediction (seconds)
 
-# --- Kalman Tuning (for TargetKalmanFilter) ---
-KALMAN_PROCESS_NOISE_TARGET = 0.1       # TargetKalmanFilter process noise (old: 0.5 was too large)
-KALMAN_INITIAL_COV = 1e-4               # Initial covariance (old: 1e-8 was too small)
+# --- Kalman Tuning (TargetKalmanFilter için) ---
+KALMAN_PROCESS_NOISE_TARGET = 0.1       # TargetKalmanFilter process noise (eski: 0.5 çok büyüktü)
+KALMAN_INITIAL_COV = 1e-4               # Başlangıç covariance (eski: 1e-8 çok küçüktü)
 
 # IBVS Guidance Limits
 IBVS_YAW_RATE_MAX = 1.0                 # Maximum yaw rate (rad/s) ±1 rad/s
 
 # Attack Timeout
 ATTACK_TIMEOUT_S = 30.0                 # Attack phase timeout before abort (seconds)
+ATTACK_LOCK_TIMEOUT_S = 8.0             # Max time to achieve visual lock before abort/recovery
+ATTACK_MIN_OWNER_QUALITY = 5.0          # Minimum owner-observation quality before approval
+ATTACK_LOCAL_ID_STABLE_WINDOW_S = 1.5   # Local ID must remain stable for this long before approval
+PRETERMINAL_RESOLVE_DISTANCE_M = 18.0   # Max world-track distance for pre-terminal candidate matching
+PRETERMINAL_RESOLVE_MIN_SCORE = 0.50    # Minimum score to accept pre-terminal candidate remap
+PRETERMINAL_RESOLVE_SCORE_MARGIN = 0.12 # Margin required over runner-up to avoid ambiguous remap
+PRETERMINAL_RESOLVE_IOU_WEIGHT = 0.35   # Weight of bbox continuity in pre-terminal remap
+PRETERMINAL_RESOLVE_GEO_WEIGHT = 0.40   # Weight of world-track proximity in pre-terminal remap
+PRETERMINAL_RESOLVE_ID_WEIGHT = 0.25    # Weight of local_id/member evidence in pre-terminal remap
+VISUAL_LOCK_HARD_ACCEPT_IOU = 0.55      # If current visual overlap reaches this IoU, visual lock becomes primary evidence
+SWARM_LOCAL_ID_VISUAL_HOLD_IOU = 0.45   # If bbox overlap exceeds this, keep existing local_id despite tracker ID jump
+SWARM_LOCAL_ID_VISUAL_HOLD_WINDOW_S = 0.8  # Visual hold applies only while previous bbox evidence is fresh
+SWARM_LOCAL_ID_ATTACK_SWITCH_FRAMES = 10   # Frames required to accept new local_id in attack pipeline
 
 # Target Fusion Thresholds
-MAHALANOBIS_3SIGMA_SQ = 9.0             # 3σ squared for outlier rejection (previous 25.0/5σ was too wide)
+MAHALANOBIS_3SIGMA_SQ = 9.0             # 3σ squared for outlier rejection (önceki 25.0/5σ çok genişti)
 MAHALANOBIS_3SIGMA = 3.0                # 3σ threshold for fusion acceptance
 
 # IBVS Pitch Limits
@@ -250,15 +270,15 @@ DRONE_YAW_STD_DEV_DEG = 5.0           # Compass/Yaw uncertainty (increased to co
 DRONE_PITCH_STD_DEV_DEG = 2.0         # Pitch/Attitude uncertainty
 DRONE_PIXEL_NOISE_STD_DEV = 5.0       # Pixel detection noise (pixels)
 
-# --- ROOT CAUSE FIXES: Missing Error Models ---
-DRONE_GPS_POSITION_STD_M = 2.5       # Standalone GPS position error (meters CEP)
-DRONE_ALTITUDE_STD_M = 1.5            # Barometric altitude error (meters)
-CAMERA_MOUNT_PITCH_STD_DEG = 0.5      # Camera mount pitch tolerance (degrees)
-CAMERA_MOUNT_ROLL_STD_DEG = 0.3       # Camera mount roll tolerance (degrees)
+# --- KÖK NEDEN DÜZELTMELERİ: Eksik Hata Modelleri ---
+DRONE_GPS_POSITION_STD_M = 2.5       # Standalone GPS pozisyon hatası (meters CEP)
+DRONE_ALTITUDE_STD_M = 1.5            # Barometrik irtifa hatası (meters)
+CAMERA_MOUNT_PITCH_STD_DEG = 0.5      # Kamera montaj pitch toleransı (degrees)
+CAMERA_MOUNT_ROLL_STD_DEG = 0.3       # Kamera montaj roll toleransı (degrees)
 
 # --- Shallow Angle Handling ---
-RGI_SHALLOW_ANGLE_THRESHOLD = 0.1     # sin(depression) < this value = shallow
-RGI_SHALLOW_VARIANCE_MULT = 10.0      # Previous 1000.0 was too aggressive, 10x is sufficient
+RGI_SHALLOW_ANGLE_THRESHOLD = 0.1     # sin(depression) < bu değer = shallow
+RGI_SHALLOW_VARIANCE_MULT = 10.0      # Önceki 1000.0 çok agresifti, 10x yeterli
 
 
 # ==============================================================================
@@ -370,12 +390,31 @@ ENABLE_ATTACK_IMMUTABILITY = True   # Protect targets from reassignment/merge du
 SWARM_ATTACK_MIN_CONFIDENCE = 0.25  # Min YOLO confidence for attack approval
 
 # Handoff Policy - STABLE ownership
-HANDOFF_CONSECUTIVE_FRAMES = 30     # 15 → 30: More frames required
-HANDOFF_QUALITY_RATIO = 1.5         # 1.3 → 1.5: Candidate must be 50% higher quality
-HANDOFF_COOLDOWN_S = 10.0           # 3 → 10 seconds cooldown
+HANDOFF_CONSECUTIVE_FRAMES = 30     # 15 → 30: Daha fazla frame gerekli
+HANDOFF_QUALITY_RATIO = 1.5         # 1.3 → 1.5: Candidate %50 daha kaliteli olmalı
+HANDOFF_COOLDOWN_S = 10.0           # 3 → 10 saniye cooldown
 
 # Proactive Assignment Loop
 ASSIGNMENT_LOOP_INTERVAL_S = 2.0    # Assignment loop interval (seconds)
+SWARM_DRONE_SEPARATION_MIN_M = 12.0  # Minimum preferred separation between active drones
+SWARM_ASSIGNMENT_CONFLICT_RADIUS_M = 20.0  # Penalize assignments that converge inside this radius
+SWARM_ATTACK_LANE_BUFFER_M = 25.0    # Keep attack targets away from another drone's committed lane
+SWARM_TRANSIT_RELEASE_DISTANCE_M = 18.0  # Transit deconfliction releases once spacing exceeds this
+SWARM_TRANSIT_ALTITUDE_GUARD_M = 1.5  # Consider drones on same flight layer inside this altitude delta
+SWARM_TRANSIT_PREDICTION_HORIZON_S = 2.5  # Predict forward separation during transit to yield before near-contact
+SWARM_TRANSIT_ALTITUDE_STEP_M = 2.0   # Altitude spacing between transit bands
+SWARM_TRANSIT_ALTITUDE_BANDS = 4      # Number of reusable altitude bands for parallel transit
+SWARM_CORRIDOR_WIDTH_M = 10.0        # Shared corridor width used by route reservation
+SWARM_CORRIDOR_TIME_HEADWAY_S = 2.5  # Time buffer between overlapping corridor reservations
+SWARM_CORRIDOR_TTL_S = 4.0           # Reservation lifetime without refresh
+SWARM_CORRIDOR_PRIORITY_DISTANCE_SCALE_M = 30.0  # Distance normalization for conflict tie-breaks
+SWARM_CORRIDOR_LANE_OFFSET_M = 8.0   # Lateral lane spacing for same-altitude swarm transit
+SWARM_CORRIDOR_LANE_CLEARANCE_M = 5.0  # Lane separation required to treat overlapping routes as deconflicted
+SWARM_CORRIDOR_FLOW_HOLD_S = 0.35    # Short hold used by flow scheduler instead of long full stops
+SWARM_TARGET_ACTIONABLE_GRACE_S = 1.2  # Keep active target publish alive briefly if local_id flickers
+SWARM_TARGET_STICKY_OWNER_GRACE_S = 2.5  # Prevent quick ownership churn on short perception gaps
+SWARM_ATTACK_FAMILY_FREEZE_S = 3.0   # Freeze family identity briefly once attack mode arms a drone
+SWARM_LOCAL_ID_ACTIONABLE_CACHE_S = 5.0  # Keep last stable local target ID briefly during attack/publish continuity
 
 # Target Lifecycle
 TARGET_COAST_TIME_S = 8.0     # Keep target alive for this duration if signal lost (Coasting)
@@ -386,13 +425,13 @@ SWARM_IMMUTABLE_TIMEOUT_S = 10.0  # Time to blindly follow invisible locked targ
 SWARM_ALIGNMENT_TOLERANCE_M = 5.0 # Tolerance for leader verification and cross-checks
 
 # ==============================================================================
-# FUSION CONSTANTS (Hierarchy: FUSION_MATCH < SWARM_MERGE < HARD_CAP)
+# FUSION CONSTANTS (Hiyerarşi: FUSION_MATCH < SWARM_MERGE < HARD_CAP)
 # ==============================================================================
-# FUSION_MATCH_THRESHOLD_M: First threshold for Mahalanobis gating (covariance-based)
-# SWARM_MERGE_DISTANCE_M: Distance threshold for duplicate merge
-# SWARM_FUSION_HARD_CAP_M: Absolute maximum distance (safety hard cap)
-FUSION_MATCH_THRESHOLD_M = 8.0    # For Mahalanobis gating (covariance-based)
-# Note: KALMAN_PROCESS_NOISE_SCALE is no longer used, use KALMAN_PROCESS_NOISE_TARGET
+# FUSION_MATCH_THRESHOLD_M: Mahalanobis gating için ilk eşik (covariance bazlı)
+# SWARM_MERGE_DISTANCE_M: Duplicate merge için mesafe eşiği
+# SWARM_FUSION_HARD_CAP_M: Mutlak maksimum mesafe (güvenlik hard cap)
+FUSION_MATCH_THRESHOLD_M = 8.0    # Mahalanobis gating için (covariance bazlı)
+# Not: KALMAN_PROCESS_NOISE_SCALE artık kullanılmıyor, KALMAN_PROCESS_NOISE_TARGET kullanın
 
 # ==============================================================================
 # GROUP CLUSTERING (DBSCAN - GPS/ENU meter-space)
@@ -423,30 +462,38 @@ TRACK_OBSERVER_STALE_TIMEOUT_SEC = 1.5  # Per-drone visibility TTL for local IDs
 TRACK_IDENTITY_CONFLICT_WINDOW_SEC = 0.7  # Same-drone identity evidence must be this fresh to block merge/match
 
 # ==============================================================================
-# BBOX TEMPORAL SMOOTHING (Phase 1)
+# GROUP BBOX SMOOTHING
 # ==============================================================================
-BBOX_SMOOTH_ALPHA = 0.3              # EMA smoothing factor (0=no smoothing, 1=no memory)
-BBOX_SMOOTH_MIN_CONF = 0.5           # Minimum confidence to apply smoothing
-BBOX_SIZE_STABILITY_THRESHOLD = 0.3  # Max bbox size ratio change before reset
+BBOX_SMOOTH_ALPHA = 0.3              # Base alpha for adaptive group-bbox EMA
+BBOX_SIZE_STABILITY_THRESHOLD = 0.3  # Reset smoothing on large bbox size jump
 
 # ==============================================================================
-# TARGET GRACE PERIOD (Phase 1)
+# TARGET GRACE PERIOD (AŞAMA 1)
 # ==============================================================================
 TARGET_GRACE_PERIOD_S = 0.9          # Grace period for short detection losses
 TARGET_STALE_COAST_S = 2.5           # Max coasting time before forcing LOST
-TARGET_MAX_COAST_VELOCITY = 10.0     # Maximum velocity in coast mode (m/s)
-TARGET_MAX_COAST_DISPLACEMENT_M = 30.0   # Maximum total displacement in coast mode (meters)
-TARGET_STALE_VELOCITY_THRESHOLD = 15.0   # Velocity considered stale (m/s)
+TARGET_MAX_COAST_VELOCITY = 10.0     # Coast mode'da maksimum velocity (m/s)
+TARGET_MAX_COAST_DISPLACEMENT_M = 30.0   # Coast mode'da maksimum toplam taşınan mesafe (meters)
+TARGET_STALE_VELOCITY_THRESHOLD = 15.0   # Stale kabul edilen velocity (m/s)
 
 # ==============================================================================
-# EKF RECOVERY & LOCK-UP FIX (Phase 1 - CRITICAL)
+# EKF RECOVERY
 # ==============================================================================
-EKF_RECOVERY_THRESHOLD = 3           # Consecutive reject count → recovery mode
-EKF_HARD_RESET_THRESHOLD = 7         # Consecutive reject count → hard reset
-EKF_COAST_MAX_SIGMA_M = 50.0         # Maximum sigma in coast mode (meters)
+EKF_RECOVERY_THRESHOLD = 3           # Ardışık reject sayısı → recovery mode
+EKF_COAST_MAX_SIGMA_M = 50.0         # Coast mode'da maksimum sigma (meters)
+EKF_NORMAL_GATE_BASE_M = 6.0         # Trusted state çevresinde normal kabul tabanı
+EKF_SUSPECT_GATE_BASE_M = 16.0       # Şüpheli observation tabanı
+EKF_INVALID_GATE_BASE_M = 120.0      # Fiziksel olarak saçma observation tabanı
+EKF_GATE_SPEED_MPS = 10.0            # Gate büyümesi için hedef hızı varsayımı
+EKF_INVALID_SPEED_MPS = 40.0         # Bunun üstü reject edilir
+EKF_SUSPECT_CONFIRM_COUNT = 2        # Re-anchor için gereken tutarlı gözlem sayısı
+EKF_SUSPECT_CONFIRM_RADIUS_M = 8.0   # Şüpheli gözlemler arası tutarlılık yarıçapı
+EKF_SUSPECT_MAX_AGE_S = 1.2          # Şüpheli buffer TTL
+EKF_REANCHOR_MIN_COV_M2 = 9.0        # Re-anchor sonrası min pos varyansı
+EKF_REANCHOR_VEL_DAMP = 0.2          # Re-anchor sonrası hız sönümü
 
 # ==============================================================================
-# EKF ADAPTIVE BEHAVIOR (Phase 2)
+# EKF ADAPTIVE BEHAVIOR (AŞAMA 2)
 # ==============================================================================
 EKF_CONFIDENCE_COV_SCALE = 2.0       # Low confidence measurement covariance multiplier
 EKF_COAST_PROCESS_NOISE_MULT = 3.0   # Process noise multiplier during coast mode
@@ -471,6 +518,54 @@ MERGE_DISTANCE_SIGMA_SCALE = 2.0       # Merge distance = base + avg_sigma * sca
 
 # Leader Failsafe
 LEADER_TIMEOUT_S = 10.0             # Timeout before switching to autonomous mode (seconds)
+LEADER_TIMEOUT_HOLD_CYCLES = 3      # Passive tracking hold cycles before returning to scan
+ATTACK_BREAKAWAY_ASCENT_MPS = 0.8   # Emergency climb rate after attack abort (m/s, up in NED via negative vz)
+
+# ==============================================================================
+# CENTRAL MOTION AUTHORITY
+# ==============================================================================
+MOTION_BASE_ALTITUDE_M = 3.0                 # Reference altitude for motion envelope scaling
+MOTION_ALTITUDE_SCALE_MIN = 0.65             # Minimum altitude-adaptive scale
+MOTION_ALTITUDE_SCALE_MAX = 1.35             # Maximum altitude-adaptive scale
+MOTION_FAILSAFE_HOLD_XY_MPS = 0.4            # XY authority during failsafe hold
+MOTION_FAILSAFE_HOLD_CLIMB_MPS = 0.6         # Upward authority during failsafe hold
+MOTION_FAILSAFE_HOLD_YAW_RAD_S = 0.12        # Yaw-rate authority during failsafe hold
+MOTION_TRANSIT_CLIMB_MPS = 0.8               # Climb/descent authority during transit
+MOTION_TRANSIT_YAW_RAD_S = 0.45              # Yaw-rate authority during transit
+MOTION_ATTACK_RUN_IN_XY_MPS = 3.2            # XY authority during committed attack run-in
+MOTION_ATTACK_RUN_IN_CLIMB_MPS = 0.85        # Upward authority during committed attack run-in
+MOTION_ATTACK_RUN_IN_YAW_RAD_S = 0.75        # Yaw-rate authority during committed attack run-in
+MOTION_TRACK_SOFT_XY_MPS = 1.2               # XY authority during soft tracking
+MOTION_TRACK_SOFT_DESCENT_MPS = 0.35         # Downward authority during soft tracking
+MOTION_TRACK_SOFT_CLIMB_MPS = 0.45           # Upward authority during soft tracking
+MOTION_TRACK_SOFT_YAW_RAD_S = 0.5            # Yaw-rate authority during soft tracking
+MOTION_BREAKAWAY_XY_MPS = 2.5                # XY authority during breakaway
+MOTION_BREAKAWAY_CLIMB_MPS = 1.4             # Upward authority during breakaway
+MOTION_BREAKAWAY_YAW_RAD_S = 0.55            # Yaw-rate authority during breakaway
+MOTION_SCAN_MIN_YAW_RATE_DEG_S = 3.0         # Minimum scan yaw rate after filtering
+
+# ==============================================================================
+# ATTACK LOCK & TERMINAL RECOVERY
+# ==============================================================================
+ATTACK_LOCK_RECOVERY_FRAMES = 12             # Frames before attack-lock recovery escalates
+ATTACK_LOCK_RECENT_WINDOW_S = 0.75           # Recent visual-lock validity window
+TERMINAL_REACQUIRE_MAX_FRAMES = 18           # Max frames allowed for terminal reacquire
+TERMINAL_REACQUIRE_CONFIRM_FRAMES = 2        # Consecutive frames required to accept candidate
+TERMINAL_REACQUIRE_MIN_SCORE = 0.72          # Minimum safe reacquire score
+TERMINAL_REACQUIRE_SCORE_MARGIN = 0.18       # Best-vs-second candidate separation margin
+TERMINAL_REACQUIRE_AMBIGUOUS_SCORE = 0.62    # Second-best score threshold for ambiguity reject
+TERMINAL_REACQUIRE_CENTER_DIAG_RATIO = 0.22  # Max expected center drift as frame diagonal ratio
+TERMINAL_REACQUIRE_IOU_WEIGHT = 0.45         # Candidate scoring weight: IoU
+TERMINAL_REACQUIRE_CENTER_WEIGHT = 0.25      # Candidate scoring weight: center consistency
+TERMINAL_REACQUIRE_AREA_WEIGHT = 0.15        # Candidate scoring weight: area similarity
+TERMINAL_REACQUIRE_SHAPE_WEIGHT = 0.10       # Candidate scoring weight: shape similarity
+TERMINAL_REACQUIRE_MOTION_WEIGHT = 0.05      # Candidate scoring weight: motion consistency
+TERMINAL_REACQUIRE_MIN_IOU = 0.20            # Hard minimum IoU for safe reacquire
+TERMINAL_REACQUIRE_MIN_CENTER_SCORE = 0.45   # Hard minimum center score for safe reacquire
+TERMINAL_REACQUIRE_MIN_AREA_RATIO = 0.55     # Hard minimum area ratio for safe reacquire
+TERMINAL_GROUP_FAMILY_SCORE_BONUS = 0.18     # Score bonus when candidate stays within the same group family
+TERMINAL_SINGLE_ID_SCORE_BONUS = 0.12        # Score bonus when single-target visual lock preserves exact local ID
+TERMINAL_GROUP_GENERIC_SCORE_BONUS = 0.55    # Partial confidence boost for coherent group-shaped candidates
 
 # ==============================================================================
 # IBVS (Image-Based Visual Servoing) KAMIKAZE GUIDANCE PARAMETERS
@@ -479,9 +574,9 @@ LEADER_TIMEOUT_S = 10.0             # Timeout before switching to autonomous mod
 IBVS_KP_YAW = 1.5                   # Yaw rate gain (rad/s per normalized error)
 
 # Dive Control - Balanced for stable approach + aggressive terminal
-IBVS_KP_DIVE = 1.2                  # Dive speed gain (m/s per normalized error)
-IBVS_SHALLOW_DIVE_VZ_MAX = 1.5      # Max vz during shallow approach phase (m/s)
-IBVS_STEEP_DIVE_COVERAGE = 45       # Screen coverage % to switch from shallow to steep dive
+IBVS_KP_DIVE = 1.25                 # Dive speed gain (m/s per normalized error)
+IBVS_SHALLOW_DIVE_VZ_MAX = 1.6      # Max vz during shallow approach phase (m/s)
+IBVS_DIVE_FEEDFORWARD_SCALE = 0.6   # Fixed camera feedforward contribution during dive
 
 # Forward Speed Control - Fast approach
 IBVS_VX_MAX = 8.0                   # Max forward speed (m/s)
@@ -514,18 +609,38 @@ IBVS_VELOCITY_SMOOTHER_DT = 0.02   # Default dt for velocity smoother (seconds)
 # ==============================================================================
 ATTACK_ECHO_TIMEOUT_S = 5.0              # Max wait for leader confirmation after echo
 ATTACK_CENTER_TIMEOUT_S = 10.0            # Max time to center target on camera
-ATTACK_CENTER_ERROR_THRESHOLD = 0.05      # Normalized pixel error to consider centered
-ATTACK_CENTER_CONFIRM_FRAMES = 10         # Consecutive centered frames to confirm
-ATTACK_STALE_ENGAGED_TIMEOUT_S = 15.0     # Force-release ENGAGED target with no observations
+ATTACK_STALE_PIPELINE_TIMEOUT_S = 15.0    # Force-release assigned/approved target with no observations
+FRAMING_CENTER_BLIND_BOX_PX = 60          # Ignore small framing jitter near center
+FRAMING_TARGET_LOSS_GRACE_S = 0.35        # Hold framing briefly across short gaps
+FRAMING_CENTER_HOLD_FRAMES = 3            # Centered frames before yaw freezes
+FRAMING_CENTER_RELEASE_PX = 96            # Resume yaw only after a wider drift
+ATTACK_CENTER_BLIND_BOX_PX = 20           # Smaller blind box for faster centering response
+ATTACK_TERMINAL_AREA_RADIUS_M = 6.0       # Planned terminal area radius used for guaranteed completion
+ATTACK_CENTER_ACCEPT_RADIUS_PX = 64       # Commit only when the target is meaningfully centered
+ATTACK_CENTER_REQUIRED_FRAMES = 3         # Stable frames required inside loose centering gate
+ATTACK_CENTER_LOSS_GRACE_S = 0.30         # Hold center briefly across short target gaps
+ATTACK_DIVE_TERMINAL_FORWARD_SPEED = 6.8  # Forward speed once terminal phase starts
+ATTACK_DIVE_MAX_DESCENT_MPS = 1.2         # Max downward speed during visual dive
+ATTACK_DIVE_MAX_CLIMB_MPS = 1.0           # Max upward correction during visual dive
+ATTACK_DIVE_YAW_KP = 2.0                  # Stronger yaw-rate gain from normalized bbox X error
+ATTACK_DIVE_VERTICAL_KP = 2.0             # Stronger vertical-speed gain from normalized bbox Y error
+ATTACK_DIVE_STARTUP_SPEED_MPS = 1.6       # Initial forward speed at dive entry
+ATTACK_DIVE_STARTUP_RAMP_S = 2.4          # Seconds to ramp from startup speed to terminal speed
+ATTACK_DIVE_PITCH_COMPENSATION_GAIN = 0.75  # Pitch compensation during early acceleration
+ATTACK_DIVE_DESCENT_SOFTENING = 0.72      # Global descent softening factor
+ATTACK_DIVE_STARTUP_YAW_SCALE = 0.45      # Early dive yaw scale
+ATTACK_DIVE_STARTUP_VZ_SCALE = 0.55       # Early dive vertical scale
+ATTACK_LOCK_MAX_JUMP_PX = 140             # Max allowed target jump from the lock
+ATTACK_LOCK_SIZE_RATIO_MIN = 0.45         # Min bbox area ratio for lock continuity
 
 # ==============================================================================
 # CENTERING STABILIZATION (Yaw control during centering phase)
 # ==============================================================================
-CENTERING_YAW_KP = 0.4                    # Yaw proportional gain (reduced for stability)
+CENTERING_YAW_KP = 0.55                   # Yaw proportional gain tuned for stable centering
+MAX_VISUAL_REACQUIRE_DIST_PX = 300        # Max pixel distance to reacquire a lost target
 CENTERING_YAW_RATE_MAX = 0.15             # Max yaw rate during centering (rad/s) ~8.6°/s
 CENTERING_YAW_DEADZONE = 0.02             # Normalized deadzone to prevent oscillation
-CENTERING_SETTLE_FRAMES = 3                # Extra frames to settle after centered
-CENTERING_YAW_FILTER_ALPHA = 0.15         # Low-pass filter for yaw smoothing
+CENTERING_YAW_FILTER_ALPHA = 0.18         # Low-pass filter for framing yaw
 
 # ==============================================================================
 # IMPACT DETECTION (Collision/Engaged confirmation)
@@ -537,15 +652,23 @@ IMPACT_VELOCITY_THRESHOLD = 0.3           # Below this velocity, assume impact
 IMPACT_ALTITUDE_PROGRESSIVE = True        # Use progressive altitude thresholds
 IMPACT_ALTITUDE_HIGH_M = 3.0              # High altitude - use coverage only
 IMPACT_ALTITUDE_LOW_M = 1.5               # Low altitude - reduce coverage requirement
+TERMINAL_EVENT_PROBABLE_COVERAGE = 6.0    # Coverage % for probable terminal event confirmation
+TERMINAL_EVENT_PROXIMITY_M = 6.0          # Slant distance to planned point for terminal event
+TERMINAL_EVENT_PROXIMITY_ALT_SCALE = 2.7  # Dynamic proximity expansion by current altitude
+TERMINAL_EVENT_CONFIRM_FRAMES = 2         # Consecutive probable-event frames to confirm terminal success
+TERMINAL_EVENT_LOCK_WINDOW_S = 0.7        # Visual lock recency required for terminal success
+TERMINAL_EVENT_COVERAGE_GROWTH_MIN = 0.6  # Minimum recent coverage growth for probable success
+TERMINAL_EVENT_HISTORY_SIZE = 8           # Frames kept for terminal coverage trend
+TERMINAL_EVENT_MARKER_TTL_S = 60.0        # UI lifetime for terminal event marker
+PLANNED_TERMINAL_POINT_TTL_S = 45.0       # UI lifetime for planned terminal point marker
+TERMINAL_COMPLETE_HOVER_S = 10.0          # Post-terminal hover duration before drone-local RTL
+TERMINAL_COMPLETE_LOG_INTERVAL_S = 1.0    # Log interval during post-terminal hover
 
 # ==============================================================================
 # PHASE TRANSITION BUFFER (Stabilization between phases)
 # ==============================================================================
 PHASE_TRANSITION_HOLD_S = 0.3             # Hold time between phase transitions
 PHASE_TRANSITION_VELOCITY_ZERO = True     # Send zero velocity during transition
-CENTERING_TO_DIVING_HOLD_S = 0.5          # Extra hold before diving
-
-
 # ==============================================================================
 # BoT-SORT CONFIGURATION
 # ==============================================================================
