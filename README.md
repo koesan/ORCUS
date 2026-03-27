@@ -10,6 +10,8 @@
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![ORCUS](https://img.shields.io/badge/ORCUS-v2.2-6A0DAD.svg?logo=github&logoColor=white)]()
+[![Version](https://img.shields.io/badge/ORCUS-v2.2-blue.svg)]()
+[![Project Version](https://img.shields.io/badge/Project-ORCUS%20v2.2-green.svg)]()
 
 ---
 
