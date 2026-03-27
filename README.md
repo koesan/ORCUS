@@ -391,7 +391,7 @@ ORCUS:
 - farklı drone tespitlerini **tek ortak hedef resmi** içinde birleştirir
 - hedefi ilk görene değil, **en uygun platforma** atar
 - saldırıyı tek adımda başlatmaz, **kontrollü bir onay zinciriyle** yürütür
-- terminal fazda görsel takibi korur, kısa bozulmalarda **yeniden toparlanmaya** çalışır
+- terminal fazda görsel takibi korur, kısa bozulmalarda **yeniden toparlar**
 - görev çevrimleri arasında gizli state birikmesini azaltarak sistemi yeniden çalıştırılabilir tutar
 
 ---
