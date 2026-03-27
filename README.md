@@ -2,7 +2,7 @@
 
 <img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="600"/>
 
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.8-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![ROS](https://img.shields.io/badge/ROS-Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
 [![Gazebo](https://img.shields.io/badge/Gazebo-Simulation-orange.svg)](http://gazebosim.org/)
 [![YOLO](https://img.shields.io/badge/YOLOv12-Detection-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
