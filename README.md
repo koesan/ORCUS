@@ -52,6 +52,7 @@ ORCUS:
 
 ## Highlighted Capabilities
 
+- **YOLOv12 + BoT-SORT perception stack:** ORCUS couples YOLOv12 detection with BoT-SORT multi-object tracking so the system preserves target identity more reliably across frames before higher-level grouping, geo-localization, and swarm reasoning start.
 - **DBSCAN-based grouping:** Nearby detections are clustered in metric space before they are promoted to leader-side targets. This reduces tracker jitter, cuts repeated geo-localization work, lowers the number of targets sent to the leader, and makes downstream fusion easier to manage.
 - **RGI-based geo-localization:** Each usable observation is projected from camera geometry into world coordinates. The system carries not only position, but also uncertainty.
 - **Covariance-aware target fusion:** Multi-drone observations are merged into one shared target structure while suppressing duplicates, noise, and unstable overwrites.
@@ -73,7 +74,7 @@ flowchart TD
     B --> C[MissionController]
     C --> D[Takeoff and Area Approach]
     D --> E[Scanner]
-    E --> F[YOLOv12 + Tracker]
+    E --> F[YOLOv12 + BoT-SORT]
     F --> G[DetectionProcessor]
     G --> H[GeoMath / Ray-Ground Intersection]
     H --> I[Covariance and Quality Scoring]
@@ -137,7 +138,24 @@ ORCUS uses a modular architecture rather than a monolithic mission script. Respo
 
 ## Core Algorithms
 
-### 1. Grouping and Target Construction
+### 1. Visual Detection and Tracking
+
+ORCUS starts the perception chain with **YOLOv12** for detection and **BoT-SORT** for multi-object tracking. This stage is not just about drawing boxes on the screen. It is the continuity layer that keeps downstream reasoning attached to a stable visual target.
+
+This pairing matters in three practical ways:
+
+1. it keeps target identity more stable  
+   BoT-SORT helps carry detections across frames so the same person or group is less likely to be treated as a brand-new target every moment.
+
+2. it gives the rest of the pipeline cleaner input  
+   Grouping, geo-localization, fusion, and assignment all work better when they inherit a more continuous visual track instead of disconnected frame-level detections.
+
+3. it improves terminal-side resilience  
+   When the system enters the late attack phase, visual continuity matters more than raw one-frame detection confidence. A stronger tracker makes short disruptions easier to survive.
+
+In short, YOLOv12 + BoT-SORT is the perception foundation that makes the rest of the decision chain usable under motion, noise, and temporary visual instability.
+
+### 2. Grouping and Target Construction
 
 ORCUS clusters nearby detections in metric space with **DBSCAN**. The point is not just to label a crowd as a group.
 
@@ -154,7 +172,7 @@ Grouping helps in three practical ways:
 
 In short, grouping is not cosmetic. It is the first simplification step that makes the rest of the system more stable and easier to scale.
 
-### 2. Geo-Localization
+### 3. Geo-Localization
 
 ORCUS does not stop at seeing a target in the image. It computes where that target is on the ground with **Ray-Ground Intersection (RGI)**.
 
@@ -162,7 +180,7 @@ The system takes the contact point inside the bounding box, applies camera geome
 
 The important part is that ORCUS also keeps the uncertainty of that estimate. The rest of the system does not only ask, "Where is the target?" It also asks, "How much do we trust this position?" That is why fusion, assignment, and verification can behave more carefully.
 
-### 3. Target Fusion
+### 4. Target Fusion
 
 After geo-localization, ORCUS must decide whether new observations belong to an existing target or to a different one. That is the fusion problem.
 
@@ -176,7 +194,7 @@ The fusion side looks at:
 
 The goal is simple: if the evidence is strong, keep one physical target as one shared target. If the evidence is weak, refuse the merge. That balance matters. Over-aggressive fusion collapses separate targets into one. Over-weak fusion creates duplicates that the swarm starts chasing.
 
-### 4. EKF-Based Target Filtering
+### 5. EKF-Based Target Filtering
 
 Once the shared target exists, ORCUS stabilizes its world state with **EKF / Kalman filtering** on the leader side.
 
@@ -184,13 +202,13 @@ The reason is practical. Raw measurements jump. When raw measurements drive the 
 
 In practice, this makes the radar calmer, the target more continuous, and the assignment logic less reactive to noise.
 
-### 5. Dynamic Assignment
+### 6. Dynamic Assignment
 
 ORCUS matches drones to targets with the **Hungarian algorithm**. The system builds a cost matrix from distance, visibility, target quality, covariance, current ownership, and deconfliction pressure, then solves for the best global distribution.
 
 The benefit is straightforward: target sharing stops depending on who happened to see the target first. The swarm sees the whole field instead of making local guesses, which reduces pile-on, wasted crossing routes, and unstable contention over the same target.
 
-### 6. Ownership and Deconfliction
+### 7. Ownership and Deconfliction
 
 After assignment, ORCUS uses ownership and deconfliction logic to stop the attack pipeline from being broken by nearby duplicates or competing claims.
 
@@ -204,7 +222,7 @@ This part decides:
 
 This is not just bookkeeping. It is what keeps multiple drones from converging on the same target family or replacing a valid attack target with a late, weaker observation.
 
-### 7. Terminal Guidance and Recovery
+### 8. Terminal Guidance and Recovery
 
 Terminal control is **bbox-first**. ORCUS keeps the live visual target as the main terminal reference and drives the approach with filtered control and smoothing logic.
 
@@ -399,6 +417,7 @@ ORCUS:
 
 ## Öne Çıkan Yetenekler
 
+- **YOLOv12 + BoT-SORT algılama katmanı:** ORCUS, YOLOv12 tespitini BoT-SORT çoklu nesne takibi ile birlikte kullanır. Böylece üst katmandaki gruplaşma, coğrafi kestirim ve sürü kararları başlamadan önce hedef sürekliliği daha sağlam tutulur.
 - **DBSCAN tabanlı gruplaşma:** Yakın tespitler lider tarafına ayrı ayrı taşınmadan önce metre uzayında kümelenir. Bu, tracker dalgalanmasını azaltır, daha az konum hesabı yapılmasını sağlar, lidere daha az hedef gönderir ve füzyon tarafını rahatlatır.
 - **RGI tabanlı coğrafi konum kestirimi:** Her uygun gözlem, kamera geometrisinden dünya koordinatına taşınır. Sistem yalnız konum değil, o konumun belirsizliğini de üretir.
 - **Kovaryans farkındalıklı hedef füzyonu:** Çoklu drone gözlemleri tek ortak hedef yapısında birleştirilir; duplicate, gürültü ve kararsız overwrite baskılanır.
@@ -420,7 +439,7 @@ flowchart TD
     B --> C[MissionController]
     C --> D[Takeoff ve Area Approach]
     D --> E[Scanner]
-    E --> F[YOLOv12 + Tracker]
+    E --> F[YOLOv12 + BoT-SORT]
     F --> G[DetectionProcessor]
     G --> H[GeoMath / Ray-Ground Intersection]
     H --> I[Covariance ve Quality Scoring]
@@ -484,7 +503,24 @@ ORCUS, tek dosyaya sıkışmış bir görev mantığı yerine modüler bir mimar
 
 ## Çekirdek Algoritmalar
 
-### 1. Gruplama ve Hedef Üretimi
+### 1. Görsel Tespit ve Takip
+
+ORCUS, algılama zincirine **YOLOv12** ile tespit, **BoT-SORT** ile çoklu nesne takibi yaparak başlar. Bu katman yalnız ekranda kutu çizmek için yoktur. Asıl görevi, sonraki karar katmanlarının daha kararlı bir görsel hedef sürekliliği üzerinden çalışmasını sağlamaktır.
+
+Bu eşleşme pratikte üç açıdan kritiktir:
+
+1. hedef kimliğini daha kararlı tutar  
+   BoT-SORT, tespitleri kareler arasında taşıyarak aynı kişi ya da grubun her anda yeni bir hedef gibi ele alınmasını azaltır.
+
+2. alt katmanlara daha temiz giriş sağlar  
+   Gruplaşma, konum kestirimi, füzyon ve atama tarafı; kopuk kare tespitleri yerine sürekliliği olan bir görsel iz devraldığında daha sağlıklı çalışır.
+
+3. terminal fazın dayanıklılığını artırır  
+   Saldırının son safhasında önemli olan şey tek karelik güven değil, görsel sürekliliğin korunmasıdır. Daha güçlü takip, kısa bozulmaların daha kontrollü atlatılmasını sağlar.
+
+Kısacası YOLOv12 + BoT-SORT, hareket, gürültü ve geçici görsel bozulma altında geri kalan karar zincirini kullanılabilir kılan algılama temelidir.
+
+### 2. Gruplama ve Hedef Üretimi
 
 ORCUS, yakın tespitleri metre uzayında **DBSCAN** ile kümeler. Buradaki amaç yalnız “kalabalığı grup diye etiketlemek” değildir.
 
@@ -501,7 +537,7 @@ Gruplama üç işe aynı anda yarar:
 
 Kısacası gruplaşma, yalnız algısal bir kolaylık değil; tüm sistemin kararlılığını ve ölçeklenebilirliğini artıran ilk sadeleştirme adımıdır.
 
-### 2. Konum Tespiti ve Coğrafi Kestirim
+### 3. Konum Tespiti ve Coğrafi Kestirim
 
 ORCUS, bir hedefi yalnız görüntüde görmekle yetinmez; onun yerde nerede olduğunu da hesaplar. Bunun için **Ray-Ground Intersection (RGI)** kullanır.
 
@@ -511,7 +547,7 @@ Buradaki kritik nokta şudur: ORCUS yalnız koordinat üretmez, o koordinatın n
 
 Bu bilgi olmadan fusion kaba olur, assignment kararsızlaşır, verify hattı da gereksiz risk alır.
 
-### 3. Hedef Füzyonu
+### 4. Hedef Füzyonu
 
 Çoklu drone aynı fiziksel hedefi farklı anlarda, farklı açılardan ve farklı yerel kimliklerle görebilir. Füzyon tarafının işi bu gözlemleri tek ortak hedefte toplamaktır.
 
@@ -527,7 +563,7 @@ bakar.
 
 Doğru füzyonun faydası nettir: aynı hedef iki kez görünmez, farklı hedefler gereksiz yere birleşmez, aktif saldırı hattı sonradan gelen zayıf gözlemle bozulmaz.
 
-### 4. EKF Tabanlı Hedef Filtreleme
+### 5. EKF Tabanlı Hedef Filtreleme
 
 Kanonik hedef üretildikten sonra bu hedefin dünya durumu **EKF / Kalman filtreleme** ile kararlı tutulur.
 
@@ -539,7 +575,7 @@ Bunun faydası özellikle üç yerde görülür:
 - aynı hedefe verilen kararlar kare kare değişmez
 - verify ve terminal öncesi hedef kayması azalır
 
-### 5. Dinamik Atama
+### 6. Dinamik Atama
 
 ORCUS, drone-hedef eşleşmesini **Hungarian algoritması** ile çözer. Yani sistem her drone ile her hedef arasındaki maliyeti çıkarır, sonra toplam maliyeti en iyi yapan dağılımı seçer.
 
@@ -556,7 +592,7 @@ yer alır.
 
 Bunun doğrudan faydası şudur: sürü, hedef paylaşımını rastlantısal biçimde değil, bütün sahayı görerek yapar. Aynı hedefe yığılma azalır, gereksiz rota kesişmeleri düşer ve daha dengeli bir taarruz dağılımı oluşur.
 
-### 6. Sahiplik ve Çakışma Önleme
+### 7. Sahiplik ve Çakışma Önleme
 
 Atama yapıldıktan sonra asıl kritik konu, o hedefin başka gözlemler yüzünden bozulmamasıdır. ORCUS burada sahiplik, handoff ve family-aware deconfliction mantığı kullanır.
 
