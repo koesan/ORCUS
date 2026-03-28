@@ -249,6 +249,7 @@ flowchart LR
 ```
 
 ORCUS does not treat attack execution as a one-step trigger. A target is assigned first, then approved by the leader, then verified by the drone, and only after that allowed to enter terminal guidance. If approval or verification fails, the system returns to the shared target loop instead of forcing an unstable attack.
+
 ---
 
 ## Repository Layout
