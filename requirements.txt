@@ -1,7 +1,11 @@
-
-# ORCUS Core
+# ORCUS Core & Web
 numpy
 opencv-python
+Flask
+
+# UAV & Communication
+dronekit
+pymavlink
 
 # YOLOv12 & Tracking
 torch>=2.0.0
@@ -9,25 +13,12 @@ torchvision
 ultralytics
 cython
 cython_bbox
-faiss-cpu
-seaborn
-huggingface_hub
 
-# BoT-SORT / FastReID Dependencies
-easydict
-yacs
+# Tracker Dependencies
 scikit-learn
-scikit-image
-filterpy
+scipy
 lap
-loguru
-ninja
-tabulate
-thop
-gdown
-motmetrics
-prettytable
 matplotlib
-pyyaml
-tensorboard
-termcolor
+
+# Optional & Testing
+pytest
