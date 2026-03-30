@@ -1,5 +1,5 @@
 # ORCUS Core & Web
-numpy
+numpy==1.24.0
 opencv-python
 Flask
 
