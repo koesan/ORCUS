@@ -1,7 +1,6 @@
 import cv2
 import warnings
 from modules.core.logger import SwarmLogger
-import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import time
@@ -202,6 +201,7 @@ class GMC:
 
         # Draw the keypoint matches on the output image
         if 0:
+            import matplotlib.pyplot as plt
             matches_img = np.hstack((self.prevFrame, frame))
             matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
             W = np.size(self.prevFrame, 1)
