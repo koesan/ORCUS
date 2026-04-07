@@ -330,15 +330,19 @@ def swarm_data():
     if not drone_manager.swarm_manager:
          return jsonify({})
 
-    payload = {'targets': {}, 'drones': {}, 'raw_targets': {}}
+    include_raw_targets = str(request.args.get("include_raw_targets", "")).lower() in {"1", "true", "yes"}
+    payload = {'targets': {}, 'drones': {}}
+    if include_raw_targets:
+        payload['raw_targets'] = {}
     try:
         payload.update(drone_manager.swarm_manager.get_battlespace_state() or {})
     except Exception:
         logging.exception("swarm_data battlespace error")
-    try:
-        payload['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
-    except Exception:
-        logging.exception("swarm_data raw-target buffer error")
+    if include_raw_targets:
+        try:
+            payload['raw_targets'] = drone_manager.swarm_manager.get_drone_targets_buffer()
+        except Exception:
+            logging.exception("swarm_data raw-target buffer error")
     try:
         targets = payload.get("targets", {}) or {}
         drones = payload.get("drones", {}) or {}

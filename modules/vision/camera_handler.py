@@ -1,18 +1,32 @@
 """ROS camera ingestion and JPEG streaming."""
 
+from __future__ import annotations
+
 import cv2
 import numpy as np
 import rospy
 import threading
 import time
+from dataclasses import dataclass
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from config import (
     CAMERA_TOPICS, JPEG_QUALITY,
     PLACEHOLDER_IMAGE_SIZE, FONT_SCALE, FONT_THICKNESS,
-    FRAME_BUFFER_TIMEOUT_FRAMES
+    FRAME_STREAM_STALE_TIMEOUT_S,
 )
 from modules.core.logger import SwarmLogger
+from modules.core.runtime import now_stamp, monotonic_now
+
+
+@dataclass(frozen=True)
+class FramePacket:
+    """Latest frame snapshot with runtime timing metadata."""
+
+    frame: np.ndarray
+    seq: int
+    captured_at_wall: float
+    captured_at_monotonic: float
 
 class CameraAIHandler:
 
@@ -25,6 +39,8 @@ class CameraAIHandler:
         self.subscribed_ports = set()
         self.last_log_time = {}
         self._placeholder_cache = {}
+        self._frame_seq = {}
+        self._last_frame_mono = {}
 
     def init_ros_node(self):
         if not self.is_ros_node_initialized:
@@ -68,8 +84,24 @@ class CameraAIHandler:
             SwarmLogger.log("ERROR", "Camera", f"Image->CV conversion error: {e}", "ROS")
             return
 
+        stamp = now_stamp()
         with self.lock:
-            self.camera_feeds[port] = {'raw': cv_image, 'annotated': None, 'jpeg': None}
+            seq = int(self._frame_seq.get(port, 0)) + 1
+            self._frame_seq[port] = seq
+            prev_mono = float(self._last_frame_mono.get(port, 0.0) or 0.0)
+            dt = 0.0 if prev_mono <= 0.0 else max(0.0, stamp.monotonic_time - prev_mono)
+            self._last_frame_mono[port] = stamp.monotonic_time
+            fps = (1.0 / dt) if dt > 1e-6 else None
+            self.camera_feeds[port] = {
+                'raw': cv_image,
+                'annotated': None,
+                'jpeg': None,
+                'seq': seq,
+                'frame_seq': seq,
+                'captured_at_wall': stamp.wall_time,
+                'captured_at_monotonic': stamp.monotonic_time,
+                'source_fps': fps,
+            }
 
 
     def get_latest_frame(self, port):
@@ -109,6 +141,23 @@ class CameraAIHandler:
                 return data['raw']
             return None
 
+    def get_latest_frame_packet(self, port):
+        """Return latest raw frame plus sequence/timing metadata."""
+        with self.lock:
+            data = self.camera_feeds.get(port)
+            if not data or not isinstance(data, dict):
+                return None
+            frame = data.get("raw")
+            seq = data.get("seq", data.get("frame_seq"))
+            if frame is None or seq is None:
+                return None
+            return FramePacket(
+                frame=frame,
+                seq=int(seq),
+                captured_at_wall=float(data.get("captured_at_wall", 0.0) or 0.0),
+                captured_at_monotonic=float(data.get("captured_at_monotonic", 0.0) or 0.0),
+            )
+
     def set_annotated_frame(self, port, annotated_frame):
         """Store processed frame from tracker for streaming.
         
@@ -136,7 +185,16 @@ class CameraAIHandler:
             else:
                 target_ports.update(int(port) for port in ports if port is not None)
             for port in target_ports:
-                self.camera_feeds[port] = {"raw": None, "annotated": None, "jpeg": None}
+                self.camera_feeds[port] = {
+                    "raw": None,
+                    "annotated": None,
+                    "jpeg": None,
+                    "seq": self._frame_seq.get(port, self.camera_feeds.get(port, {}).get("frame_seq", 0)),
+                    "frame_seq": self._frame_seq.get(port, self.camera_feeds.get(port, {}).get("frame_seq", 0)),
+                    "captured_at_wall": 0.0,
+                    "captured_at_monotonic": 0.0,
+                    "source_fps": None,
+                }
 
     def generate_frames(self, active_drone_port):
         if active_drone_port is not None:
@@ -147,18 +205,20 @@ class CameraAIHandler:
         boundary = b'--frame\r\n'
         content_type = b'Content-Type: image/jpeg\r\n\r\n'
         last_valid_frame = None
-        no_frame_count = 0
+        last_valid_mono = 0.0
 
         while True:
             try:
                 frame = self.get_latest_frame(active_drone_port)
                 if frame:
                     last_valid_frame = frame
-                    no_frame_count = 0
+                    last_valid_mono = monotonic_now()
                     yield boundary + content_type + frame + b'\r\n'
                 else:
-                    no_frame_count += 1
-                    if last_valid_frame is not None and no_frame_count < FRAME_BUFFER_TIMEOUT_FRAMES:
+                    if (
+                        last_valid_frame is not None
+                        and (monotonic_now() - last_valid_mono) < float(FRAME_STREAM_STALE_TIMEOUT_S)
+                    ):
                         yield boundary + content_type + last_valid_frame + b'\r\n'
                     else:
                         placeholder = self._create_placeholder_image(f"No Camera Feed (port: {active_drone_port})")

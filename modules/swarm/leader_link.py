@@ -155,6 +155,21 @@ class LeaderLink:
             if cached_local_id is not None:
                 self._log_local_id_fallback(target, drone_port, cached_local_id, "sticky_actionable_cache")
                 return cached_local_id
+        if (
+            target.is_group
+            and target.assigned_drone_port == drone_port
+            and recent_seen is not None
+            and (now - float(recent_seen)) <= TRACK_OBSERVER_STALE_TIMEOUT_SEC
+        ):
+            if target.tracker_id is not None:
+                fallback = int(target.tracker_id)
+                self._log_local_id_fallback(target, drone_port, fallback, "recent_group_tracker_reuse")
+                self.owner.remember_actionable_local_id(drone_port, target.id, fallback)
+                return fallback
+            cached_local_id = self.owner.get_cached_actionable_local_id(drone_port, target.id)
+            if cached_local_id is not None:
+                self._log_local_id_fallback(target, drone_port, cached_local_id, "recent_group_sticky_cache")
+                return cached_local_id
         return None
 
     def get_filtered_position(self, target_id: str, target) -> Tuple[float, float]:
@@ -310,6 +325,20 @@ class LeaderLink:
             local_id = self.resolve_local_target_id(target, drone_port)
             now = time.time()
             if local_id is None and target.status not in IMMUTABLE_STATES:
+                recent_seen = target.drone_last_seen_time.get(drone_port)
+                if (
+                    recent_seen is not None
+                    and (now - float(recent_seen)) <= TRACK_OBSERVER_STALE_TIMEOUT_SEC
+                ):
+                    lat_f, lon_f = self.get_filtered_position(active_id, target)
+                    owner._log_action_decision(
+                        drone_port,
+                        "HOVER",
+                        f"active target {active_id} continuity hold",
+                        active_id,
+                        None,
+                    )
+                    return "HOVER", active_id, None, lat_f, lon_f
                 if owner._has_actionable_grace(target, drone_port, now):
                     lat_f, lon_f = self.get_filtered_position(active_id, target)
                     owner._log_action_decision(drone_port, "HOVER", f"active target {active_id} sticky grace", active_id, None)

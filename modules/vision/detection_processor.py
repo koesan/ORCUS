@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Tuple
 
 from modules.core.logger import SwarmLogger
 from modules.core.geo_math import GeoMath
+from modules.core.runtime import monotonic_now
 from modules.vision.group_tracker import GroupBboxSmoother
 from config import (
     CAMERA_WIDTH, CAMERA_HEIGHT,
@@ -15,7 +16,8 @@ from config import (
     CAMERA_GROUND_CONTACT_Y_RATIO,
 )
 
-_WORLD_TRACK_STALE_S = 2.0
+_WORLD_TRACK_STALE_S = 4.5
+_STABLE_TRACK_STALE_S = 8.0
 _WORLD_MAX_STEP_BASE_M = 1.5
 _WORLD_MAX_SPEED_MPS = 8.0
 _WORLD_FILTER_ALPHA_BOOST = 0.18
@@ -34,6 +36,7 @@ class DetectionResult:
         "track_id", "lat", "lon", "conf", "covariance",
         "bbox_center", "bbox_size", "bbox_xyxy", "is_edge",
         "is_group", "group_member_count", "group_id", "member_ids",
+        "frame_seq", "observed_at_wall", "observed_at_monotonic",
     )
 
     def __init__(self):
@@ -50,6 +53,9 @@ class DetectionResult:
         self.group_member_count: int = 0
         self.group_id: Optional[object] = None
         self.member_ids: Tuple[int, ...] = ()
+        self.frame_seq: Optional[int] = None
+        self.observed_at_wall: float = 0.0
+        self.observed_at_monotonic: float = 0.0
 
     def to_swarm_dict(self, drone_gps, heading, attitude, img_dims=None) -> dict:
         """Build the sanitized payload sent to the leader."""
@@ -64,6 +70,8 @@ class DetectionResult:
             "group_member_count": self.group_member_count,
             "group_id": self.group_id,
             "member_ids": list(self.member_ids or ()),
+            "frame_seq": self.frame_seq,
+            "observed_at": self.observed_at_wall,
         }
 
     def leader_quality_score(self) -> float:
@@ -167,6 +175,10 @@ class DetectionProcessor:
         self._group_aliases: Dict[str, str] = {}
         self._frame_claimed_stable_ids: set = set()
         self._world_track_state: Dict[str, Dict[str, float]] = {}
+        self._last_frame_seq: Optional[int] = None
+        self._last_frame_result = None
+        self._last_scan_frame_seq: Optional[int] = None
+        self._last_scan_result = None
 
     def reset_runtime_state(self) -> None:
         """Clear per-mission caches."""
@@ -183,45 +195,100 @@ class DetectionProcessor:
         self._group_aliases.clear()
         self._frame_claimed_stable_ids.clear()
         self._world_track_state.clear()
+        self._last_frame_seq = None
+        self._last_frame_result = None
+        self._last_scan_frame_seq = None
+        self._last_scan_result = None
 
     def process_frame(self, attack_approved: bool = False,
                       locked_id: Optional[int] = None,
                       debug: bool = False,
                       attack_mode: bool = False) -> Tuple[Optional[dict], List[DetectionResult]]:
         """Process one frame."""
-        frame = self.camera_handler.get_latest_frame_as_array(self.port)
-        if frame is None:
+        packet = self._get_latest_frame_packet()
+        if packet is None:
             return None, []
+        if self._last_frame_seq == packet.seq and self._last_frame_result is not None:
+            return self._last_frame_result
 
         tracker_result = self.human_tracker.detect_and_track(
-            frame, debug=debug, attack_mode=attack_mode)
+            packet.frame, debug=debug, attack_mode=attack_mode)
         if tracker_result is None:
             return None, []
+        tracker_result["frame_seq"] = int(packet.seq)
+        tracker_result["observed_at"] = float(packet.captured_at_wall)
+        tracker_result["observed_at_monotonic"] = float(packet.captured_at_monotonic)
 
         if not tracker_result.get("detected", False):
-            return tracker_result, []
+            result = (tracker_result, [])
+            self._last_frame_seq = int(packet.seq)
+            self._last_frame_result = result
+            return result
 
         detections = self._extract_detections(
             tracker_result, attack_approved, locked_id, attack_mode=attack_mode)
         self._normalize_tracker_result_ids(tracker_result)
-
-        return tracker_result, detections
+        result = (tracker_result, detections)
+        self._last_frame_seq = int(packet.seq)
+        self._last_frame_result = result
+        return result
 
     def process_scan_frame(self, attack_approved: bool = False,
                            locked_id: Optional[int] = None,
                            attack_mode: bool = False):
         """Process one UI frame and keep annotations."""
-        frame = self.camera_handler.get_latest_frame_as_array(self.port)
-        if frame is None:
+        packet = self._get_latest_frame_packet()
+        if packet is None:
             return None, []
+        if self._last_scan_frame_seq == packet.seq and self._last_scan_result is not None:
+            return self._last_scan_result
 
-        tracker_result = self.human_tracker.detect_and_track(frame, debug=True, attack_mode=attack_mode)
+        tracker_result = self.human_tracker.detect_and_track(packet.frame, debug=True, attack_mode=attack_mode)
+        if tracker_result is not None:
+            tracker_result["frame_seq"] = int(packet.seq)
+            tracker_result["observed_at"] = float(packet.captured_at_wall)
+            tracker_result["observed_at_monotonic"] = float(packet.captured_at_monotonic)
         if tracker_result is None or not tracker_result.get("detected", False):
-            return tracker_result, []
+            result = (tracker_result, [])
+            self._last_scan_frame_seq = int(packet.seq)
+            self._last_scan_result = result
+            return result
 
         detections = self._extract_detections(
             tracker_result, attack_approved, locked_id, attack_mode=attack_mode)
-        return tracker_result, detections
+        result = (tracker_result, detections)
+        self._last_scan_frame_seq = int(packet.seq)
+        self._last_scan_result = result
+        return result
+
+    def _get_latest_frame_packet(self):
+        getter = getattr(self.camera_handler, "get_latest_frame_packet", None)
+        if callable(getter):
+            packet = getter(self.port)
+            if packet is not None:
+                if isinstance(packet, tuple) and len(packet) >= 2:
+                    frame, seq = packet[0], packet[1]
+                    class _TuplePacket:
+                        pass
+                    normalized = _TuplePacket()
+                    normalized.frame = frame
+                    normalized.seq = int(seq)
+                    normalized.captured_at_wall = time.time()
+                    normalized.captured_at_monotonic = monotonic_now()
+                    return normalized
+                return packet
+        frame = self.camera_handler.get_latest_frame_as_array(self.port)
+        if frame is None:
+            return None
+        seq = int((self._last_scan_frame_seq or self._last_frame_seq or 0) + 1)
+        class _CompatPacket:
+            pass
+        packet = _CompatPacket()
+        packet.frame = frame
+        packet.seq = seq
+        packet.captured_at_wall = time.time()
+        packet.captured_at_monotonic = monotonic_now()
+        return packet
 
     def _extract_detections(self, tracker_result: dict,
                             attack_approved: bool,
@@ -242,6 +309,9 @@ class DetectionProcessor:
         roll = vehicle.attitude.roll
         pitch = vehicle.attitude.pitch
         yaw = vehicle.attitude.yaw
+        frame_seq = tracker_result.get("frame_seq")
+        observed_at_wall = float(tracker_result.get("observed_at", 0.0) or 0.0)
+        observed_at_monotonic = float(tracker_result.get("observed_at_monotonic", 0.0) or 0.0)
 
         self.human_tracker.set_drone_pose(d_lat, d_lon, d_alt, roll, pitch, yaw)
 
@@ -253,6 +323,11 @@ class DetectionProcessor:
             if raw_results:
                 results = self._process_boxes(
                     raw_results[0].boxes, vehicle, attack_approved, locked_id, attack_mode=attack_mode)
+
+        for det in results:
+            det.frame_seq = int(frame_seq) if frame_seq is not None else None
+            det.observed_at_wall = observed_at_wall
+            det.observed_at_monotonic = observed_at_monotonic
 
         group_info = tracker_result.get("group_info")
         if group_info:
@@ -327,6 +402,13 @@ class DetectionProcessor:
         bcx, bcy = (bx1 + bx2) / 2.0, (by1 + by2) / 2.0
         return math.hypot(acx - bcx, acy - bcy)
 
+    @staticmethod
+    def _bbox_center_xyxy(box_xyxy) -> Optional[Tuple[float, float]]:
+        if box_xyxy is None:
+            return None
+        x1, y1, x2, y2 = [float(v) for v in box_xyxy]
+        return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+
     def _next_stable_id(self) -> int:
         self._stable_id_counter += 1
         return self._stable_id_counter
@@ -339,11 +421,13 @@ class DetectionProcessor:
         except (TypeError, ValueError):
             return None
 
-        now = time.time()
+        now = monotonic_now()
         existing = self._raw_to_stable.get(raw_id)
         if existing is not None and existing in self._stable_tracks:
             self._stable_tracks[existing] = {
                 "bbox": tuple(float(v) for v in box_xyxy),
+                "bbox_center": self._bbox_center_xyxy(box_xyxy),
+                "bbox_area": max(1.0, (float(box_xyxy[2]) - float(box_xyxy[0])) * (float(box_xyxy[3]) - float(box_xyxy[1]))),
                 "last_seen": now,
                 "raw_id": raw_id,
                 "conf": float(conf or 0.0),
@@ -358,13 +442,32 @@ class DetectionProcessor:
             if stable_id in self._frame_claimed_stable_ids:
                 continue
             age = now - float(state.get("last_seen", 0.0) or 0.0)
-            if age > 1.5:
+            if age > _STABLE_TRACK_STALE_S:
                 continue
             iou = self._bbox_iou_xyxy(box_xyxy, state.get("bbox"))
             center_dist = self._bbox_center_distance(box_xyxy, state.get("bbox"))
-            if iou < 0.35 and center_dist > 80.0:
+            bx1, by1, bx2, by2 = [float(v) for v in box_xyxy]
+            w = max(1.0, bx2 - bx1)
+            h = max(1.0, by2 - by1)
+            area = max(1.0, w * h)
+            diag = math.hypot(w, h)
+            prev_area = float(state.get("bbox_area", 0.0) or 0.0)
+            area_ratio = 1.0
+            if prev_area > 0.0:
+                area_ratio = min(area, prev_area) / max(area, prev_area)
+            min_area = min(area, prev_area or area)
+            tiny_box = min_area < 2200.0
+            dynamic_box = min_area < 12000.0
+            max_center_dist = max(180.0, diag * (8.5 if tiny_box else (6.2 if dynamic_box else 4.5)))
+            min_iou = 0.00 if tiny_box else (0.08 if dynamic_box else 0.20)
+            if iou < min_iou and center_dist > max_center_dist:
                 continue
-            score = iou - (center_dist / 1000.0)
+            score = (
+                iou
+                + area_ratio * (0.35 if tiny_box else (0.24 if dynamic_box else 0.15))
+                - (center_dist / max(1000.0, max_center_dist * 6.0))
+                - min(age, _STABLE_TRACK_STALE_S) * 0.008
+            )
             if score > best_score:
                 best_score = score
                 best_stable = stable_id
@@ -373,6 +476,8 @@ class DetectionProcessor:
         self._raw_to_stable[raw_id] = stable_id
         self._stable_tracks[stable_id] = {
             "bbox": tuple(float(v) for v in box_xyxy),
+            "bbox_center": self._bbox_center_xyxy(box_xyxy),
+            "bbox_area": max(1.0, (float(box_xyxy[2]) - float(box_xyxy[0])) * (float(box_xyxy[3]) - float(box_xyxy[1]))),
             "last_seen": now,
             "raw_id": raw_id,
             "conf": float(conf or 0.0),
@@ -646,18 +751,22 @@ class DetectionProcessor:
         if not (left.is_group and right.is_group):
             return False
 
+        left_gid = str(left.group_id).strip() if left.group_id is not None else None
+        right_gid = str(right.group_id).strip() if right.group_id is not None else None
         if left.group_id is not None and right.group_id is not None:
-            if str(left.group_id) == str(right.group_id):
+            if left_gid == right_gid:
                 return True
-            if self._group_aliases.get(str(left.group_id)) == str(right.group_id):
+            if self._group_aliases.get(left_gid) == right_gid:
                 return True
-            if self._group_aliases.get(str(right.group_id)) == str(left.group_id):
+            if self._group_aliases.get(right_gid) == left_gid:
                 return True
 
         left_members = {int(mid) for mid in (left.member_ids or ())}
         right_members = {int(mid) for mid in (right.member_ids or ())}
         if left_members and right_members and (left_members & right_members):
             return True
+        if left_members and right_members and not (left_members & right_members):
+            return False
 
         left_track = left.track_id
         right_track = right.track_id
@@ -677,24 +786,28 @@ class DetectionProcessor:
             return False
 
         count_diff = abs(int(left.group_member_count or 0) - int(right.group_member_count or 0))
-        if count_diff > 2:
+        if count_diff > 1:
             return False
 
+        if left_gid is not None and right_gid is not None and left_gid != right_gid:
+            if count_diff > 0:
+                return False
+
         world_dist = GeoMath.haversine_distance(left.lat, left.lon, right.lat, right.lon)
-        if world_dist > 7.0:
+        if world_dist > 4.5:
             return False
 
         center_dist = math.hypot(
             float(left.bbox_center[0]) - float(right.bbox_center[0]),
             float(left.bbox_center[1]) - float(right.bbox_center[1]),
         )
-        if center_dist > 120.0:
+        if center_dist > 80.0:
             return False
 
         left_area = max(1.0, float(left.bbox_size[0]) * float(left.bbox_size[1]))
         right_area = max(1.0, float(right.bbox_size[0]) * float(right.bbox_size[1]))
         size_ratio = min(left_area, right_area) / max(left_area, right_area)
-        return size_ratio >= 0.40
+        return size_ratio >= 0.55
 
     def _merge_group_family_detection(self, left: DetectionResult, right: DetectionResult) -> DetectionResult:
         """Keep one canonical output for the same physical group family."""
@@ -793,7 +906,7 @@ class DetectionProcessor:
         attack_mode: bool = False,
     ) -> Tuple[float, float, np.ndarray]:
         """Track world position with a low-lag alpha-beta filter."""
-        now = time.time()
+        now = monotonic_now()
         cov = np.array(covariance, dtype=np.float64) if covariance is not None else np.eye(3, dtype=np.float64) * 25.0
         if cov.ndim != 2 or cov.shape[0] < 3 or cov.shape[1] < 3:
             padded = np.eye(3, dtype=np.float64) * 25.0
@@ -825,12 +938,13 @@ class DetectionProcessor:
                     float(bbox_center[0]) - float(cand_center[0]),
                     float(bbox_center[1]) - float(cand_center[1]),
                 )
-                if dist_px > 220.0:
+                tiny_visual = min(bbox_area, cand_area) < 2200.0
+                if dist_px > (360.0 if tiny_visual else 220.0):
                     continue
                 size_ratio = min(bbox_area, cand_area) / max(bbox_area, cand_area)
-                if size_ratio < 0.22:
+                if size_ratio < (0.10 if tiny_visual else 0.22):
                     continue
-                score = dist_px + (1.0 - size_ratio) * 140.0
+                score = dist_px + (1.0 - size_ratio) * (90.0 if tiny_visual else 140.0)
                 if state is None or score < best_score:
                     best_score = score
                     best_key = candidate_key

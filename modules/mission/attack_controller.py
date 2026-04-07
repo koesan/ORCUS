@@ -35,6 +35,7 @@ from config import (
     TERMINAL_EVENT_PROXIMITY_M,
     TERMINAL_EVENT_PROXIMITY_ALT_SCALE,
     MAX_VISUAL_REACQUIRE_DIST_PX,
+    HUMAN_LOST_TIMEOUT,
     ATTACK_TIMEOUT_S,
     ATTACK_CENTER_TIMEOUT_S,
     ATTACK_LOCK_TIMEOUT_S,
@@ -217,6 +218,7 @@ class AttackController:
         self._locked_bbox_size: Optional[Tuple[float, float]] = None
         self._locked_target_gps: Optional[Tuple[float, float]] = None
         self._locked_group_id: Optional[object] = None
+        self._locked_group_count: int = 0
 
         self._centering_settle_count = 0
         self._prev_attack_center: Optional[Tuple[float, float]] = None
@@ -230,6 +232,9 @@ class AttackController:
         self._last_visual_cmd = (0.0, 0.0, 0.0, 0.0)
         self._last_visual_cmd_ts = 0.0
         self._latest_frame_shape: Optional[Tuple[int, int]] = None
+        self._last_processed_frame_seq: Optional[int] = None
+        self._observer_visual_anchor_ts: float = 0.0
+        self._observer_visual_anchor_yaw_rate: float = 0.0
 
         self._terminal_event = None
         self._terminal_completion_pending = False
@@ -382,6 +387,7 @@ class AttackController:
         self._last_locked_bbox_ts = 0.0
         self._reset_attack_state()
         self._latest_frame_shape = None
+        self._last_processed_frame_seq = None
         self._terminal_event = None
         self._terminal_completion_pending = False
         self._planned_terminal_point = None
@@ -445,6 +451,12 @@ class AttackController:
             self._update_frame_shape(tracker_result)
 
             self._stream_annotated_frame(tracker_result)
+            frame_seq = tracker_result.get("frame_seq") if isinstance(tracker_result, dict) else None
+            if frame_seq is not None:
+                frame_seq = int(frame_seq)
+                if self._last_processed_frame_seq == frame_seq:
+                    return False
+                self._last_processed_frame_seq = frame_seq
             if self.fsm.is_active:
                 return self._process_attack_frame(detections, vehicle, d_lat, d_lon, d_alt)
 
@@ -470,29 +482,55 @@ class AttackController:
 
     def _process_scan_detections(self, detections, vehicle, d_lat, d_lon, d_alt, heading
                                  ) -> bool:
-        """Report detected targets to leader during scan mode.
-
-        Returns True if any valid detection was reported, which signals
-        the scanner to stop and transition to tracking mode.
-        """
-        found = False
+        """Report the full current detection set to the leader in one telemetry packet."""
+        payload = []
+        valid_detections = []
         for det in detections:
             if det.lat is None:
                 continue
-
-            raw_data = det.to_swarm_dict(
+            payload.append(det.to_swarm_dict(
                 (d_lat, d_lon, d_alt), heading,
-                (vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw))
+                (vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw)))
+            valid_detections.append(det)
 
-            resp = self.bridge.report_target(
-                det.lat, det.lon, det.conf,
-                tracker_id=det.track_id, raw_data=raw_data,
-                covariance=det.covariance)
+        if not valid_detections:
+            return False
 
-            self._handle_assignment(resp, det)
-            found = True
+        resp = self.bridge.publish_telemetry(payload, state_label="SCAN")
+        matched = self._match_assignment_detection(resp, valid_detections)
+        if matched is not None:
+            self._handle_assignment(resp, matched)
+        return True
 
-        return found
+    def _match_assignment_detection(self, resp: SwarmResponse, detections) -> Optional[DetectionResult]:
+        """Resolve a leader assignment back to the drone-local detection that produced it."""
+        local_id = getattr(resp, "local_id", None)
+        if local_id is None:
+            local_id = getattr(resp, "tracker_id", None)
+        if local_id is not None:
+            for det in detections or []:
+                if getattr(det, "track_id", None) == local_id:
+                    return det
+
+        target_lat = getattr(resp, "lat", None)
+        target_lon = getattr(resp, "lon", None)
+        if target_lat is None:
+            target_lat = getattr(resp, "target_lat", None)
+        if target_lon is None:
+            target_lon = getattr(resp, "target_lon", None)
+        if target_lat is None or target_lon is None:
+            return None
+
+        best = None
+        best_dist = float("inf")
+        for det in detections or []:
+            if getattr(det, "lat", None) is None or getattr(det, "lon", None) is None:
+                continue
+            dist = GeoMath.haversine_distance(float(det.lat), float(det.lon), float(target_lat), float(target_lon))
+            if dist < best_dist:
+                best_dist = dist
+                best = det
+        return best
 
     def _handle_assignment(self, resp: SwarmResponse, det: DetectionResult) -> bool:
         """Handle leader assignment response during scan mode."""
@@ -615,6 +653,8 @@ class AttackController:
 
         best_det = self._find_assigned_target(detections)
         if best_det is None:
+            best_det = self._find_best_bbox_match(detections)
+        if best_det is None:
             self._lock_loss_count += 1
             self._log_attack_health(
                 "locking_mismatch",
@@ -632,6 +672,7 @@ class AttackController:
         self._last_locked_bbox_ts = time.time()
         if getattr(best_det, "group_id", None) is not None:
             self._locked_group_id = best_det.group_id
+            self._locked_group_count = int(getattr(best_det, "group_member_count", 0) or 0)
             try:
                 self.human_tracker.set_primary_group(best_det.group_id)
             except Exception:
@@ -701,15 +742,21 @@ class AttackController:
         if self._locked_bbox_center is not None:
             pred_cx, pred_cy = self._predicted_locked_center()
             center_dist = math.hypot(float(det.bbox_center[0]) - pred_cx, float(det.bbox_center[1]) - pred_cy)
-            if center_dist > center_limit:
+            dynamic_center_limit = float(center_limit)
+            det_area = max(1.0, float(det.bbox_size[0]) * float(det.bbox_size[1]))
+            if det_area < 12000.0:
+                dynamic_center_limit = max(dynamic_center_limit, float(MAX_VISUAL_REACQUIRE_DIST_PX) * 0.92)
+            if center_dist > dynamic_center_limit:
                 return float("-inf")
             score += max(0.0, 40.0 - center_dist * 0.18)
 
             last_area = self._locked_bbox_area()
             if last_area is not None:
-                det_area = max(1.0, float(det.bbox_size[0]) * float(det.bbox_size[1]))
                 size_ratio = min(det_area, last_area) / max(det_area, last_area)
-                if size_ratio < _ASSIGNED_MATCH_SIZE_RATIO_MIN:
+                size_ratio_limit = float(_ASSIGNED_MATCH_SIZE_RATIO_MIN)
+                if min(det_area, last_area) < 12000.0:
+                    size_ratio_limit = max(0.12, float(_ASSIGNED_MATCH_SIZE_RATIO_MIN) * 0.55)
+                if size_ratio < size_ratio_limit:
                     return float("-inf")
                 score += size_ratio * 8.0
 
@@ -743,10 +790,28 @@ class AttackController:
             and str(det.group_id) == str(locked_group_id)
         ):
             score += 120.0
+        elif locked_group_id is not None and getattr(det, "group_id", None) is not None:
+            try:
+                if str(det.group_id).split(":")[-1] == str(locked_group_id).split(":")[-1]:
+                    score += 55.0
+            except Exception:
+                pass
+        elif locked_group_id is not None and getattr(det, "group_member_count", 0):
+            locked_count = int(getattr(self, "_locked_group_count", 0) or 0)
+            det_count = int(getattr(det, "group_member_count", 0) or 0)
+            if locked_count > 0 and abs(locked_count - det_count) <= 1:
+                score += 18.0
 
         if getattr(det, "is_group", False):
             score += 12.0
             score += min(24.0, float(getattr(det, "group_member_count", 1) or 1) * 3.0)
+
+        if self._locked_bbox_center is not None and det.bbox_center is not None:
+            direct_dist = math.hypot(
+                float(det.bbox_center[0]) - float(self._locked_bbox_center[0]),
+                float(det.bbox_center[1]) - float(self._locked_bbox_center[1]),
+            )
+            score += max(0.0, 22.0 - direct_dist * 0.08)
 
         score += max(0.0, float(det.conf or 0.0)) * 6.0
         return score
@@ -765,6 +830,7 @@ class AttackController:
                 self._last_locked_bbox_ts = now
                 if getattr(best_det, "group_id", None) is not None:
                     self._locked_group_id = best_det.group_id
+                    self._locked_group_count = int(getattr(best_det, "group_member_count", 0) or 0)
                     try:
                         self.human_tracker.set_primary_group(best_det.group_id)
                     except Exception:
@@ -853,6 +919,7 @@ class AttackController:
             self._last_locked_bbox_ts = now
             if getattr(best_det, "group_id", None) is not None:
                 self._locked_group_id = best_det.group_id
+                self._locked_group_count = int(getattr(best_det, "group_member_count", 0) or 0)
                 try:
                     self.human_tracker.set_primary_group(best_det.group_id)
                 except Exception:
@@ -975,6 +1042,12 @@ class AttackController:
         best_det = self._find_best_bbox_match(detections) if detections else None
         coverage = 0.0
         visual_available = False
+        if not hasattr(self, "_terminal_guidance_mode"):
+            self._terminal_guidance_mode = "visual"
+        if not hasattr(self, "_terminal_max_coverage"):
+            self._terminal_max_coverage = 0.0
+        if not hasattr(self, "_attack_visual_streak"):
+            self._attack_visual_streak = 0
 
         if best_det and best_det.bbox_center and best_det.bbox_size:
             coverage = self._bbox_coverage(best_det.bbox_size)
@@ -988,6 +1061,7 @@ class AttackController:
                 self._last_reliable_visual_ts = self._last_locked_bbox_ts
                 if getattr(best_det, "group_id", None) is not None:
                     self._locked_group_id = best_det.group_id
+                    self._locked_group_count = int(getattr(best_det, "group_member_count", 0) or 0)
                     try:
                         self.human_tracker.set_primary_group(best_det.group_id)
                     except Exception:
@@ -1266,15 +1340,19 @@ class AttackController:
         dist_limit = min(float(MAX_VISUAL_REACQUIRE_DIST_PX), float(ATTACK_LOCK_MAX_JUMP_PX))
         predicted_cx, predicted_cy = self._predicted_locked_center()
         dist = math.hypot(float(det.bbox_center[0]) - predicted_cx, float(det.bbox_center[1]) - predicted_cy)
+        current_area = max(1.0, float(det.bbox_size[0]) * float(det.bbox_size[1]))
+        tiny_target = current_area < 2200.0
+        if tiny_target:
+            dist_limit = max(dist_limit, float(MAX_VISUAL_REACQUIRE_DIST_PX) * 0.85)
         if dist > dist_limit:
             self._terminal_reacquire_streak = 0
             return False
 
         last_area = self._locked_bbox_area()
         if last_area is not None:
-            area = max(1.0, float(det.bbox_size[0]) * float(det.bbox_size[1]))
-            ratio = min(area, last_area) / max(area, last_area)
-            if ratio < max(0.30, float(ATTACK_LOCK_SIZE_RATIO_MIN) * 0.72):
+            ratio = min(current_area, last_area) / max(current_area, last_area)
+            ratio_limit = max(0.12 if tiny_target else 0.30, float(ATTACK_LOCK_SIZE_RATIO_MIN) * (0.50 if tiny_target else 0.72))
+            if ratio < ratio_limit:
                 self._terminal_reacquire_streak = 0
                 return False
 
@@ -1319,6 +1397,7 @@ class AttackController:
         ratio = 1.0
         if last_area is not None:
             ratio = min(area, last_area) / max(area, last_area)
+        tiny_target = min(area, last_area or area) < 2200.0
 
         if prev_token is None:
             self._attack_visual_token = token
@@ -1326,7 +1405,7 @@ class AttackController:
             return True
 
         same_token = token == prev_token
-        same_family_continuity = dist_px <= 150.0 and ratio >= 0.24
+        same_family_continuity = dist_px <= (240.0 if tiny_target else 150.0) and ratio >= (0.12 if tiny_target else 0.24)
         if same_token or same_family_continuity:
             if not same_token:
                 self._log_attack_health(
@@ -1444,12 +1523,13 @@ class AttackController:
         return score
 
     def _locked_bbox_area(self) -> Optional[float]:
-        if self._locked_bbox_size is None:
+        size = getattr(self, "_locked_bbox_size", None)
+        if size is None:
             return None
-        return max(1.0, float(self._locked_bbox_size[0]) * float(self._locked_bbox_size[1]))
+        return max(1.0, float(size[0]) * float(size[1]))
 
     def _predicted_locked_center(self) -> Tuple[float, float]:
-        center = self._locked_bbox_center
+        center = getattr(self, "_locked_bbox_center", None)
         if center is None:
             return (0.0, 0.0)
         prev_center = self._prev_attack_center
@@ -1519,6 +1599,8 @@ class AttackController:
         self._framing_center_ts = 0.0
         self._framing_centered_count = 0
         self._framing_locked = False
+        self._observer_visual_anchor_ts = 0.0
+        self._observer_visual_anchor_yaw_rate = 0.0
 
     def _reset_attack_state(self, *, clear_visual_lock: bool = False) -> None:
         yaw_filter = getattr(self, "_yaw_filter", None)
@@ -1545,6 +1627,7 @@ class AttackController:
             self._locked_bbox_size = None
             self._locked_target_gps = None
             self._locked_group_id = None
+            self._locked_group_count = 0
             self._centering_settle_count = 0
             self._prev_attack_center = None
             self._prev_attack_center_ts = 0.0
@@ -1563,6 +1646,8 @@ class AttackController:
 
         if yaw_rate == 0.0:
             self._yaw_filter.reset()
+            self._observer_visual_anchor_ts = time.time()
+            self._observer_visual_anchor_yaw_rate = 0.0
             try:
                 self.flight_ctrl.command_body_velocity(
                     vehicle,
@@ -1579,6 +1664,8 @@ class AttackController:
             return
 
         try:
+            self._observer_visual_anchor_ts = time.time()
+            self._observer_visual_anchor_yaw_rate = float(yaw_rate)
             self.flight_ctrl.command_body_velocity(
                 vehicle,
                 "TRACK_SOFT",
@@ -1596,11 +1683,20 @@ class AttackController:
         if vehicle is None or vehicle == "connecting":
             return
         try:
-            time_since_seen = time.time() - float(getattr(self.human_tracker, "last_detection_time", 0.0) or 0.0)
-            if 0.0 < time_since_seen <= float(FRAMING_TARGET_LOSS_GRACE_S):
-                last_cmd = getattr(self.human_tracker, "last_velocity_command", {}) or {}
-                yaw_rate = float(last_cmd.get("yaw_rate", 0.0) or 0.0)
-                decay = max(0.0, 1.0 - (time_since_seen / float(FRAMING_TARGET_LOSS_GRACE_S)))
+            now = time.time()
+            tracker_seen_ts = float(getattr(self.human_tracker, "last_detection_time", 0.0) or 0.0)
+            anchor_ts = float(getattr(self, "_observer_visual_anchor_ts", 0.0) or 0.0)
+            seen_ts = max(tracker_seen_ts, anchor_ts)
+            time_since_seen = now - seen_ts if seen_ts > 0.0 else float("inf")
+            grace_s = max(0.8, float(FRAMING_TARGET_LOSS_GRACE_S))
+            coast_s = min(float(HUMAN_LOST_TIMEOUT), max(grace_s * 3.0, 2.5))
+            last_cmd = getattr(self.human_tracker, "last_velocity_command", {}) or {}
+            yaw_rate = float(last_cmd.get("yaw_rate", 0.0) or 0.0)
+            anchor_yaw = float(getattr(self, "_observer_visual_anchor_yaw_rate", 0.0) or 0.0)
+            if abs(yaw_rate) < abs(anchor_yaw):
+                yaw_rate = anchor_yaw
+            if 0.0 < time_since_seen <= grace_s:
+                decay = max(0.0, 1.0 - (time_since_seen / grace_s))
                 self.flight_ctrl.command_body_velocity(
                     vehicle,
                     "TRACK_SOFT",
@@ -1610,6 +1706,19 @@ class AttackController:
                     yaw_rate * decay,
                     attack_approved=False,
                     reason="observer yaw grace",
+                )
+                return
+            if 0.0 < time_since_seen <= coast_s:
+                coast_decay = max(0.0, 1.0 - ((time_since_seen - grace_s) / max(1e-3, coast_s - grace_s)))
+                self.flight_ctrl.command_body_velocity(
+                    vehicle,
+                    "TRACK_SOFT",
+                    0.0,
+                    0.0,
+                    0.0,
+                    yaw_rate * 0.25 * coast_decay,
+                    attack_approved=False,
+                    reason="observer visual coast",
                 )
                 return
         except Exception:

@@ -206,10 +206,11 @@ class TrackedTarget:
         )
         return best_port, self.secondary_observations[best_port].get("quality", 0.0)
 
-    def record_observation(self, drone_port: int, quality_score: float, is_owner: bool = False):
+    def record_observation(self, drone_port: int, quality_score: float, is_owner: bool = False,
+                           current_time: Optional[float] = None):
         """Record per-drone observation quality."""
         self.observation_quality[drone_port] = quality_score
-        now = time.time()
+        now = time.time() if current_time is None else float(current_time)
         self.last_observation_time = now
         self.drone_last_seen_time[drone_port] = now
         if not is_owner:
@@ -222,12 +223,13 @@ class TrackedTarget:
 
     # Position updates
 
-    def update_position(self, lat: float, lon: float, covariance=None, is_edge: bool = False):
+    def update_position(self, lat: float, lon: float, covariance=None, is_edge: bool = False,
+                        current_time: Optional[float] = None):
         """Update position and observation counters."""
         previous_observation_time = self.last_observation_time
         self.lat = lat
         self.lon = lon
-        now = time.time()
+        now = time.time() if current_time is None else float(current_time)
         self.last_seen_time = now
         self.last_observation_time = now
 
@@ -511,7 +513,11 @@ def targets_share_identity_evidence(
 
         gid1 = getattr(t1, "group_id_by_port", {}).get(port)
         gid2 = getattr(t2, "group_id_by_port", {}).get(port)
-        if gid1 is not None and gid2 is not None and str(gid1) == str(gid2):
+        if (
+            gid1 is not None
+            and gid2 is not None
+            and TargetProcessor.canonical_group_id_token(gid1) == TargetProcessor.canonical_group_id_token(gid2)
+        ):
             return True
 
         if getattr(t1, "is_group", False) and getattr(t2, "is_group", False):
@@ -558,7 +564,9 @@ def targets_have_conflicting_identity(
 
         gid1 = getattr(t1, "group_id_by_port", {}).get(port)
         gid2 = getattr(t2, "group_id_by_port", {}).get(port)
-        if gid1 is not None and gid2 is not None and str(gid1) == str(gid2):
+        gid_token1 = TargetProcessor.canonical_group_id_token(gid1)
+        gid_token2 = TargetProcessor.canonical_group_id_token(gid2)
+        if gid_token1 is not None and gid_token2 is not None and gid_token1 == gid_token2:
             continue
 
         count1 = int(getattr(t1, "group_count_by_port", {}).get(port, 0) or 0)
@@ -571,6 +579,10 @@ def targets_have_conflicting_identity(
             return True
 
         if getattr(t1, "is_group", False) and getattr(t2, "is_group", False):
+            if gid_token1 is not None and gid_token2 is not None and gid_token1 != gid_token2:
+                return True
+            if members1 and members2 and not (members1 & members2):
+                return True
             continue
 
         lid1 = getattr(t1, "drone_local_ids", {}).get(port)
@@ -597,6 +609,15 @@ def groups_compatible(
         count2 = int(getattr(t2, "group_member_count", 0) or 0)
         if not group_counts_compatible(count1, count2):
             return False
+        if not targets_share_identity_evidence(t1, t2, current_time):
+            common_ports = set(getattr(t1, "group_id_by_port", {})).intersection(
+                set(getattr(t2, "group_id_by_port", {}))
+            )
+            for port in common_ports:
+                gid1 = TargetProcessor.canonical_group_id_token(getattr(t1, "group_id_by_port", {}).get(port))
+                gid2 = TargetProcessor.canonical_group_id_token(getattr(t2, "group_id_by_port", {}).get(port))
+                if gid1 is not None and gid2 is not None and gid1 != gid2:
+                    return False
     return True
 
 
@@ -661,7 +682,7 @@ def same_drone_group_continuity_ok(
     incoming_count: int,
     current_time: float,
     max_dist_m: float,
-    max_age_s: float = 3.5,
+    max_age_s: float = 5.5,
 ) -> bool:
     """Return True when a same-drone group can be continued by spatial continuity alone."""
     if not getattr(target, "is_group", False):
@@ -678,7 +699,10 @@ def same_drone_group_continuity_ok(
         dist = GeoMath.haversine_distance(lat, lon, target.lat, target.lon)
     except Exception:
         return False
-    allowed_dist = max(float(max_dist_m), 12.0 if target_count >= 3 or incoming_count >= 3 else 9.0)
+    allowed_dist = max(
+        float(max_dist_m),
+        30.0 if target_count >= 3 or incoming_count >= 3 else 24.0,
+    )
     return dist <= allowed_dist
 
 
@@ -742,13 +766,13 @@ def merge_target_port_identity(keep_t: TrackedTarget, drop_t: TrackedTarget,
 
 def absorb_merged_target_state(keep_t: TrackedTarget, drop_t: TrackedTarget) -> None:
     """Move target identity and group state from merged target into canonical target."""
-    for port, count in getattr(drop_t, "group_count_by_port", {}).items():
+    for port, count in list(getattr(drop_t, "group_count_by_port", {}).items()):
         keep_t.group_count_by_port[port] = max(
             int(keep_t.group_count_by_port.get(port, 0) or 0),
             int(count or 0),
         )
 
-    for port, gid in getattr(drop_t, "group_id_by_port", {}).items():
+    for port, gid in list(getattr(drop_t, "group_id_by_port", {}).items()):
         if gid is not None and (
             port not in keep_t.group_id_by_port
             or drop_t.identity_last_update_time.get(port, 0.0)
@@ -1033,7 +1057,13 @@ class TargetProcessor:
                 return self.owner._handle_heartbeat(drone_port)
 
             final_lat, final_lon, is_edge = self.leader_verify(lat, lon, raw_data)
-            current_time = time.time()
+            observed_at = None
+            if isinstance(raw_data, dict):
+                try:
+                    observed_at = float(raw_data.get("observed_at", 0.0) or 0.0)
+                except (TypeError, ValueError):
+                    observed_at = 0.0
+            current_time = observed_at if observed_at and observed_at > 0.0 else time.time()
 
             self.owner.lifecycle.prune(
                 current_time,
@@ -1081,6 +1111,8 @@ class TargetProcessor:
         normalized["is_group"] = True
         if normalized.get("track_id") is None and tracker_id is not None:
             normalized["track_id"] = tracker_id
+        if normalized.get("group_id") is None and normalized.get("track_id") is not None:
+            normalized["group_id"] = f"{int(drone_port)}:{int(normalized['track_id'])}"
         normalized["group_member_count"] = max(1, int(normalized.get("group_member_count", 0) or 0))
         member_ids = []
         for mid in normalized.get("member_ids", []) or []:
@@ -1146,6 +1178,20 @@ class TargetProcessor:
         existing_token = cls.canonical_group_id_token(existing_group_id)
         incoming_token = cls.canonical_group_id_token(incoming_group_id)
         return existing_token is not None and incoming_token is not None and existing_token == incoming_token
+
+    @classmethod
+    def same_drone_group_id_conflict(cls, target, drone_port: int, incoming_group_id, current_time: float) -> bool:
+        if incoming_group_id is None:
+            return False
+        existing_group_id = getattr(target, "group_id_by_port", {}).get(drone_port)
+        existing_token = cls.canonical_group_id_token(existing_group_id)
+        incoming_token = cls.canonical_group_id_token(incoming_group_id)
+        if existing_token is None or incoming_token is None or existing_token == incoming_token:
+            return False
+        recent_seen = getattr(target, "drone_last_seen_time", {}).get(drone_port)
+        if target.has_recent_identity(drone_port, current_time, config.TRACK_OBSERVER_STALE_TIMEOUT_SEC):
+            return True
+        return recent_seen is not None and (current_time - float(recent_seen)) <= config.TRACK_OBSERVER_STALE_TIMEOUT_SEC
 
     @classmethod
     def conflicts_with_same_drone_identity(cls, target, drone_port: int,
@@ -1216,6 +1262,8 @@ class TargetProcessor:
                     target_count = int(target.group_member_count or 0)
                     if not group_counts_compatible(incoming_count, target_count):
                         continue
+                    if self.same_drone_group_id_conflict(target, drone_port, incoming_group_id, current_time):
+                        continue
                     if drone_port in target.drone_local_ids and self.conflicts_with_same_drone_identity(
                         target, drone_port, tracker_id, incoming_group_id, current_time
                     ):
@@ -1226,7 +1274,21 @@ class TargetProcessor:
                         return target_id, "GROUP_MEMBER_MATCH"
                     if same_group_id:
                         return target_id, "GROUP_ID_MATCH"
+                    if drone_port not in target.drone_local_ids:
+                        # Cross-drone group association must be fused later with stronger evidence.
+                        # Matching here by spatial proximity alone causes distinct visible groups
+                        # to be absorbed into the wrong canonical target.
+                        continue
                     if drone_port in target.drone_local_ids:
+                        recent_same_drone_identity = (
+                            target.has_recent_identity(
+                                drone_port, current_time, config.TRACK_IDENTITY_CONFLICT_WINDOW_SEC
+                            )
+                            or (
+                                target.drone_last_seen_time.get(drone_port) is not None
+                                and (current_time - float(target.drone_last_seen_time.get(drone_port, 0.0) or 0.0)) <= 5.5
+                            )
+                        )
                         continuity_limit = min(
                             self.association_threshold(
                                 target,
@@ -1234,19 +1296,20 @@ class TargetProcessor:
                                 same_drone=True,
                                 sigma_from_cov_fn=sigma_from_cov_fn,
                             ),
-                            12.0,
+                            24.0,
                         )
-                        if same_drone_group_continuity_ok(
-                            target,
-                            drone_port,
-                            lat,
-                            lon,
-                            incoming_count,
-                            current_time,
-                            continuity_limit,
-                        ):
-                            return target_id, "GROUP_SAME_DRONE_CONTINUITY"
-                        continue
+                        if recent_same_drone_identity:
+                            if same_drone_group_continuity_ok(
+                                target,
+                                drone_port,
+                                lat,
+                                lon,
+                                incoming_count,
+                                current_time,
+                                continuity_limit,
+                            ):
+                                return target_id, "GROUP_SAME_DRONE_CONTINUITY"
+                            continue
 
                 threshold = self.association_threshold(
                     target, covariance, same_drone=(drone_port in target.drone_local_ids),
@@ -1286,7 +1349,7 @@ class TargetProcessor:
 
         if has_owner and not is_owner:
             self.owner.ownership.process_secondary_observation(target, drone_port, raw_data or {})
-            target.update_position(lat, lon, covariance, is_edge=is_edge)
+            target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
             immutable_identity = (
                 target.assigned_drone_port is not None
                 and target.assigned_drone_port != drone_port
@@ -1294,13 +1357,13 @@ class TargetProcessor:
             )
             if not immutable_identity:
                 self.update_visual_context(target, drone_port, raw_data, current_time)
-                self.update_group_metadata(target, target_id, drone_port, raw_data)
+                self.update_group_metadata(target, target_id, drone_port, raw_data, current_time=current_time)
                 if tracker_id is not None:
                     self.update_local_id(target, target_id, drone_port, tracker_id, current_time)
             return target_id
 
-        target.update_position(lat, lon, covariance, is_edge=is_edge)
-        target.record_observation(drone_port, quality, is_owner=True)
+        target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
+        target.record_observation(drone_port, quality, is_owner=True, current_time=current_time)
         self.update_visual_context(target, drone_port, raw_data, current_time)
 
         if target.ownership_state == OWNERSHIP_RESERVED:
@@ -1315,7 +1378,7 @@ class TargetProcessor:
                     "OWNERSHIP",
                 )
 
-        self.update_group_metadata(target, target_id, drone_port, raw_data)
+        self.update_group_metadata(target, target_id, drone_port, raw_data, current_time=current_time)
         self.owner.lifecycle.check_confirmation(
             target, current_time, is_searching=not self.owner.attack_mode_active
         )
@@ -1338,6 +1401,8 @@ class TargetProcessor:
                 existing_count = int(existing_target.group_member_count or 0)
                 if not group_counts_compatible(incoming_count, existing_count):
                     continue
+                if self.same_drone_group_id_conflict(existing_target, drone_port, incoming_group_id, current_time):
+                    continue
                 if drone_port in existing_target.drone_local_ids and self.conflicts_with_same_drone_identity(
                     existing_target, drone_port, tracker_id, incoming_group_id, current_time
                 ):
@@ -1349,24 +1414,39 @@ class TargetProcessor:
                     existing_target, drone_port, incoming_group_id, current_time
                 )
                 if same_family_evidence:
-                    existing_target.update_position(lat, lon, covariance, is_edge=is_edge)
+                    existing_target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
                     self.update_visual_context(existing_target, drone_port, raw_data, current_time)
-                    self.update_group_metadata(existing_target, existing_id, drone_port, raw_data)
+                    self.update_group_metadata(existing_target, existing_id, drone_port, raw_data, current_time=current_time)
                     if tracker_id is not None:
                         self.update_local_id(existing_target, existing_id, drone_port, tracker_id, current_time)
                     quality = self.owner.ownership.calculate_quality(raw_data or {})
-                    existing_target.record_observation(drone_port, quality, is_owner=(existing_target.owner_port == drone_port))
+                    existing_target.record_observation(
+                        drone_port, quality, is_owner=(existing_target.owner_port == drone_port), current_time=current_time
+                    )
                     return existing_id
                 if same_group_id:
-                    existing_target.update_position(lat, lon, covariance, is_edge=is_edge)
+                    existing_target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
                     self.update_visual_context(existing_target, drone_port, raw_data, current_time)
-                    self.update_group_metadata(existing_target, existing_id, drone_port, raw_data)
+                    self.update_group_metadata(existing_target, existing_id, drone_port, raw_data, current_time=current_time)
                     if tracker_id is not None:
                         self.update_local_id(existing_target, existing_id, drone_port, tracker_id, current_time)
                     quality = self.owner.ownership.calculate_quality(raw_data or {})
-                    existing_target.record_observation(drone_port, quality, is_owner=(existing_target.owner_port == drone_port))
+                    existing_target.record_observation(
+                        drone_port, quality, is_owner=(existing_target.owner_port == drone_port), current_time=current_time
+                    )
                     return existing_id
+                if drone_port not in existing_target.drone_local_ids:
+                    continue
                 if drone_port in existing_target.drone_local_ids:
+                    recent_same_drone_identity = (
+                        existing_target.has_recent_identity(
+                            drone_port, current_time, config.TRACK_IDENTITY_CONFLICT_WINDOW_SEC
+                        )
+                        or (
+                            existing_target.drone_last_seen_time.get(drone_port) is not None
+                            and (current_time - float(existing_target.drone_last_seen_time.get(drone_port, 0.0) or 0.0)) <= 5.5
+                        )
+                    )
                     continuity_limit = min(
                         self.association_threshold(
                             existing_target,
@@ -1374,26 +1454,29 @@ class TargetProcessor:
                             same_drone=True,
                             sigma_from_cov_fn=sigma_from_cov_fn,
                         ),
-                        12.0,
+                        24.0,
                     )
-                    if same_drone_group_continuity_ok(
-                        existing_target,
-                        drone_port,
-                        lat,
-                        lon,
-                        incoming_count,
-                        current_time,
-                        continuity_limit,
-                    ):
-                        existing_target.update_position(lat, lon, covariance, is_edge=is_edge)
-                        self.update_visual_context(existing_target, drone_port, raw_data, current_time)
-                        self.update_group_metadata(existing_target, existing_id, drone_port, raw_data)
-                        if tracker_id is not None:
-                            self.update_local_id(existing_target, existing_id, drone_port, tracker_id, current_time)
-                        quality = self.owner.ownership.calculate_quality(raw_data or {})
-                        existing_target.record_observation(drone_port, quality, is_owner=(existing_target.owner_port == drone_port))
-                        return existing_id
-                    continue
+                    if recent_same_drone_identity:
+                        if same_drone_group_continuity_ok(
+                            existing_target,
+                            drone_port,
+                            lat,
+                            lon,
+                            incoming_count,
+                            current_time,
+                            continuity_limit,
+                        ):
+                            existing_target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
+                            self.update_visual_context(existing_target, drone_port, raw_data, current_time)
+                            self.update_group_metadata(existing_target, existing_id, drone_port, raw_data, current_time=current_time)
+                            if tracker_id is not None:
+                                self.update_local_id(existing_target, existing_id, drone_port, tracker_id, current_time)
+                            quality = self.owner.ownership.calculate_quality(raw_data or {})
+                            existing_target.record_observation(
+                                drone_port, quality, is_owner=(existing_target.owner_port == drone_port), current_time=current_time
+                            )
+                            return existing_id
+                        continue
                 duplicate_threshold = self.association_threshold(
                     existing_target, covariance, same_drone=(drone_port in existing_target.drone_local_ids),
                     sigma_from_cov_fn=sigma_from_cov_fn,
@@ -1404,13 +1487,13 @@ class TargetProcessor:
                 )
             dist = GeoMath.haversine_distance(lat, lon, existing_target.lat, existing_target.lon)
             if dist < duplicate_threshold:
-                existing_target.update_position(lat, lon, covariance, is_edge=is_edge)
+                existing_target.update_position(lat, lon, covariance, is_edge=is_edge, current_time=current_time)
                 self.update_visual_context(existing_target, drone_port, raw_data, current_time)
-                self.update_group_metadata(existing_target, existing_id, drone_port, raw_data)
+                self.update_group_metadata(existing_target, existing_id, drone_port, raw_data, current_time=current_time)
                 if tracker_id is not None:
                     self.update_local_id(existing_target, existing_id, drone_port, tracker_id, current_time)
                 quality = self.owner.ownership.calculate_quality(raw_data or {})
-                existing_target.record_observation(drone_port, quality, is_owner=False)
+                existing_target.record_observation(drone_port, quality, is_owner=False, current_time=current_time)
                 return existing_id
 
         target_id = self.owner.registry.generate_id()
@@ -1433,7 +1516,7 @@ class TargetProcessor:
             new_target.assigned_drone_port = drone_port
 
         quality = self.owner.ownership.calculate_quality(raw_data or {})
-        new_target.record_observation(drone_port, quality, is_owner=True)
+        new_target.record_observation(drone_port, quality, is_owner=True, current_time=current_time)
         if is_edge:
             new_target.observation_count = 0
             new_target.consecutive_obs = 0
@@ -1447,7 +1530,7 @@ class TargetProcessor:
             self.owner.identity.update(drone_port, tracker_id, target_id, now=current_time)
 
         self.update_visual_context(new_target, drone_port, raw_data, current_time)
-        self.update_group_metadata(new_target, target_id, drone_port, raw_data)
+        self.update_group_metadata(new_target, target_id, drone_port, raw_data, current_time=current_time)
         SwarmLogger.log(
             "TARGET", "LEADER",
             f"NEW TARGET (TENTATIVE): {target_id} (TID:{tracker_id}) @ ({lat:.6f}, {lon:.6f}) | Owner: Drone_{drone_port}",
@@ -1524,7 +1607,9 @@ class TargetProcessor:
 
         current_time = time.time()
         incoming_group_id = raw_data.get("group_id") if isinstance(raw_data, dict) else None
-        incoming_count = int(getattr(source_target, "group_member_count", 0) or 0)
+        incoming_count = int(
+            (raw_data or {}).get("group_member_count", getattr(source_target, "group_member_count", 0)) or 0
+        )
         best_candidate = None
         best_dist = float("inf")
 
@@ -1535,7 +1620,9 @@ class TargetProcessor:
                 continue
 
             seen_ts = check_target.drone_last_seen_time.get(drone_port)
-            if seen_ts is None or (current_time - float(seen_ts)) > 2.5:
+            if seen_ts is None:
+                seen_ts = check_target.identity_last_update_time.get(drone_port)
+            if seen_ts is None or (current_time - float(seen_ts)) > 5.5:
                 continue
 
             dist = GeoMath.haversine_distance(
@@ -1549,6 +1636,8 @@ class TargetProcessor:
 
             if source_target.is_group and check_target.is_group:
                 if not group_counts_compatible(incoming_count, check_target.group_member_count):
+                    continue
+                if self.same_drone_group_id_conflict(check_target, drone_port, incoming_group_id, current_time):
                     continue
                 same_family = self.same_group_family_evidence(check_target, drone_port, raw_data)
                 same_group_id = self.same_drone_group_id_match(
@@ -1564,7 +1653,7 @@ class TargetProcessor:
                     lon,
                     incoming_count,
                     current_time,
-                    max_dist_m=8.0,
+                    max_dist_m=24.0,
                 )
                 if not same_family and not same_group_id and not continuity_ok:
                     SwarmLogger.log_throttled(
@@ -1582,11 +1671,11 @@ class TargetProcessor:
 
         if best_candidate is not None:
             check_id, check_target, dist = best_candidate
-            check_target.update_position(lat, lon, covariance)
+            check_target.update_position(lat, lon, covariance, current_time=current_time)
             if tracker_id is not None:
                 self.update_local_id(check_target, check_id, drone_port, tracker_id, current_time)
             if raw_data:
-                self.update_group_metadata(check_target, check_id, drone_port, raw_data)
+                self.update_group_metadata(check_target, check_id, drone_port, raw_data, current_time=current_time)
             self.owner.registry.remove(target_id)
             SwarmLogger.log(
                 "REDIRECT", "LEADER",
@@ -1663,9 +1752,10 @@ class TargetProcessor:
         )
         return response
 
-    def update_group_metadata(self, target, target_id, drone_port, raw_data):
+    def update_group_metadata(self, target, target_id, drone_port, raw_data, current_time: Optional[float] = None):
         if not isinstance(raw_data, dict) or not raw_data.get("is_group"):
             return
+        current_time = time.time() if current_time is None else float(current_time)
 
         old_count = target.group_member_count
         was_group = target.is_group
@@ -1676,9 +1766,9 @@ class TargetProcessor:
         if incoming_group_id is not None:
             prev_group_id = target.group_id_by_port.get(drone_port)
             target.group_id_by_port[drone_port] = incoming_group_id
-            target.identity_last_update_time[drone_port] = time.time()
+            target.identity_last_update_time[drone_port] = current_time
             if prev_group_id != incoming_group_id:
-                target.identity_change_time[drone_port] = time.time()
+                target.identity_change_time[drone_port] = current_time
             preferred_port = target.assigned_drone_port or target.owner_port or drone_port
             target.group_id_local = target.group_id_by_port.get(preferred_port, incoming_group_id)
 

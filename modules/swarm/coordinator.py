@@ -86,6 +86,7 @@ class SwarmManager:
 
         # Periyodik döngü
         self._loop_running = True
+        self._work_event = threading.Event()
         self._loop_thread = threading.Thread(
             target=self._periodic_loop,
             name="SwarmAssignmentLoop",
@@ -101,20 +102,24 @@ class SwarmManager:
     def report_target(self, drone_port, lat, lon, confidence,
                       tracker_id=None, raw_data=None, covariance=None):
         """Process inbound target detection and return action."""
-        return self.target_processor.process_report(
+        response = self.target_processor.process_report(
             drone_port, lat, lon, confidence,
             tracker_id=tracker_id, raw_data=raw_data, covariance=covariance,
         )
+        self._work_event.set()
+        return response
 
     def check_mission_updates(self, drone_port, raw_data=None):
         """Process inbound telemetry/detections and return action."""
         needs_prune = True
+        realtime_refresh_needed = False
 
         # Route inbound data
         if raw_data is not None:
             if isinstance(raw_data, dict) and "detected_targets" in raw_data:
                 det = raw_data.get("detected_targets", [])
                 needs_prune = not bool(det)
+                realtime_refresh_needed = bool(det)
                 self._record_drone_telemetry(drone_port, len(det), raw_data.get("state"))
                 self._log_detection_ingest(drone_port, det, raw_data.get("state"))
                 self.drone_targets[drone_port] = det
@@ -133,6 +138,9 @@ class SwarmManager:
             elif isinstance(raw_data, str) and raw_data == "HEARTBEAT":
                 needs_prune = False
                 self.report_target(drone_port, 0, 0, 0, None, raw_data="HEARTBEAT")
+
+        if realtime_refresh_needed:
+            self._refresh_runtime_state(trigger="detections")
 
         current_time = time.time()
         with self.lock:
@@ -805,55 +813,9 @@ class SwarmManager:
 
         while self._loop_running:
             try:
-                time.sleep(ASSIGNMENT_LOOP_INTERVAL_S)
-
-                now = time.time()
-                self.lifecycle.prune(
-                    now, self.attack_mode_active,
-                    drone_connected_check=self._is_drone_connected,
-                    release_drone=self.ownership.release,
-                    remove_fusion_target=self.fusion.ekf_manager.remove_target,
-                )
-
-                self._update_leader_reference()
-
-                self.battlespace.log_radar_snapshot()
-
-                with self.lock:
-                    coasting_status = {t_id: t.is_coasting for t_id, t in self.targets.items()}
-                self.fusion.process_ekf_batch(coasting_status)
-
-                with self.lock:
-                    for t_id, t in list(self.targets.items()):
-                        if (t.ownership_state == OWNERSHIP_OWNED
-                                and t.owner_port is not None):
-                            since = now - t.last_observation_time
-                            quality = t.observation_quality.get(t.owner_port, 0)
-                            if since > 3.0 and quality > 0:
-                                self.ownership.process_owner_loss(t)
-
-                self.fusion.merge_duplicates(self.ownership, self.identity)
-
-                with self.lock:
-                    pending = [t_id for t_id, t in self.targets.items()
-                               if t.status == "PENDING" and t.assigned_drone_port is None]
-                    idle = set(p for p, v in self.drone_manager.drones.items()
-                               if v != "connecting") - set(
-                        t.assigned_drone_port for t in self.targets.values()
-                        if t.assigned_drone_port is not None
-                        and (t.status == "PENDING" or t.approved_for_attack)
-                    )
-
-                if pending and idle:
-                    assignments = self.assign_attack_targets()
-                    if assignments:
-                        SwarmLogger.log("ASSIGN", "OPT_LOOP",
-                                        f"Optimal Assignment: {assignments}", "ASSIGN")
-
-                fused = self.fuse_cross_drone_targets()
-                if fused > 0:
-                    SwarmLogger.log("FUSION", "OPT_LOOP",
-                                    f"{fused} targets merged via fusion.", "FUSION")
+                self._work_event.wait(timeout=min(float(ASSIGNMENT_LOOP_INTERVAL_S), 0.25))
+                self._work_event.clear()
+                self._refresh_runtime_state(trigger="periodic")
 
             except Exception as e:
                 SwarmLogger.log("ERROR", "OPT_LOOP",
@@ -864,6 +826,63 @@ class SwarmManager:
             except Exception as e:
                 SwarmLogger.log("ERROR", "OPT_LOOP",
                                 f"Heartbeat prune error: {e}", "OPT_LOOP")
+
+    def _refresh_runtime_state(self, trigger: str = "runtime") -> None:
+        """Run leader-side realtime maintenance independent of fixed loop cadence."""
+        now = time.time()
+        self.lifecycle.prune(
+            now, self.attack_mode_active,
+            drone_connected_check=self._is_drone_connected,
+            release_drone=self.ownership.release,
+            remove_fusion_target=self.fusion.ekf_manager.remove_target,
+        )
+
+        self._update_leader_reference()
+        try:
+            self.battlespace.log_radar_snapshot()
+        except Exception as exc:
+            SwarmLogger.log("WARNING", "OPT_LOOP", f"Radar snapshot skipped: {exc}", "OPT_LOOP")
+
+        with self.lock:
+            coasting_status = {t_id: t.is_coasting for t_id, t in self.targets.items()}
+        self.fusion.process_ekf_batch(coasting_status)
+
+        with self.lock:
+            for _t_id, target in list(self.targets.items()):
+                if target.ownership_state != OWNERSHIP_OWNED or target.owner_port is None:
+                    continue
+                since = now - target.last_observation_time
+                quality = target.observation_quality.get(target.owner_port, 0)
+                if since > 3.0 and quality > 0:
+                    self.ownership.process_owner_loss(target)
+
+            pending = [
+                t_id for t_id, t in self.targets.items()
+                if t.status == "PENDING" and t.assigned_drone_port is None
+            ]
+            idle = set(p for p, v in self.drone_manager.drones.items() if v != "connecting") - {
+                t.assigned_drone_port for t in self.targets.values()
+                if t.assigned_drone_port is not None and (t.status == "PENDING" or t.approved_for_attack)
+            }
+
+        self.fusion.merge_duplicates(self.ownership, self.identity)
+
+        if pending and idle:
+            assignments = self.assign_attack_targets()
+            if assignments:
+                SwarmLogger.log(
+                    "ASSIGN", "OPT_LOOP",
+                    f"Realtime Assignment[{trigger}]: {assignments}",
+                    "ASSIGN",
+                )
+
+        fused = self.fuse_cross_drone_targets()
+        if fused > 0:
+            SwarmLogger.log(
+                "FUSION", "OPT_LOOP",
+                f"Realtime Fusion[{trigger}]: {fused} targets merged.",
+                "FUSION",
+            )
 
     def _prune_stale_drones(self):
         """Heartbeat zaman aşımına uğramış drone atamalarını bırak."""
@@ -935,6 +954,7 @@ class SwarmManager:
     def stop(self):
         """Periyodik döngüyü durdur."""
         self._loop_running = False
+        self._work_event.set()
         thread = getattr(self, "_loop_thread", None)
         if thread and thread.is_alive() and thread is not threading.current_thread():
             thread.join(timeout=ASSIGNMENT_LOOP_INTERVAL_S * 2.0)

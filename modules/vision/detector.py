@@ -7,7 +7,7 @@ import math
 import time
 import torch
 import numpy as np
-from typing import Tuple, Dict
+from typing import Optional, Tuple, Dict
 import threading
 from collections import deque
 from contextlib import contextmanager
@@ -169,11 +169,34 @@ class HumanTracker:
 
         self._last_primary_bbox = None
         self._primary_lost_frames = 0
-        self._IOU_GRACE_FRAMES = 5
+        self._primary_last_seen_ts: float = 0.0
+        self._IOU_GRACE_FRAMES = 12
         self._IOU_THRESHOLD = IOU_THRESHOLD
 
         self.group_engine = GroupClusterEngine()
         self._drone_pose = None
+
+    @staticmethod
+    def _prepare_frame(frame: np.ndarray) -> np.ndarray:
+        """Normalize incoming frame shapes/dtypes for inference."""
+        if frame is None:
+            return None
+        prepared = np.asarray(frame)
+        if prepared.ndim == 2:
+            prepared = np.stack([prepared] * 3, axis=-1)
+        elif prepared.ndim == 3 and prepared.shape[2] == 1:
+            prepared = np.repeat(prepared, 3, axis=2)
+        elif prepared.ndim == 3 and prepared.shape[2] > 3:
+            prepared = prepared[:, :, :3]
+        elif prepared.ndim != 3:
+            return None
+
+        if prepared.dtype != np.uint8:
+            prepared = np.clip(prepared, 0.0, 255.0)
+            if np.issubdtype(prepared.dtype, np.floating) and float(np.max(prepared)) <= 1.0:
+                prepared = prepared * 255.0
+            prepared = prepared.astype(np.uint8)
+        return np.ascontiguousarray(prepared)
 
     def set_drone_pose(self, lat: float, lon: float, alt: float,
                        roll: float, pitch: float, yaw: float):
@@ -217,12 +240,16 @@ class HumanTracker:
             center_dist = math.hypot(cx - prev_cx, cy - prev_cy)
             cand_area = self._bbox_area_xyxy(cand_bbox)
             area_ratio = min(prev_area, cand_area) / max(prev_area, cand_area)
+            tiny_target = min(prev_area, cand_area) < 2200.0
+            min_iou = 0.32 if tiny_target else max(0.72, self._IOU_THRESHOLD + 0.12)
+            max_center_dist = 95.0 if tiny_target else 55.0
+            min_area_ratio = 0.28 if tiny_target else 0.55
 
-            if iou < max(0.72, self._IOU_THRESHOLD + 0.12):
+            if iou < min_iou:
                 continue
-            if center_dist > 55.0:
+            if center_dist > max_center_dist:
                 continue
-            if area_ratio < 0.55:
+            if area_ratio < min_area_ratio:
                 continue
 
             score = iou * 100.0 - center_dist * 0.6 + area_ratio * 20.0
@@ -239,11 +266,49 @@ class HumanTracker:
             return None
         return best_tid
 
+    def _estimated_fps(self) -> float:
+        if self._fps_samples:
+            try:
+                recent = list(self._fps_samples)[-30:]
+                if recent:
+                    return max(5.0, min(90.0, float(sum(recent) / len(recent))))
+            except Exception:
+                pass
+        return float(TRACKER_FRAME_RATE)
+
+    def _primary_continuity_window_s(self) -> float:
+        fps = self._estimated_fps()
+        base = max(1.1, float(self._IOU_GRACE_FRAMES) / max(fps, 1.0))
+        last_area = self._bbox_area_xyxy(self._last_primary_bbox) if self._last_primary_bbox is not None else 0.0
+        if last_area < 1600.0:
+            base = max(base, 2.8)
+        elif last_area < 6400.0:
+            base = max(base, 2.0)
+        else:
+            base = max(base, 1.4)
+        return min(float(self.human_lost_timeout), base)
+
+    def _build_primary_coast_box(self, timestamp: float) -> Optional[MockBox]:
+        if self.primary_track_id is None or self._last_primary_bbox is None:
+            return None
+        if self._primary_last_seen_ts <= 0.0:
+            return None
+        if (timestamp - float(self._primary_last_seen_ts)) > self._primary_continuity_window_s():
+            return None
+        x1, y1, x2, y2 = [float(v) for v in self._last_primary_bbox]
+        if x2 <= x1 or y2 <= y1:
+            return None
+        tlwh = [x1, y1, x2 - x1, y2 - y1]
+        return MockBox(tlwh, 0.05, 0.0, int(self.primary_track_id), [x1, y1, x2, y2])
+
     def detect_and_track(self, frame: np.ndarray, debug: bool = True, attack_mode: bool = False) -> Dict:
         with self._inference_lock:
             return self._detect_and_track_impl(frame, debug, attack_mode)
 
     def _detect_and_track_impl(self, frame: np.ndarray, debug: bool, attack_mode: bool) -> Dict:
+        frame = self._prepare_frame(frame)
+        if frame is None:
+            return self._create_empty_result(np.zeros((1, 1, 3), dtype=np.uint8))
         timestamp = time.time()
         
         if self._last_frame_time > 0:
@@ -254,7 +319,7 @@ class HumanTracker:
                     recent = list(self._fps_samples)[-30:]
                     actual_fps = sum(recent) / len(recent)
                     if self.tracker and abs(actual_fps - TRACKER_FRAME_RATE) > 2.0:
-                        new_buffer = int(actual_fps / 30.0 * self.opt.track_buffer)
+                        new_buffer = max(int(self.opt.track_buffer), int(actual_fps / 30.0 * self.opt.track_buffer))
                         self.tracker.buffer_size = max(1, new_buffer)
                         self.tracker.max_time_lost = self.tracker.buffer_size
                         if not self._fps_calibrated:
@@ -325,11 +390,17 @@ class HumanTracker:
                 current_track_id = self.primary_track_id
                 self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                 self._primary_lost_frames = 0
+                self._primary_last_seen_ts = timestamp
             else:
                 self._primary_lost_frames += 1
+                recent_primary = (
+                    self._last_primary_bbox is not None
+                    and self._primary_last_seen_ts > 0.0
+                    and (timestamp - float(self._primary_last_seen_ts)) <= self._primary_continuity_window_s()
+                )
                 if self.strict_primary_lock:
                     best_candidate_id = None
-                    if self._primary_lost_frames <= self._IOU_GRACE_FRAMES:
+                    if self._primary_lost_frames <= self._IOU_GRACE_FRAMES or recent_primary:
                         best_candidate_id = self._pick_strict_reacquire_candidate(current_visible_tracks)
                     if best_candidate_id is not None:
                         if best_candidate_id == self._lock_challenger_id:
@@ -346,6 +417,7 @@ class HumanTracker:
                             self._lock_challenger_streak = 0
                             self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                             self._primary_lost_frames = 0
+                            self._primary_last_seen_ts = timestamp
                             SwarmLogger.log(
                                 "INFO",
                                 "TRACK",
@@ -357,9 +429,10 @@ class HumanTracker:
                             f"Strict primary ID {self.primary_track_id} lost after {self._IOU_GRACE_FRAMES} frames",
                             "TRACKER")
                         self._last_primary_bbox = None
+                        self._primary_last_seen_ts = 0.0
                         self._lock_challenger_id = None
                         self._lock_challenger_streak = 0
-                elif self._primary_lost_frames <= self._IOU_GRACE_FRAMES and self._last_primary_bbox is not None:
+                elif (self._primary_lost_frames <= self._IOU_GRACE_FRAMES or recent_primary) and self._last_primary_bbox is not None:
                     best_iou = 0.0
                     best_candidate_id = None
                     for tid, box in current_visible_tracks.items():
@@ -378,12 +451,14 @@ class HumanTracker:
                         current_track_id = best_candidate_id
                         self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                         self._primary_lost_frames = 0
+                        self._primary_last_seen_ts = timestamp
                 else:
                     if self._primary_lost_frames == self._IOU_GRACE_FRAMES + 1:
                         SwarmLogger.log("WARNING", "TRACK",
                             f"Primary ID {self.primary_track_id} lost after {self._IOU_GRACE_FRAMES} frames",
                             "TRACKER")
                         self._last_primary_bbox = None
+                        self._primary_last_seen_ts = 0.0
                         self._lock_challenger_id = None
                         self._lock_challenger_streak = 0
                         
@@ -398,6 +473,7 @@ class HumanTracker:
                 self._lock_challenger_streak = 0
                 self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                 self._primary_lost_frames = 0
+                self._primary_last_seen_ts = timestamp
                 SwarmLogger.log("INFO", "TRACK",
                     f"Primary ID re-mapped: {previous_id} -> {new_tid}",
                     "TRACKER")
@@ -425,10 +501,20 @@ class HumanTracker:
                         self._lock_challenger_streak = 0
                         self._last_primary_bbox = selected_box.xyxy[0].cpu().numpy()
                         self._primary_lost_frames = 0
+                        self._primary_last_seen_ts = timestamp
                         SwarmLogger.log("INFO", "TRACK",
                             f"Lock switched to {best_tid} after {self._LOCK_HYSTERESIS_FRAMES} frames",
                             "TRACKER")
-            
+
+        coast_box = None
+        if selected_box is None and not current_visible_tracks:
+            coast_box = self._build_primary_coast_box(timestamp)
+            if coast_box is not None:
+                mock_boxes.append(coast_box)
+                current_visible_tracks[int(self.primary_track_id)] = coast_box
+                selected_box = coast_box
+                current_track_id = int(self.primary_track_id)
+
         detected_candidates = self._get_track_candidates(mock_boxes, timestamp)
         group_result = GroupResult(groups=[], singles=detected_candidates)
         if detected_candidates:
@@ -580,7 +666,7 @@ class HumanTracker:
             bbox = tuple(float(v) for v in framing_xyxy)
 
         return {
-            'detected': len(online_targets) > 0,
+            'detected': len(mock_boxes) > 0,
             'velocity_cmd': velocity_cmd,
             'collision_imminent': collision_imminent,
             'screen_coverage': screen_coverage,
@@ -757,6 +843,7 @@ class HumanTracker:
             self._lock_challenger_streak = 0
             self._last_primary_bbox = None
             self._primary_lost_frames = 0
+            self._primary_last_seen_ts = 0.0
 
     def set_primary_group(self, group_id):
         """Prefer one group bbox for attack framing."""
@@ -768,6 +855,7 @@ class HumanTracker:
             self._lock_challenger_streak = 0
             self._last_primary_bbox = None
             self._primary_lost_frames = 0
+            self._primary_last_seen_ts = 0.0
 
     def reset(self):
         self.yaw_pid.reset()
@@ -778,6 +866,7 @@ class HumanTracker:
         self.strict_primary_lock = False
         self._last_primary_bbox = None
         self._primary_lost_frames = 0
+        self._primary_last_seen_ts = 0.0
         if self.tracker:
             self.tracker.tracked_stracks = []
             self.tracker.lost_stracks = []

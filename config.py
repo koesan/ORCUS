@@ -103,7 +103,7 @@ INFERENCE_DEVICE = '0'              # GPU device ID ('0' = cuda:0, 'cpu' = CPU)
 # ==============================================================================
 COLLISION_SCREEN_THRESHOLD = 0.40     # Collision assumed if target covers >40% of screen
 COLLISION_FORWARD_SPEED = 2.0         # Constant forward speed during tracking (m/s)
-HUMAN_LOST_TIMEOUT = 5.0              # Keep moving for this duration after human lost (seconds)
+HUMAN_LOST_TIMEOUT = 7.0              # Keep moving for this duration after human lost (seconds)
 APPROACH_MIN_SCREEN_COVERAGE = 0.001  # 0.1% - Below this, aggressive approach mode
 APPROACH_BOOST_SPEED = 4.0            # Boost speed if target is very small (m/s)
 RESUME_SCAN_AFTER_LOST = True         # Resume scanning if target lost (True) or RTL (False)
@@ -198,7 +198,8 @@ TRACKING_VERTICAL_FALLBACK_GAIN = 0.008    # Vertical gain fallback (m/s per pix
 # ==============================================================================
 # FRAME BUFFERING PARAMETERS
 # ==============================================================================
-FRAME_BUFFER_TIMEOUT_FRAMES = 20      # Frame buffer timeout (frames) ~1s @20fps
+FRAME_BUFFER_TIMEOUT_FRAMES = 20      # Deprecated compatibility constant for legacy tests
+FRAME_STREAM_STALE_TIMEOUT_S = 1.0    # Max wall time to reuse last rendered stream frame
 
 # ==============================================================================
 # GEOGRAPHIC & NAV CONSTANTS
@@ -456,10 +457,10 @@ TRACK_CONFIRMATION_TIME_SEC = 0.3     # Time to promote TENTATIVE → CONFIRMED
 TRACK_MIN_OBSERVATIONS = 3            # Minimum detections before confirmation (safety floor)
 TRACK_MIN_OBSERVATIONS_SEARCH = 2     # Minimum detections in SEARCH mode (faster confirmation)
 TRACK_TENTATIVE_TIMEOUT_SEC = 1.2     # TENTATIVE auto-delete if no re-observation
-TRACK_LOST_TIMEOUT_SEC = 1.3          # CONFIRMED → LOST timeout for out-of-FOV targets
-TRACK_DELETE_TIMEOUT_SEC = 4.0        # LOST → DELETE timeout
-TRACK_OBSERVER_STALE_TIMEOUT_SEC = 1.5  # Per-drone visibility TTL for local IDs and observer state
-TRACK_IDENTITY_CONFLICT_WINDOW_SEC = 0.7  # Same-drone identity evidence must be this fresh to block merge/match
+TRACK_LOST_TIMEOUT_SEC = 4.8          # CONFIRMED → LOST timeout for sparse/tiny distant targets
+TRACK_DELETE_TIMEOUT_SEC = 10.0       # LOST → DELETE timeout
+TRACK_OBSERVER_STALE_TIMEOUT_SEC = 5.5  # Per-drone visibility TTL for local IDs and observer state
+TRACK_IDENTITY_CONFLICT_WINDOW_SEC = 2.0  # Same-drone identity evidence window before hard conflict
 
 # ==============================================================================
 # GROUP BBOX SMOOTHING
@@ -508,12 +509,12 @@ TRACKER_ID_ALPHA = 0.15               # Multiplicative ID-match ranking boost (0
 # ==============================================================================
 # DUPLICATE SUPPRESSION
 # ==============================================================================
-DUPLICATE_MERGE_DISTANCE_M = 12.0    # Base distance to auto-merge CONFIRMED targets (meters)
+DUPLICATE_MERGE_DISTANCE_M = 18.0    # Base distance to auto-merge CONFIRMED targets (meters)
 DUPLICATE_VELOCITY_SIMILARITY_MPS = 3.0  # Max velocity diff for merge eligibility (m/s) - relaxed for noisy tracking
 
 # Dynamic Merge Distance Parameters
-MERGE_DISTANCE_BASE_M = 8.0            # Minimum merge distance (meters)
-MERGE_DISTANCE_MAX_M = 20.0            # Maximum merge distance (meters)
+MERGE_DISTANCE_BASE_M = 12.0           # Minimum merge distance (meters)
+MERGE_DISTANCE_MAX_M = 30.0            # Maximum merge distance (meters)
 MERGE_DISTANCE_SIGMA_SCALE = 2.0       # Merge distance = base + avg_sigma * scale
 
 # Leader Failsafe
@@ -611,14 +612,14 @@ ATTACK_ECHO_TIMEOUT_S = 5.0              # Max wait for leader confirmation afte
 ATTACK_CENTER_TIMEOUT_S = 10.0            # Max time to center target on camera
 ATTACK_STALE_PIPELINE_TIMEOUT_S = 15.0    # Force-release assigned/approved target with no observations
 FRAMING_CENTER_BLIND_BOX_PX = 60          # Ignore small framing jitter near center
-FRAMING_TARGET_LOSS_GRACE_S = 0.35        # Hold framing briefly across short gaps
+FRAMING_TARGET_LOSS_GRACE_S = 1.20        # Hold framing across short observer gaps
 FRAMING_CENTER_HOLD_FRAMES = 3            # Centered frames before yaw freezes
 FRAMING_CENTER_RELEASE_PX = 96            # Resume yaw only after a wider drift
 ATTACK_CENTER_BLIND_BOX_PX = 20           # Smaller blind box for faster centering response
 ATTACK_TERMINAL_AREA_RADIUS_M = 6.0       # Planned terminal area radius used for guaranteed completion
 ATTACK_CENTER_ACCEPT_RADIUS_PX = 64       # Commit only when the target is meaningfully centered
 ATTACK_CENTER_REQUIRED_FRAMES = 3         # Stable frames required inside loose centering gate
-ATTACK_CENTER_LOSS_GRACE_S = 0.30         # Hold center briefly across short target gaps
+ATTACK_CENTER_LOSS_GRACE_S = 1.00         # Hold center across short target gaps
 ATTACK_DIVE_TERMINAL_FORWARD_SPEED = 6.8  # Forward speed once terminal phase starts
 ATTACK_DIVE_MAX_DESCENT_MPS = 1.2         # Max downward speed during visual dive
 ATTACK_DIVE_MAX_CLIMB_MPS = 1.0           # Max upward correction during visual dive
@@ -630,14 +631,14 @@ ATTACK_DIVE_PITCH_COMPENSATION_GAIN = 0.75  # Pitch compensation during early ac
 ATTACK_DIVE_DESCENT_SOFTENING = 0.72      # Global descent softening factor
 ATTACK_DIVE_STARTUP_YAW_SCALE = 0.45      # Early dive yaw scale
 ATTACK_DIVE_STARTUP_VZ_SCALE = 0.55       # Early dive vertical scale
-ATTACK_LOCK_MAX_JUMP_PX = 140             # Max allowed target jump from the lock
-ATTACK_LOCK_SIZE_RATIO_MIN = 0.45         # Min bbox area ratio for lock continuity
+ATTACK_LOCK_MAX_JUMP_PX = 220             # Max allowed target jump from the lock
+ATTACK_LOCK_SIZE_RATIO_MIN = 0.22         # Min bbox area ratio for lock continuity
 
 # ==============================================================================
 # CENTERING STABILIZATION (Yaw control during centering phase)
 # ==============================================================================
 CENTERING_YAW_KP = 0.55                   # Yaw proportional gain tuned for stable centering
-MAX_VISUAL_REACQUIRE_DIST_PX = 300        # Max pixel distance to reacquire a lost target
+MAX_VISUAL_REACQUIRE_DIST_PX = 420        # Max pixel distance to reacquire a lost target
 CENTERING_YAW_RATE_MAX = 0.15             # Max yaw rate during centering (rad/s) ~8.6°/s
 CENTERING_YAW_DEADZONE = 0.02             # Normalized deadzone to prevent oscillation
 CENTERING_YAW_FILTER_ALPHA = 0.18         # Low-pass filter for framing yaw
@@ -656,7 +657,7 @@ TERMINAL_EVENT_PROBABLE_COVERAGE = 6.0    # Coverage % for probable terminal eve
 TERMINAL_EVENT_PROXIMITY_M = 6.0          # Slant distance to planned point for terminal event
 TERMINAL_EVENT_PROXIMITY_ALT_SCALE = 2.7  # Dynamic proximity expansion by current altitude
 TERMINAL_EVENT_CONFIRM_FRAMES = 2         # Consecutive probable-event frames to confirm terminal success
-TERMINAL_EVENT_LOCK_WINDOW_S = 0.7        # Visual lock recency required for terminal success
+TERMINAL_EVENT_LOCK_WINDOW_S = 1.8        # Visual lock recency required for terminal success
 TERMINAL_EVENT_COVERAGE_GROWTH_MIN = 0.6  # Minimum recent coverage growth for probable success
 TERMINAL_EVENT_HISTORY_SIZE = 8           # Frames kept for terminal coverage trend
 TERMINAL_EVENT_MARKER_TTL_S = 60.0        # UI lifetime for terminal event marker
@@ -683,8 +684,8 @@ class BoTSORTConfig:
         
         # Inference Args
         self.device = INFERENCE_DEVICE
-        self.img_size = 640
-        self.conf_thres = 0.05
+        self.img_size = 896
+        self.conf_thres = 0.02
         self.iou_thres = 0.7
         self.classes = [0]           # Person class only
         self.agnostic_nms = False
@@ -694,18 +695,18 @@ class BoTSORTConfig:
         self.mot20 = False
         
         # Tracking Args
-        self.track_high_thresh = 0.2
-        self.track_low_thresh = 0.05
-        self.new_track_thresh = 0.25   # Reverted from 0.35
-        self.track_buffer = 90         # Reverted from 120
-        self.match_thresh = 0.7        # Reverted from 0.5
-        self.min_box_area = 10
+        self.track_high_thresh = 0.10
+        self.track_low_thresh = 0.01
+        self.new_track_thresh = 0.02
+        self.track_buffer = 180
+        self.match_thresh = 0.88
+        self.min_box_area = 4
         
         # CMC (Camera Motion Compensation)
-        self.cmc_method = "sparseOptFlow"
+        self.cmc_method = "none"
         
         # IoU Gating
-        self.proximity_thresh = 0.5
+        self.proximity_thresh = 0.85
         
         # Extra
         self.ablation = False

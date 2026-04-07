@@ -17,6 +17,7 @@ from config import (
     CAMERA_HEIGHT,
 )
 from modules.core.geo_math import GeoMath
+from modules.core.runtime import monotonic_now
 
 
 class GroupBboxSmoother:
@@ -25,7 +26,7 @@ class GroupBboxSmoother:
     def __init__(self, alpha: float = BBOX_SMOOTH_ALPHA):
         self.alpha = alpha
         self._history: Dict[object, dict] = {}
-        self._last_cleanup = time.time()
+        self._last_cleanup = monotonic_now()
         self._cleanup_interval = 30.0
 
     def smooth(self, track_id, cx: float, cy: float, _conf: float, w: float, h: float) -> Tuple[float, float]:
@@ -38,7 +39,7 @@ class GroupBboxSmoother:
                 "smoothed_cy": cy,
                 "last_w": w,
                 "last_h": h,
-                "last_update": time.time(),
+                "last_update": monotonic_now(),
             }
             return cx, cy
 
@@ -49,7 +50,7 @@ class GroupBboxSmoother:
             entry["smoothed_cy"] = cy
             entry["last_w"] = w
             entry["last_h"] = h
-            entry["last_update"] = time.time()
+            entry["last_update"] = monotonic_now()
             return cx, cy
 
         dx = float(cx) - float(entry["smoothed_cx"])
@@ -65,7 +66,7 @@ class GroupBboxSmoother:
         entry["smoothed_cy"] = smoothed_cy
         entry["last_w"] = w
         entry["last_h"] = h
-        entry["last_update"] = time.time()
+        entry["last_update"] = monotonic_now()
         return smoothed_cx, smoothed_cy
 
     def reset_all(self) -> None:
@@ -80,7 +81,7 @@ class GroupBboxSmoother:
         return max(w_ratio, h_ratio)
 
     def _cleanup_if_needed(self) -> None:
-        now = time.time()
+        now = monotonic_now()
         if now - self._last_cleanup < self._cleanup_interval:
             return
         self._last_cleanup = now
@@ -145,7 +146,7 @@ class GroupClusterEngine:
         yaw: float,
     ) -> GroupResult:
         """Update group state for one frame."""
-        now = time.time()
+        now = monotonic_now()
 
         if not candidates or drone_alt < 0.5:
             self._tick_grace(now)
