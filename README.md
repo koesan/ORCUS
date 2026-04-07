@@ -1,6 +1,6 @@
 <div align="center">
 
-# ORCUS v2.2
+# ORCUS v2.3
 
 ### Swarm Kamikaze Drone System
 
@@ -38,7 +38,7 @@
 
 ## What Is ORCUS?
 
-**ORCUS** is a **fully autonomous swarm kamikaze drone system** that brings perception, geo-localization, swarm coordination, verification, and terminal attack execution together inside one system. The current stable release in this repository is **v2.2**.
+**ORCUS** is a **fully autonomous swarm kamikaze drone system** that brings perception, geo-localization, swarm coordination, verification, and terminal attack execution together inside one system. The current stable release in this repository is **v2.3**.
 
 The system detects **individuals and grouped targets** in the field, computes where those targets are on the ground, combines observations coming from different drones into one shared target picture, finds the most suitable drone-target match across the swarm, and runs terminal engagement through a controlled multi-stage attack chain.
 
@@ -277,20 +277,12 @@ ORCUS-main/
 
 ---
 
-## Evolution: v2.1 vs v2.2
+## Evolution: v2.2 vs v2.3
 
-| Topic                      | v2.1                                                                         | v2.2                                                                                            |
-| -------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Overall structure          | the system was already modular, but some responsibilities still overlapped   | coordination, execution, and shared state handling are separated more clearly                   |
-| Target model               | target continuity depended more on raw tracker behavior                      | targets are held in a more stable and more group-aware structure                                |
-| World-position reliability | RGI and covariance awareness were already present                            | the same base remains, but confidence now feeds fusion, filtering, and assignment more directly |
-| Fusion behavior            | duplicate suppression existed, but active-target protection was more limited | fusion is more careful around active target families and more robust against bad merges         |
-| Filtering                  | target stability existed, but it was less explicit                           | EKF-backed shared target state is clearer and more consistent                                   |
-| Assignment                 | assignment was optimized                                                     | assignment, ownership, and attack commitment now work together more tightly                     |
-| Verification flow          | an approval path existed                                                     | leader approval, drone verification, and execution boundaries are easier to follow              |
-| Terminal behavior          | terminal attack was guarded                                                  | reacquire, fallback, and recovery behavior are clearer and better controlled                    |
-| Mission lifecycle          | pause/resume and reset were already stronger than older versions             | stop, pause, RTL, cleanup, and restart are handled more cleanly as one loop                     |
-| Operational result         | repeatable and hardened                                                      | easier to read, easier to maintain, and more resilient overall                                  |
+| Topic                | v2.2                                  | v2.3                                 |
+| -------------------- | ------------------------------------- | ------------------------------------ |
+| Runtime target       | optimized for lower RTF and FPS runs  | optimized for higher RTF and FPS runs |
+| Main operational gap | worked better when simulation was slower | works better when simulation is faster |
 
 ---
 
@@ -385,7 +377,7 @@ This project is for **educational and research purposes only**. The developers a
 
 ## ORCUS Nedir?
 
-**ORCUS**, algılama, coğrafi konum kestirimi, sürü koordinasyonu, doğrulama ve terminal taarruz yürütmesini aynı sistem içinde birleştiren **tam otonom bir sürü kamikaze drone sistemidir**. Bu depodaki mevcut kararlı sürüm **v2.2**'dir.
+**ORCUS**, algılama, coğrafi konum kestirimi, sürü koordinasyonu, doğrulama ve terminal taarruz yürütmesini aynı sistem içinde birleştiren **tam otonom bir sürü kamikaze drone sistemidir**. Bu depodaki mevcut kararlı sürüm **v2.3**'tür.
 
 Sistem; sahadaki **bireyleri ve grup hedeflerini** görüntüden çıkarır, hedeflerin coğrafi konumunu hesaplar, farklı platformlardan gelen gözlemleri ortak bir hedef resmi içinde birleştirir, sürü içinde en doğru drone-hedef eşleşmesini üretir ve terminal taarruzu çok aşamalı, doğrulamalı bir saldırı zinciri üzerinden yürütür.
 
@@ -643,20 +635,12 @@ ORCUS-main/
 
 ---
 
-## v2.1 -> v2.2 Evrimi
+## v2.2 -> v2.3 Evrimi
 
-| Başlık              | v2.1                                                       | v2.2                                                                                          |
-| ------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Genel yapı          | modülerdi, fakat bazı sorumluluk sınırları daha iç içeydi  | lider tarafı koordinasyon, drone tarafı icra ve ortak durum yönetimi daha net ayrıldı         |
-| Hedef modeli        | hedef sürekliliği daha çok tracker davranışına dayanıyordu | grup-farkındalıklı ve daha kararlı bir hedef modeli kullanılıyor                              |
-| Konum kestirimi     | RGI ve kovaryans farkındalığı vardı                        | aynı temel korunuyor, ama güven bilgisi fusion, filtreleme ve atamaya daha düzenli bağlanıyor |
-| Füzyon              | duplicate baskılama ve family korumaları vardı             | aktif hedefleri koruyan ve toparlanma mantığıyla çalışan daha temiz bir füzyon davranışı var  |
-| Filtreleme          | hedef kararlılığı vardı ama daha sınırlı hissediliyordu    | EKF destekli ortak hedef durumu daha belirgin ve daha tutarlı                                 |
-| Atama               | optimize edilmiş atama vardı                               | atama, sahiplik ve saldırı commit hattı daha temiz bağlanıyor                                 |
-| Doğrulama hattı     | onay akışı vardı                                           | lider onayı, drone verify ve terminal yürütme sınırları daha açık                             |
-| Terminal davranış   | korumalıydı                                                | reacquire, fallback ve recovery mantığı daha anlaşılır ve daha kontrollü                      |
-| Görev yaşam döngüsü | pause/resume ve reset tarafı güçlenmişti                   | stop, pause, RTL, cleanup ve yeniden başlatma tek çevrim olarak daha temiz yönetiliyor        |
-| Operasyonel sonuç   | tekrar çalıştırılabilir ve sertleştirilmişti               | daha okunabilir, daha bakımı yapılabilir ve daha dayanıklı bir yapı oluştu                    |
+| Başlık            | v2.2                                      | v2.3                                   |
+| ----------------- | ----------------------------------------- | -------------------------------------- |
+| Çalışma hedefi    | daha düşük RTF ve FPS koşullarına uygundu | daha yüksek RTF ve FPS koşullarına uygun |
+| Temel operasyonel fark | simülasyon daha yavaşken daha rahattı      | simülasyon daha hızlıyken daha rahattır |
 
 ---
 
