@@ -1,9 +1,5 @@
 <div align="center">
 
-# ORCUS v2.3
-
-### Swarm Kamikaze Drone System
-
 <img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="430"/>
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
