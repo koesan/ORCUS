@@ -1,24 +1,24 @@
 <div align="center">
 
-<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="430"/>
+<img src="image/logo_nbgr_low.png" alt="ORCUS Logo" width="600"/>
 
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![ROS](https://img.shields.io/badge/ROS-Melodic/Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
+[![Python](https://img.shields.io/badge/Python-3.8-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![ROS](https://img.shields.io/badge/ROS-Noetic-22314E.svg?logo=ros&logoColor=white)](https://www.ros.org/)
 [![Gazebo](https://img.shields.io/badge/Gazebo-Simulation-orange.svg)](http://gazebosim.org/)
 [![YOLO](https://img.shields.io/badge/YOLOv12-Detection-00FFFF.svg)](https://github.com/ultralytics/ultralytics)
-[![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/)
 [![Flask](https://img.shields.io/badge/Flask-Web-000000.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![DroneKit](https://img.shields.io/badge/DroneKit-Python-blue.svg)](https://dronekit.io/)
 [![Docker](https://img.shields.io/badge/Docker-Support-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![ORCUS](https://img.shields.io/badge/ORCUS-v2.2-6A0DAD.svg?logo=github&logoColor=white)]()
 
-[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/V8X-XiSy9as)
+---
+
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-▶️-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/B7uMCsj2Mf8)
 
 🎥 **Demo Video**  
-
 <p align="center">
-  <a href="https://youtu.be/V8X-XiSy9as">
-    <img src="image/video.png" width="900">
+  <a href="https://youtu.be/B7uMCsj2Mf8">
+    <img src="image/video.png" width="600">
   </a>
 </p>
 
