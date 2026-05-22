@@ -94,7 +94,6 @@ flowchart TD
     O --> U
     T --> U
 
-    E -->|continuous scan cycle| F
     J -->|not yet actionable| E
     N -->|no suitable ownership / assignment| E
     P -->|leader not ready to approve| J
@@ -433,7 +432,6 @@ flowchart TD
     O --> U
     T --> U
 
-    E -->|sürekli tarama çevrimi| F
     J -->|henüz aksiyonlanabilir değil| E
     N -->|uygun sahiplik / atama yok| E
     P -->|lider onayı henüz çıkmadı| J
